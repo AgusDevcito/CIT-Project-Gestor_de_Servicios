@@ -1,6 +1,8 @@
 import { ArchivoPublicacion } from "../models/ArchivoPublicacion.models.js";
 import { Publicaciones } from "../models/publicaciones.models.js";
 import { User } from "../models/user.models.js";
+import { Sector } from "../models/sector.model.js";
+import { findSector } from "../helper/catalogos.js";
 
 const publicationIncludes = [
     {
@@ -11,6 +13,10 @@ const publicationIncludes = [
     {
         model: ArchivoPublicacion,
         as: "Archivo",
+    },
+    {
+        model: Sector,
+        as: "Sector",
     },
 ];
 
@@ -55,9 +61,10 @@ export const getPublicacionById = async (req, res) => {
 
 // Solo un usuario CIT puede crear contenido tecnico.
 export const createPublicacion = async (req, res) => {
-    const { titulo, contenido, tipo_contenido, sector } = req.body;
+    const { titulo, contenido, tipo_contenido, sector_id: requestedSector, sector } = req.body;
+    const sectorItem = await findSector(requestedSector ?? sector);
 
-    if (!titulo || !contenido) {
+    if (!titulo || !contenido || !sectorItem) {
         return res.status(400).json({ msg: "El titulo y el contenido son obligatorios" });
     }
 
@@ -66,7 +73,7 @@ export const createPublicacion = async (req, res) => {
             titulo,
             contenido,
             tipo_contenido,
-            sector,
+            sector_id: sectorItem.id,
             author_id: req.user.id,
         });
 
@@ -88,8 +95,12 @@ export const updatePublicacion = async (req, res) => {
             return res.status(404).json({ msg: "Publicacion no encontrada" });
         }
 
-        const { titulo, contenido, tipo_contenido, sector } = req.body;
-        await publicacion.update({ titulo, contenido, tipo_contenido, sector });
+        const { titulo, contenido, tipo_contenido, sector_id: requestedSector, sector } = req.body;
+        const sectorItem = await findSector(requestedSector ?? sector);
+        if (!sectorItem) {
+            return res.status(400).json({ msg: "El sector no es válido" });
+        }
+        await publicacion.update({ titulo, contenido, tipo_contenido, sector_id: sectorItem.id });
         return res.json({ msg: "Publicacion actualizada", data: publicacion });
     } catch (error) {
         console.error("Error al actualizar la publicacion:", error);

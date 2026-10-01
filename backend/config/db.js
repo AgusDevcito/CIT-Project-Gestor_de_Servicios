@@ -27,4 +27,6 @@ export const initDB = async () => {
     if (process.env.DB_SYNC === "true" || process.env.NODE_ENV !== "production") {
         await sequelize.sync();
     }
+    const { seedCatalogos } = await import('./catalogos.seed.js');
+    await seedCatalogos();
 }
