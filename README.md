@@ -17,3 +17,16 @@ Usuario:El usuario normal posee un login comun con un Nombre,Apellido,DNI,email,
 
 CIT:El usuario CIT tendra que loguearse adjuntando un documento que abale el ser un trabajador del CIT,luego de la revision si todo es correcto el trabajador podra acceder a distintas funcionalidades como poder agregar videos,imagenes y explicaciones de como funciona y se ve la patologia o la enfermedad del ganado o del cultivo,tambien podra acceder a la opcion de recomendar alguna problematica propuesta(debido a que es mejor que sea la DRA o un alto mando quien las acepte o rechace),podra modificar los servicios ya sea agregando imagenes o videos, etc.
 
+## Ejecutar backend y PostgreSQL con Docker
+
+Requisitos: Docker Desktop con Docker Compose habilitado.
+
+1. Ya que el archivo de entorno está en `backend\.env`, desde la carpeta raíz inicia los servicios indicándole esa ruta:
+
+   ```powershell
+   docker compose --env-file backend/.env up --build
+   ```
+
+2. Comprueba el backend en <http://localhost:3000/>. La respuesta esperada es `{"ok":true}`.
+
+Los datos de PostgreSQL y los documentos subidos se conservan en volúmenes de Docker. Para detener los servicios usa `docker compose --env-file backend/.env down`; `docker compose --env-file backend/.env down -v` también elimina esos datos. Este Compose está pensado para desarrollo local, no como configuración de producción.
