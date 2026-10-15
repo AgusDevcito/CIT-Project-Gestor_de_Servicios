@@ -86,10 +86,11 @@ export const login = async (req,res) => {
             })
         }
         const token = signToken(user);
+        res.cookie('token', token, { httpOnly: true, sameSite: 'strict', secure: process.env.NODE_ENV === 'production', path: '/', maxAge: 3600 * 1000 });
         return res.status(200).json({
             msg:"Usuario Logueado",
             token,
-        })
+        });
     } catch (error) {
         console.error(error)
         return res.status(500).json({

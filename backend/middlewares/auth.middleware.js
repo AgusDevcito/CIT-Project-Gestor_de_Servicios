@@ -1,12 +1,13 @@
 import { verifyToken } from "../helper/jwt.js";
 
 const getTokenFromRequest = (req) => {
+  if (req.cookies && req.cookies.token) {
+    return req.cookies.token;
+  }
   const authorization = req.headers.authorization;
-
   if (!authorization || !authorization.startsWith("Bearer ")) {
     return null;
   }
-
   return authorization.slice(7);
 };
 
