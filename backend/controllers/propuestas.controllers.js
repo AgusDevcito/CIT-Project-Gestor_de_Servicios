@@ -1,14 +1,32 @@
 import { Propuestas } from "../models/propuesta.model.js";
+import { User } from "../models/user.models.js";
+import { Sector } from "../models/sector.model.js";
+import { Estado } from "../models/estado.model.js";
+import { findEstado, findSector } from "../helper/catalogos.js";
 
+// Cada propuesta muestra al solicitante y, si existe, al revisor CIT.
+const propuestaIncludes = [
+  {
+    model: User,
+    as: 'Solicitante',
+    attributes: { exclude: ['password'] },
+  },
+  { model: Sector, as: 'Sector' },
+  {
+    model: User,
+    as: 'Revisor',
+    attributes: { exclude: ['password'] },
+  },
+];
 
-
-// 1. Crear propuesta agropecuaria
 export const crearPropuesta = async (req, res) => {
   try {
-    const { titulo, sector, problematica } = req.body;
-    const solicitanteId = req.user.id; // Obtenido del token
+    const { titulo, sector_id: requestedSector, sector, problematica } = req.body;
+    const solicitante = req.user.id;
+    const sectorItem = await findSector(requestedSector ?? sector);
+    const pendingState = await findEstado("PENDIENTE");
 
-    if (!titulo || !sector || !problematica) {
+    if (!titulo || !sectorItem || !problematica || !pendingState) {
       return res.status(400).json({
         ok: false,
         msg: 'Los campos titulo, sector y problematica son obligatorios.',
@@ -17,10 +35,10 @@ export const crearPropuesta = async (req, res) => {
 
     const nuevaPropuesta = await Propuestas.create({
       titulo,
-      sector,
+      sector_id: sectorItem.id,
       problematica,
-      solicitanteId,
-      estado: 'PENDIENTE',
+      solicitante,
+      estado_id: pendingState.id,
     });
 
     return res.status(201).json({
@@ -33,12 +51,11 @@ export const crearPropuesta = async (req, res) => {
     return res.status(500).json({ ok: false, msg: 'Error interno al registrar la propuesta.' });
   }
 };
-
-// 2. Obtener solicitudes para el CIT
 export const obtenerPendientesCIT = async (req, res) => {
   try {
     const pendientes = await Propuestas.findAll({
-      where: { estado: 'PENDIENTE' },
+      where: { estado_id: (await findEstado("PENDIENTE")).id },
+      include: [{ model: Estado, as: 'Estado' }, ...propuestaIncludes],
       order: [['createdAt', 'DESC']],
     });
 
@@ -52,20 +69,24 @@ export const obtenerPendientesCIT = async (req, res) => {
     return res.status(500).json({ ok: false, msg: 'Error al consultar propuestas.' });
   }
 };
-
-// 3. Revisión y resolución del evaluador CIT
 export const dictaminarPropuestaCIT = async (req, res) => {
   try {
     const { id } = req.params;
     const { decision, justificacion } = req.body;
-    const citRevisorId = req.user.id;
+    const cirRevisorId = req.user.id;
+    const estadoCodigo = decision === 'APROBADO' ? 'APROBADO' : 'RECHAZADO';
+    const estadoDecision = await findEstado(estadoCodigo);
 
-    // Validación de entrada
+    
     if (!['APROBADO', 'RECHAZADO'].includes(decision)) {
       return res.status(400).json({
         ok: false,
         msg: 'La decisión debe ser "APROBADO" o "RECHAZADO".',
       });
+    }
+
+    if (!estadoDecision) {
+      return res.status(500).json({ ok: false, msg: 'El estado solicitado no está configurado.' });
     }
 
     if (!justificacion || justificacion.trim().length < 15) {
@@ -75,23 +96,25 @@ export const dictaminarPropuestaCIT = async (req, res) => {
       });
     }
 
-    const propuesta = await Propuestas.findByPk(id);
+    const propuesta = await Propuestas.findByPk(id, {
+      include: [{ model: Estado, as: 'Estado' }, ...propuestaIncludes],
+    });
 
     if (!propuesta) {
       return res.status(404).json({ ok: false, msg: 'Propuesta no encontrada.' });
     }
 
-    if (propuesta.estado !== 'PENDIENTE') {
+    if (propuesta.Estado?.codigo !== 'PENDIENTE') {
       return res.status(409).json({
         ok: false,
-        msg: `La propuesta ya fue dictaminada previamente con estado: ${propuesta.estado}.`,
+        msg: `La propuesta ya fue dictaminada previamente con estado: ${propuesta.Estado?.nombre}.`,
       });
     }
 
-    // Actualización de estado y firma del revisor
-    propuesta.estado = decision;
+    
+    propuesta.estado_id = estadoDecision.id;
     propuesta.citJustificacion = justificacion.trim();
-    propuesta.citRevisorId = citRevisorId;
+    propuesta.cirRevisorId = cirRevisorId;
     propuesta.citFechaRevision = new Date();
 
     await propuesta.save();

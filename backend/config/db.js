@@ -21,12 +21,12 @@ export const sequelize = new Sequelize({
 
 
 export const initDB = async () => {
+    await sequelize.authenticate();
+    console.log("Conectado a la base de datos");
 
-    try{
-        await sequelize.authenticate();
-        console.log("Conectado a la base de datos")
-        await sequelize.sync({alter:true});
-    }catch (error) {
-        console.error("Error de conexión a la base de datos", error)
+    if (process.env.DB_SYNC === "true" || process.env.NODE_ENV !== "production") {
+        await sequelize.sync();
     }
+    const { seedCatalogos } = await import('./catalogos.seed.js');
+    await seedCatalogos();
 }

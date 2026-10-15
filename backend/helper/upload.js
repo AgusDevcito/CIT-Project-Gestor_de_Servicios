@@ -11,10 +11,8 @@ if (!fs.existsSync(uploadDir)) {
 const storage = multer.diskStorage({
   destination: (_req, _file, cb) => cb(null, uploadDir),
   filename: (_req, file, cb) => {
-    const ext = path.extname(file.originalname || '.pdf');
-    const base = (file.originalname || 'document').replace(new RegExp(`${ext}$`), '');
-    const safeBase = base.replace(/[^a-zA-Z0-9-_]/g, '_');
-    cb(null, `${Date.now()}-${safeBase}${ext}`);
+    const ext = path.extname(file.originalname || '').toLowerCase();
+    cb(null, `${Date.now()}-${Math.random().toString(36).slice(2)}${ext}`);
   },
 });
 
