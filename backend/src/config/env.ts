@@ -2,7 +2,7 @@ import dotenv from "dotenv";
 
 dotenv.config();
 
-const requiredVariables = ["DB_NAME", "DB_USER", "DB_HOST"] as const;
+const requiredVariables = ["DB_NAME", "DB_USER", "DB_HOST", "DB_PASSWORD", "DB_PORT"] as const;
 
 const toBool = (value: string | undefined): boolean => value === "true";
 
