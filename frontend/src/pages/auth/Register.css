@@ -1,0 +1,61 @@
+/* Variantes del formulario de registro (reutiliza los estilos de Login.css) */
+
+.register-wrapper {
+  max-width: 520px;
+}
+
+.form-card-wide {
+  max-width: 520px;
+}
+
+.form-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+
+.select-field {
+  cursor: pointer;
+}
+
+.select-field option {
+  background-color: #171717;
+  color: #ffffff;
+}
+
+.file-field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5em;
+  border-radius: 25px;
+  padding: 0.8em 1.2em;
+  background-color: #171717;
+  box-shadow: inset 2px 5px 10px rgb(5, 5, 5);
+  cursor: pointer;
+}
+
+.file-label {
+  color: #9ca3af;
+  font-size: 0.8rem;
+}
+
+.file-field input[type='file'] {
+  color: #e5e7eb;
+  font-size: 0.85rem;
+}
+
+.file-field input[type='file']::file-selector-button {
+  border: none;
+  border-radius: 8px;
+  padding: 0.4em 0.9em;
+  margin-right: 0.8em;
+  background-color: #447232;
+  color: white;
+  cursor: pointer;
+}
+
+@media (max-width: 480px) {
+  .form-row {
+    grid-template-columns: 1fr;
+  }
+}

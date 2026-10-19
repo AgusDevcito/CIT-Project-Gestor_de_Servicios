@@ -1,36 +1,23 @@
-const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000/api';
+import apiClient from './apiClient';
 
-export const loginUser = async (email, password)=>{
-    const response = await fetch(`${API_URL}/auth/login`,{
-        method: 'POST',
-        headers:{
-            'Content-Type': 'application/json',
-        },
-        credentials: 'include',
-        body: JSON.stringify({email, password}),
-    });
-
-    const data = await response.json();
-
-    if (!response.ok){
-        throw new Error(data.message || 'Error al iniciar sesión')
-    }
-    return data;
+// El backend setea la sesión como cookie HttpOnly; no hace falta guardar el token a mano.
+export const login = async (username, password) => {
+  const { data } = await apiClient.post('/login', { username, password });
+  return data;
 };
 
-export const registerUser = async (name, email, password)=>{
-    const response = await fetch(`${API_URL}/auth/register`,{
-        method: 'POST',
-        headers:{
-            'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({name, email, password}),
-    });
+// El registro recibe un FormData porque puede incluir el documento que avala al personal CIT.
+export const register = async (formData) => {
+  const { data } = await apiClient.post('/register', formData);
+  return data;
+};
 
-    const data = await response.json();
+export const logout = async () => {
+  const { data } = await apiClient.post('/logout');
+  return data;
+};
 
-    if (!response.ok){
-        throw new Error(data.message || 'Error al registrarse!');
-    }
-    return data
-}
+export const getProfile = async () => {
+  const { data } = await apiClient.get('/profile');
+  return data;
+};
