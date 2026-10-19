@@ -1,99 +1,133 @@
-import { useCallback, useEffect, useState } from 'react';
-import { useAuth } from '../context/AuthContext';
-import { getApiError } from '../services/apiClient';
-import { getSectores } from '../services/catalogosService';
+import { useCallback, useEffect, useState } from "react";
+
+import { useAuth } from "../context/useAuth";
+import { getApiError } from "../domain/errors";
+import { esPersonalCIT } from "../domain/roles";
+import { getSectores } from "../services/catalogosService";
 import {
   crearPropuesta,
   dictaminarPropuesta,
   getPropuestasPendientes,
-} from '../services/propuestasService';
+} from "../services/propuestasService";
+import type { Propuesta, Sector } from "../domain/entidades";
 
-const INITIAL_FORM = { titulo: '', sector: '', problematica: '' };
+interface FormularioPropuesta {
+  titulo: string;
+  sector: string;
+  problematica: string;
+}
 
-const fechaFormato = (fecha) =>
-  new Date(fecha).toLocaleDateString('es-AR', { dateStyle: 'long' });
+type Decision = "APROBADO" | "RECHAZADO";
+
+interface DecisionPropuesta {
+  decision?: Decision;
+  justificacion: string;
+}
+
+const INITIAL_FORM: FormularioPropuesta = {
+  titulo: "",
+  sector: "",
+  problematica: "",
+};
+
+const MINIMO_JUSTIFICACION = 15;
+
+const fechaFormato = (fecha: string): string =>
+  new Date(fecha).toLocaleDateString("es-AR", { dateStyle: "long" });
 
 export default function Propuestas() {
   const { user } = useAuth();
-  const isCIT = user?.role === 'cit' || user?.role === 'admin';
+  const isCIT = esPersonalCIT(user?.rol);
 
-  const [sectores, setSectores] = useState([]);
-  const [form, setForm] = useState(INITIAL_FORM);
+  const [sectores, setSectores] = useState<Sector[]>([]);
+  const [form, setForm] = useState<FormularioPropuesta>(INITIAL_FORM);
   const [saving, setSaving] = useState(false);
-  const [feedback, setFeedback] = useState('');
-  const [error, setError] = useState('');
+  const [feedback, setFeedback] = useState("");
+  const [error, setError] = useState("");
 
-  const [pendientes, setPendientes] = useState([]);
+  const [pendientes, setPendientes] = useState<Propuesta[]>([]);
   const [loading, setLoading] = useState(isCIT);
-  const [decisiones, setDecisiones] = useState({});
+  const [decisiones, setDecisiones] = useState<Record<number, DecisionPropuesta>>({});
 
   useEffect(() => {
-    getSectores().then(setSectores).catch(() => setSectores([]));
+    getSectores()
+      .then(setSectores)
+      .catch(() => setSectores([]));
   }, []);
 
   const loadPendientes = useCallback(async () => {
     try {
       setPendientes(await getPropuestasPendientes());
     } catch (err) {
-      setError(getApiError(err, 'No se pudieron cargar las propuestas.'));
+      setError(getApiError(err, "No se pudieron cargar las propuestas."));
     } finally {
       setLoading(false);
     }
   }, []);
 
   useEffect(() => {
-    if (isCIT) loadPendientes();
+    if (isCIT) void loadPendientes();
   }, [isCIT, loadPendientes]);
 
-  const handleChange = (e) => setForm((prev) => ({ ...prev, [e.target.name]: e.target.value }));
+  const handleChange = (
+    e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>,
+  ) => {
+    const { name, value } = e.target;
+    setForm((prev) => ({ ...prev, [name]: value }));
+  };
 
-  const handleSubmit = async (e) => {
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    setError('');
-    setFeedback('');
+    setError("");
+    setFeedback("");
     setSaving(true);
     try {
       const data = await crearPropuesta(form);
       setForm(INITIAL_FORM);
-      setFeedback(data.msg || 'Propuesta enviada correctamente. Será revisada por el personal CIT.');
+      setFeedback(data.msg || "Propuesta enviada correctamente. Será revisada por el personal CIT.");
     } catch (err) {
-      setError(getApiError(err, 'No se pudo enviar la propuesta.'));
+      setError(getApiError(err, "No se pudo enviar la propuesta."));
     } finally {
       setSaving(false);
     }
   };
 
-  const handleDecision = (propuesta, decision) => {
+  const handleDecision = (propuesta: Propuesta, decision: Decision) => {
     setDecisiones((prev) => ({
       ...prev,
-      [propuesta.id]: { ...prev[propuesta.id], decision, justificacion: prev[propuesta.id]?.justificacion ?? '' },
+      [propuesta.id]: {
+        ...prev[propuesta.id],
+        decision,
+        justificacion: prev[propuesta.id]?.justificacion ?? "",
+      },
     }));
   };
 
-  const handleJustificacion = (propuestaId, justificacion) => {
+  const handleJustificacion = (propuestaId: number, justificacion: string) => {
     setDecisiones((prev) => ({
       ...prev,
       [propuestaId]: { ...prev[propuestaId], justificacion },
     }));
   };
 
-  const handleDictaminar = async (propuesta) => {
+  const handleDictaminar = async (propuesta: Propuesta) => {
     const { decision, justificacion } = decisiones[propuesta.id] ?? {};
+
     if (!decision) {
-      setError('Elegí si aprobás o rechazás la propuesta.');
+      setError("Elegí si aprobás o rechazás la propuesta.");
       return;
     }
-    if (!justificacion || justificacion.trim().length < 15) {
-      setError('La justificación técnica debe tener al menos 15 caracteres.');
+    if (!justificacion || justificacion.trim().length < MINIMO_JUSTIFICACION) {
+      setError(`La justificación técnica debe tener al menos ${MINIMO_JUSTIFICACION} caracteres.`);
       return;
     }
 
-    setError('');
+    setError("");
     try {
       await dictaminarPropuesta(propuesta.id, decision, justificacion.trim());
       setPendientes((prev) => prev.filter((item) => item.id !== propuesta.id));
     } catch (err) {
-      setError(getApiError(err, 'No se pudo registrar el dictamen.'));
+      setError(getApiError(err, "No se pudo registrar el dictamen."));
     }
   };
 
@@ -102,8 +136,8 @@ export default function Propuestas() {
       <h1 className="text-3xl font-bold text-white">Propuestas</h1>
       <p className="mt-1 text-slate-300">
         {isCIT
-          ? 'Propuestas agropecuarias pendientes de revisión.'
-          : '¿Tenés una problemática del sector agropecuario? Proponé una solución con nosotros.'}
+          ? "Propuestas agropecuarias pendientes de revisión."
+          : "¿Tenés una problemática del sector agropecuario? Proponé una solución con nosotros."}
       </p>
 
       {error && (
@@ -160,7 +194,7 @@ export default function Propuestas() {
             disabled={saving}
             className="mt-4 rounded-lg bg-cit-600 px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-cit-500 disabled:opacity-60"
           >
-            {saving ? 'Enviando…' : 'Enviar propuesta'}
+            {saving ? "Enviando…" : "Enviar propuesta"}
           </button>
         </form>
       )}
@@ -181,12 +215,12 @@ export default function Propuestas() {
                 >
                   <div className="flex flex-wrap items-center gap-2">
                     <span className="rounded-full bg-cit-700 px-2.5 py-0.5 text-xs text-cit-neon">
-                      {propuesta.Sector?.nombre || 'Sin sector'}
+                      {propuesta.Sector?.nombre || "Sin sector"}
                     </span>
                     <span className="text-xs text-slate-400">
                       {propuesta.Solicitante?.username
                         ? `Por ${propuesta.Solicitante.username}`
-                        : ''}{' '}
+                        : ""}{" "}
                       · {fechaFormato(propuesta.createdAt)}
                     </span>
                   </div>
@@ -200,8 +234,8 @@ export default function Propuestas() {
                       <input
                         type="radio"
                         name={`decision-${propuesta.id}`}
-                        checked={decisiones[propuesta.id]?.decision === 'APROBADO'}
-                        onChange={() => handleDecision(propuesta, 'APROBADO')}
+                        checked={decisiones[propuesta.id]?.decision === "APROBADO"}
+                        onChange={() => handleDecision(propuesta, "APROBADO")}
                       />
                       Aprobar
                     </label>
@@ -209,13 +243,13 @@ export default function Propuestas() {
                       <input
                         type="radio"
                         name={`decision-${propuesta.id}`}
-                        checked={decisiones[propuesta.id]?.decision === 'RECHAZADO'}
-                        onChange={() => handleDecision(propuesta, 'RECHAZADO')}
+                        checked={decisiones[propuesta.id]?.decision === "RECHAZADO"}
+                        onChange={() => handleDecision(propuesta, "RECHAZADO")}
                       />
                       Rechazar
                     </label>
                     <button
-                      onClick={() => handleDictaminar(propuesta)}
+                      onClick={() => void handleDictaminar(propuesta)}
                       className="ml-auto rounded-lg bg-cit-600 px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-cit-500"
                     >
                       Registrar dictamen
@@ -223,8 +257,8 @@ export default function Propuestas() {
                   </div>
                   <textarea
                     rows={2}
-                    placeholder="Justificación técnica (mínimo 15 caracteres)"
-                    value={decisiones[propuesta.id]?.justificacion ?? ''}
+                    placeholder={`Justificación técnica (mínimo ${MINIMO_JUSTIFICACION} caracteres)`}
+                    value={decisiones[propuesta.id]?.justificacion ?? ""}
                     onChange={(e) => handleJustificacion(propuesta.id, e.target.value)}
                     className="input-base mt-3"
                   />

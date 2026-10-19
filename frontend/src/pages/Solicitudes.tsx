@@ -1,39 +1,45 @@
-import { useCallback, useEffect, useState } from 'react';
-import { useAuth } from '../context/AuthContext';
-import { getApiError } from '../services/apiClient';
-import { getEstados } from '../services/catalogosService';
-import { getSolicitudes, updateSolicitudEstado } from '../services/solicitudesService';
+import { useCallback, useEffect, useState } from "react";
 
-const fechaFormato = (fecha) =>
-  new Date(fecha).toLocaleDateString('es-AR', { dateStyle: 'long' });
+import { useAuth } from "../context/useAuth";
+import { getApiError } from "../domain/errors";
+import { esPersonalCIT } from "../domain/roles";
+import { getEstados } from "../services/catalogosService";
+import { getSolicitudes, updateSolicitudEstado } from "../services/solicitudesService";
+import type { Estado, Solicitud } from "../domain/entidades";
+
+const fechaFormato = (fecha: string): string =>
+  new Date(fecha).toLocaleDateString("es-AR", { dateStyle: "long" });
 
 export default function Solicitudes() {
   const { user } = useAuth();
-  const isCIT = user?.role === 'cit' || user?.role === 'admin';
+  const isCIT = esPersonalCIT(user?.rol);
 
-  const [solicitudes, setSolicitudes] = useState([]);
-  const [estados, setEstados] = useState([]);
+  const [solicitudes, setSolicitudes] = useState<Solicitud[]>([]);
+  const [estados, setEstados] = useState<Estado[]>([]);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState('');
+  const [error, setError] = useState("");
 
   const loadData = useCallback(async () => {
     try {
-      const [data, estadosData] = await Promise.all([getSolicitudes(), isCIT ? getEstados() : []]);
+      const [data, estadosData] = await Promise.all([
+        getSolicitudes(),
+        isCIT ? getEstados() : Promise.resolve([]),
+      ]);
       setSolicitudes(data);
       setEstados(estadosData);
     } catch (err) {
-      setError(getApiError(err, 'No se pudieron cargar las solicitudes.'));
+      setError(getApiError(err, "No se pudieron cargar las solicitudes."));
     } finally {
       setLoading(false);
     }
   }, [isCIT]);
 
   useEffect(() => {
-    loadData();
+    void loadData();
   }, [loadData]);
 
-  const handleEstadoChange = async (id, estadoCodigo) => {
-    setError('');
+  const handleEstadoChange = async (id: number, estadoCodigo: string) => {
+    setError("");
     try {
       await updateSolicitudEstado(id, estadoCodigo);
       setSolicitudes((prev) =>
@@ -47,7 +53,7 @@ export default function Solicitudes() {
         ),
       );
     } catch (err) {
-      setError(getApiError(err, 'No se pudo actualizar el estado.'));
+      setError(getApiError(err, "No se pudo actualizar el estado."));
     }
   };
 
@@ -56,8 +62,8 @@ export default function Solicitudes() {
       <h1 className="text-3xl font-bold text-white">Solicitudes</h1>
       <p className="mt-1 text-slate-300">
         {isCIT
-          ? 'Todas las solicitudes de servicio recibidas.'
-          : 'Tus solicitudes de servicio y su estado actual.'}
+          ? "Todas las solicitudes de servicio recibidas."
+          : "Tus solicitudes de servicio y su estado actual."}
       </p>
 
       {error && (
@@ -84,20 +90,22 @@ export default function Solicitudes() {
             <tbody>
               {solicitudes.map((solicitud) => (
                 <tr key={solicitud.id} className="border-b border-cit-700/60 last:border-0">
-                  <td className="px-4 py-3 text-white">{solicitud.Servicio?.servicio_nombre || '—'}</td>
+                  <td className="px-4 py-3 text-white">
+                    {solicitud.Servicio?.servicio_nombre || "—"}
+                  </td>
                   <td className="px-4 py-3 text-slate-300">
-                    {fechaFormato(solicitud.fecha_solicitud || solicitud.createdAt)}
+                    {fechaFormato(solicitud.fecha_solicitud ?? solicitud.createdAt)}
                   </td>
                   <td className="px-4 py-3">
                     <span className="rounded-full bg-cit-700 px-2.5 py-0.5 text-xs text-cit-neon">
-                      {solicitud.Estado?.nombre || 'Sin estado'}
+                      {solicitud.Estado?.nombre || "Sin estado"}
                     </span>
                   </td>
                   {isCIT && (
                     <td className="px-4 py-3">
                       <select
-                        value={solicitud.Estado?.codigo ?? ''}
-                        onChange={(e) => handleEstadoChange(solicitud.id, e.target.value)}
+                        value={solicitud.Estado?.codigo ?? ""}
+                        onChange={(e) => void handleEstadoChange(solicitud.id, e.target.value)}
                         className="rounded-lg border border-cit-600/40 bg-cit-900 px-2 py-1.5 text-xs text-white"
                       >
                         {estados.map((estado) => (

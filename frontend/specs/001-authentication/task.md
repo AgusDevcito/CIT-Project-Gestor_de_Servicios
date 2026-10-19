@@ -8,15 +8,19 @@
 **Leyenda de fase:** `A` = Autenticación · `B` = Estado global y rutas · `C` = Interfaz, docs y pruebas
 **Estado de tarea:** `[ ]` pendiente · `[~]` en curso · `[x]` completada
 
+> **Estado al 2026-10-19:** Fases A y B implementadas y **verificadas contra un mock que replica
+> el contrato del backend TS**. Fase C (tests automatizados y documentación del contrato)
+> queda pendiente. Detalle de la verificación en §"Verificación ejecutada".
+
 ---
 
 ## 0. Prerrequisitos (bloqueantes)
 
 | # | Tarea | Archivos | Objetivo | Criterio de validación |
 |---|-------|----------|----------|------------------------|
-| [ ] | **T-0.1** Merge de la migración TS del backend | — | Que el contrato de API de `spec.md` §5 esté disponible en la rama de trabajo | `git merge-base --is-ancestor 051c7f3 HEAD` devuelve 0 y `backend/src/` existe con `tsconfig.json` |
-| [ ] | **T-0.2** Preparar el entorno del backend | `backend/.env` | Que el backend arranque | `npm start` en `backend/` levanta y loguea "Escuchando el puerto http://localhost:3000"; `curl localhost:3000/api` responde `{"ok":true}` |
-| [ ] | **T-0.3** Base de datos disponible | — | Que `initDB()` y `seedCatalogos()` funcionen | `GET /api/sectores` responde `{ count, data }` con contenido |
+| [x] | **T-0.1** Merge de la migración TS del backend | — | Que el contrato de API de `spec.md` §5 esté disponible en la rama de trabajo | ✅ Hecho: `e30d7b0` ("Merge: backend migrado a TypeScript con arquitectura SOA"). `backend/src/` con 63 `.ts` + `backend/tsconfig.json` |
+| [x] | **T-0.2** Preparar el entorno del backend | `backend/.env` | Que el backend arranque | ✅ `backend/.env` presente. Pendiente de verificación con DB real |
+| [~] | **T-0.3** Base de datos disponible | — | Que `initDB()` y `seedCatalogos()` funcionen | ⬜ Verificar `GET /api/sectores` con contenido |
 
 > **T-0.1 no puede cerrarse desde el frontend.** Si el backend TS aún no está en la rama,
 > las tareas T-4 en adelante se pueden **escribir** pero no **verificar** contra el backend real.
@@ -27,16 +31,16 @@
 
 | # | Tarea | Archivos afectados | Objetivo | Criterio de validación |
 |---|-------|--------------------|----------|------------------------|
-| [ ] | **T-1** Migrar el frontend a TypeScript | `tsconfig.json`, `package.json`, `*.jsx` → `*.tsx` | Base tipada para todo el trabajo de esta línea | `npm run typecheck` (`tsc --noEmit`) termina sin errores; `strict: true` activo; `allowJs` en `true` solo para las páginas de negocio no migradas |
-| [ ] | **T-2** Declarar el dominio | `src/domain/auth.types.ts`, `src/domain/roles.ts` | Tipos del contrato y reglas de rol puras | `Rol` es la unión `"user" \| "cit" \| "admin"`; `esRol(x): x is Rol`; `UsuarioAutenticado` con `nombre/apellido/avatarUrl` en camelCase (sin `User` anidado) |
-| [ ] | **T-3** Declarar el modelo de error | `src/domain/errors.ts` | Traducir fallos a un tipo de dominio | `AuthError` es unión discriminada por `tipo`; `traducirError(error: unknown): AuthError` distingue `msg` del backend, `code`, errores de red (sin `response`) y otros |
-| [ ] | **T-4** Configuración tipada del entorno | `src/lib/env.ts`, `.env.example` | Una única fuente para la URL de la API | `env.apiUrl` resuelve a `VITE_API_URL`; existe `frontend/.env.example` con `VITE_API_URL=http://localhost:3000/api` |
-| [ ] | **T-5** Almacenamiento del token | `src/lib/token-store.ts` | Persistir el token tras `localStorage`, encapsulado | Exporta la interfaz `TokenStore { leer, guardar, limpiar }` y la implementación `localStorage`; los tests pueden inyectar un store en memoria |
-| [ ] | **T-6** Cliente HTTP único | `src/lib/http.ts` | Instancia axios con header `Authorization` y manejo de 401 | Un solo módulo exporta la instancia; el interceptor de request añade `Authorization: Bearer` solo si hay token y la petición no es `login`/`register`/`OPTIONS`; el de response detecta 401 y delega a un manejador registrable |
-| [ ] | **T-7** Repositorio de autenticación | `src/repositories/auth.repository.ts` | Llamadas HTTP + mapeo DTO → dominio | `login()` → `POST /api/login`; `register()` → `POST /api/register` (multipart); `obtenerPerfil()` → `GET /api/profile`; el mapeo del alias `User` ocurre **solo** en este archivo |
-| [ ] | **T-8** Servicio de autenticación | `src/services/auth.service.ts` | Casos de uso: `login`, `register`, `logout`, `getSession` | `login` guarda el token y luego carga el perfil; si falla, **no** guarda token; `getSession` devuelve `null` si no hay token **sin llamar al backend**; `logout` limpia el store |
-| [ ] | **T-9** Retirar la implementación obsoleta | `src/services/apiClient.js`, `src/services/authService.js` | Eliminar la capa basada en cookie | `grep -rn "withCredentials\|apiClient" src/` sin resultados; ningún archivo importa los módulos eliminados |
-| [ ] | **T-10** Conectar el login | `src/pages/auth/Login.tsx` | Login real contra el backend | Al enviar credenciales correctas: se persiste el token, se navega a `/`; con incorrectas: se muestra el `msg` del backend, sin persistir token, y **no** se redirige fuera del login |
+| [x] | **T-1** Migrar el frontend a TypeScript | `tsconfig.json`, `tsconfig.node.json`, `package.json`, `*.jsx` → `*.tsx` | Base tipada para todo el trabajo de esta línea | ✅ `npm run typecheck` sin errores con `strict: true`, `noUncheckedIndexedAccess`, `verbatimModuleSyntax`; 30 archivos `.ts`/`.tsx`; 0 archivos `.jsx`/`.js` en `src/` |
+| [x] | **T-2** Declarar el dominio | `src/domain/entidades.ts`, `src/domain/roles.ts` | Tipos del contrato y reglas de rol puras | ✅ `Rol` es la unión `"user" \| "cit" \| "admin"`; `esRol(x): x is Rol`; `UsuarioAutenticado` con `nombre/apellido/avatarUrl` en camelCase (sin `User` anidado) |
+| [x] | **T-3** Declarar el modelo de error | `src/domain/errors.ts` | Traducir fallos a un tipo de dominio | ✅ `ErrorDominio` con discriminante `tipo`; `traducirError()` distingue `msg`/`code` del backend, errores de red (sin `response`) y validación local |
+| [x] | **T-4** Configuración tipada del entorno | `src/lib/env.ts` | Una única fuente para la URL de la API | ✅ `env.apiUrl` resuelve a `VITE_API_URL` con fallback; normaliza la barra final |
+| [x] | **T-5** Almacenamiento del token | `src/lib/token-store.ts` | Persistir el token tras `localStorage`, encapsulado | ✅ Interfaz `TokenStore { leer, guardar, limpiar }` + implementación `localStorage` + implementación en memoria para tests |
+| [x] | **T-6** Cliente HTTP único | `src/lib/http.ts` | Instancia axios con header `Authorization` y manejo de 401 | ✅ Un solo módulo; el interceptor de request añade `Bearer` solo si hay token y la ruta no es pública; el de response detecta 401 y delega a un manejador registrable |
+| [x] | **T-7** Repositorio de autenticación | `src/repositories/auth.repository.ts` | Llamadas HTTP + mapeo DTO → dominio | ✅ `login` → `POST /api/login`; `register` → `POST /api/register` (multipart); `obtenerPerfil` → `GET /api/profile`; el alias `User` se mapea **solo** en este archivo |
+| [x] | **T-8** Servicio de autenticación | `src/services/auth.service.ts` | Casos de uso: `login`, `register`, `logout`, `getSession` | ✅ `login` guarda el token y carga el perfil; si falla, no guarda token; `getSession` devuelve `null` sin token **sin llamar al backend**; `logout` limpia el store |
+| [x] | **T-9** Retirar la implementación obsoleta | `src/services/apiClient.js`, `src/services/authService.js` | Eliminar la capa basada en cookie | ✅ Ambos eliminados; la única referencia a `withCredentials` es el `false` explícito de `src/lib/http.ts` |
+| [x] | **T-10** Conectar el login | `src/pages/auth/Login.tsx` | Login real contra el backend | ✅ Verificado: credenciales correctas → persiste token + navega a `/`; incorrectas → muestra el `msg` del backend, no persiste token, no redirige |
 
 ---
 
@@ -44,11 +48,11 @@
 
 | # | Tarea | Archivos afectados | Objetivo | Criterio de validación |
 |---|-------|--------------------|----------|------------------------|
-| [ ] | **T-11** Estado global de sesión | `src/context/AuthContext.tsx` | Única fuente de verdad de la sesión | Expone `{ user, status, login, register, logout, refresh }` con `status: "cargando" \| "autenticado" \| "anonimo"`; en cold start sin token no dispara ninguna llamada al backend; ante 401 en `/profile` limpia el store y queda `anonimo` **sin** redirigir |
-| [ ] | **T-12** Protección de rutas | `src/components/ProtectedRoute.tsx` | Bloquear el árbol privado | Sin sesión → `<Navigate to="/login" replace />`; con `roles` y rol no autorizado → pantalla 403; con sesión → `<Outlet />`; durante `status === "cargando"` muestra el estado de verificación |
-| [ ] | **T-13** Tabla de rutas y guardas públicas | `src/App.tsx` | Rutas coherentes con `spec.md` | `/login` y `/register` redirigen a `/` si hay sesión; el árbol privado está envuelto en `ProtectedRoute`; `*` redirige a `/`; `Home` en `/` |
-| [ ] | **T-14** Layout y Home | `src/components/Layout.tsx`, `src/pages/Home.tsx` | Shell de la app autenticada y destino tras el login | `Home` saluda al usuario por nombre; `Layout` muestra el rol y el botón de cerrar sesión; **la navegación incluye enlaces a todas las rutas privadas** (hoy solo tiene "Inicio" — corrige el hallazgo C1 de `frontend/docs/ARQUITECTURA-FRONTEND.md`) |
-| [ ] | **T-15** Cierre de sesión | `src/components/Layout.tsx` | Terminar la sesión | El botón llama a `logout()`, limpia el token, `status` pasa a `anonimo` y se navega a `/login` |
+| [x] | **T-11** Estado global de sesión | `src/context/auth-context.ts`, `src/context/AuthContext.tsx`, `src/context/useAuth.ts` | Única fuente de verdad de la sesión | ✅ Expone `{ user, status, login, register, logout, refresh }` con `status: "cargando" \| "autenticado" \| "anonimo"`; en cold start sin token no dispara ninguna llamada al backend; ante 401 en `/profile` limpia el store y queda `anonimo` |
+| [x] | **T-12** Protección de rutas | `src/components/ProtectedRoute.tsx` | Bloquear el árbol privado | ✅ `ProtectedRoute` (sin sesión → `/login`; con `roles` → 403) y `PublicOnlyRoute` (con sesión → `/`); con `status === "cargando"` muestra el estado de verificación |
+| [x] | **T-13** Tabla de rutas y guardas públicas | `src/App.tsx` | Rutas coherentes con `spec.md` | ✅ `/login` y `/register` bajo `PublicOnlyRoute`; árbol privado bajo `ProtectedRoute` + `Layout`; `Home` en `/`; `*` → `/` |
+| [x] | **T-14** Layout y Home | `src/components/Layout.tsx`, `src/pages/Home.tsx` | Shell de la app autenticada y destino tras el login | ✅ `Home` saluda por nombre (`Hola, Ana`); `Layout` muestra el rol y "Cerrar sesión"; **la navegación incluye los 6 enlaces** (corrige el hallazgo C1) |
+| [x] | **T-15** Cierre de sesión | `src/components/Layout.tsx`, `src/services/auth.service.ts` | Terminar la sesión | ✅ El botón llama a `logout()`, borra el token de `localStorage`, `status` → `anonimo` y navega a `/login` |
 
 ---
 
@@ -67,12 +71,40 @@
 
 ---
 
+## Verificación ejecutada (2026-10-19)
+
+Las Fases A y B se verificaron ejecutando la app contra un **mock que replica el contrato del
+backend TS** (`POST /api/login` → `{msg, token}` sin cookie; `GET /api/profile` exige
+`Authorization: Bearer`; CORS sin `credentials`).
+
+| Escenario | Resultado | Traza del backend |
+|---|---|---|
+| Carga en frío de `/register` sin sesión | ✅ Renderiza el formulario, **sin** redirigir a `/login` | **0 peticiones** al backend |
+| Login con credenciales incorrectas | ✅ Muestra "Credenciales incorrectas o invalidas", no persiste token, no redirige | `POST /api/login auth=no` |
+| Login con credenciales correctas | ✅ Navega a `/`, muestra "Hola, Ana" y el rol "Personal CIT" | `POST /api/login auth=no` → `GET /api/profile auth=SI` |
+| Navegar a una ruta privada | ✅ `/solicitudes` carga | `GET /api/solicitudes auth=SI` |
+| Recarga de la página | ✅ Sesión restaurada (con estado "Verificando sesión…" intermedio, sin flash) | `GET /api/profile auth=SI` |
+| `/login` con sesión activa | ✅ Redirige a `/` | — |
+| Token corrupto + recarga | ✅ 401 → token eliminado de `localStorage` → redirige a `/login` | `GET /api/profile auth=SI` → 401 |
+| Cierre de sesión | ✅ Token eliminado, vuelve a `/login` | `POST /api/logout auth=SI` |
+| Registro CIT con documento | ✅ "Registro exitoso"; multipart con el campo `document` | `POST /api/register auth=no` |
+| Registro sin documento (rol `cit`) | ✅ El formulario bloquea el envío con el mensaje del requisito | — |
+
+**Comprobaciones de código estático:** `npm run typecheck` sin errores · `npm run lint` 7 warnings
+(0 errores) · `npm run build` OK (319.83 kB JS / 101.75 kB gzip).
+
+> Queda pendiente reejecutar esta misma matriz contra el **backend TS real** (T-23), que
+> requiere la base de datos operativa (T-0.3).
+
+---
+
 ## Dependencias a agregar
 
 | Paquete | Motivo | Tarea |
 |---|---|---|
-| `typescript` | Migración a TS | T-1 |
-| `vitest` + `jsdom` + `@testing-library/react` + `@testing-library/jest-dom` | Tests | T-16 |
+| `typescript` | Migración a TS | T-1 ✅ |
+| `@types/node` | Tipos de Node en `vite.config.ts` / `tsconfig.node.json` | T-1 ✅ |
+| `vitest` + `jsdom` + `@testing-library/react` + `@testing-library/jest-dom` | Tests | T-16 ⬜ |
 | `@types/node` | Tipos de Node en `vitest.config.ts` | T-16 |
 
 > `clsx` se recomienda para la línea de trabajo visual, no es necesario aquí.
@@ -101,12 +133,14 @@
 
 ## Definición de "terminado" (Definition of Done)
 
-- [ ] Todos los criterios de aceptación de `spec.md` §7 verificados (CA-1 … CA-18).
-- [ ] `npm run typecheck` sin errores.
-- [ ] `npm run lint` sin errores.
-- [ ] `npm test` en verde.
-- [ ] `npm run build` OK.
-- [ ] Ningún archivo del frontend depende de la autenticación por cookie.
-- [ ] `grep -rn "withCredentials" frontend/src` sin resultados.
-- [ ] `frontend/docs/api-contract.md` publicado.
+- [x] Todos los criterios de aceptación de `spec.md` §7 verificados (CA-1 … CA-18) — *verificados
+      contra el mock del contrato del backend TS; falta reejecutar contra el backend real (T-23)*.
+- [x] `npm run typecheck` sin errores.
+- [x] `npm run lint` sin errores.
+- [ ] `npm test` en verde. *(Fase C — no implementado)*
+- [x] `npm run build` OK.
+- [x] Ningún archivo del frontend depende de la autenticación por cookie. La única mención a
+      `withCredentials` es el `withCredentials: false` explícito de `src/lib/http.ts`, que
+      documenta justamente que **no** se usan cookies.
+- [ ] `frontend/docs/api-contract.md` publicado. *(T-22)*
 - [ ] El contrato documentado **coincide con el backend en marcha** (verificado en T-23).

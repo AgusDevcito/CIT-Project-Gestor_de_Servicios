@@ -1,14 +1,17 @@
-import { NavLink, Outlet } from 'react-router-dom';
-import { useAuth } from '../context/AuthContext';
-import logoCitio from '../assets/logo-CITio.png';
+import { NavLink, Outlet } from "react-router-dom";
 
-const NAV_LINKS = [{ to: '/', label: 'Inicio', end: true }];
+import { useAuth } from "../context/useAuth";
+import { labelDeRol } from "../domain/roles";
+import logoCitio from "../assets/logo-CITio.png";
 
-const ROLE_LABELS = {
-  cit: 'Personal CIT',
-  user: 'Usuario',
-  admin: 'Admin',
-};
+const NAV_LINKS = [
+  { to: "/", label: "Inicio", end: true },
+  { to: "/servicios", label: "Servicios", end: false },
+  { to: "/solicitudes", label: "Solicitudes", end: false },
+  { to: "/publicaciones", label: "Publicaciones", end: false },
+  { to: "/propuestas", label: "Propuestas", end: false },
+  { to: "/perfil", label: "Mi Perfil", end: false },
+] as const;
 
 export default function Layout() {
   const { user, logout } = useAuth();
@@ -33,8 +36,8 @@ export default function Layout() {
               className={({ isActive }) =>
                 `rounded-lg px-3 py-1.5 text-sm transition-colors ${
                   isActive
-                    ? 'bg-cit-600 text-white'
-                    : 'text-slate-300 hover:bg-cit-700 hover:text-white'
+                    ? "bg-cit-600 text-white"
+                    : "text-slate-300 hover:bg-cit-700 hover:text-white"
                 }`
               }
             >
@@ -45,10 +48,10 @@ export default function Layout() {
 
         <div className="mt-auto flex flex-col gap-3 border-t border-cit-600/40 p-3">
           <span className="self-start rounded-full border border-cit-neon/40 px-3 py-1 text-xs text-cit-neon">
-            {ROLE_LABELS[user?.role] || user?.role}
+            {labelDeRol(user?.rol)}
           </span>
           <button
-            onClick={logout}
+            onClick={() => void logout()}
             className="rounded-lg bg-cit-700 px-3 py-1.5 text-sm text-slate-200 transition-colors hover:bg-red-900/60 hover:text-white"
           >
             Cerrar sesión

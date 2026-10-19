@@ -1,28 +1,29 @@
-import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
-import './Login.css';
-import logoCitio from '../../assets/logo-CITio.png';
-import { useAuth } from '../../context/AuthContext';
-import { getApiError } from '../../services/apiClient';
+import { useState } from "react";
+import { useNavigate } from "react-router-dom";
+
+import "./Login.css";
+import logoCitio from "../../assets/logo-CITio.png";
+import { useAuth } from "../../context/useAuth";
+import { getApiError } from "../../domain/errors";
 
 export const Login = () => {
-  const [username, setUsername] = useState('');
-  const [password, setPassword] = useState('');
-  const [error, setError] = useState('');
+  const [username, setUsername] = useState("");
+  const [password, setPassword] = useState("");
+  const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
   const { login } = useAuth();
   const navigate = useNavigate();
 
-  const handleSubmit = async (e) => {
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    setError('');
+    setError("");
     setLoading(true);
 
     try {
       await login(username, password);
-      navigate('/');
+      navigate("/", { replace: true });
     } catch (err) {
-      setError(getApiError(err, 'No se pudo iniciar sesión.'));
+      setError(getApiError(err, "No se pudo iniciar sesión."));
     } finally {
       setLoading(false);
     }
@@ -35,14 +36,14 @@ export const Login = () => {
       <div id="stars2" />
       <div id="stars3" />
 
-      {/* contenedor central */}
+      {/* Contenedor central */}
       <div className="login-wrapper">
-        {/*  Contenedor del Logo */}
+        {/* Contenedor del Logo */}
         <div className="logo-container">
           <img src={logoCitio} alt="Logo CITio" className="login-logo" />
         </div>
 
-        {/*  Formulario con estilo Dark Inset */}
+        {/* Formulario con estilo Dark Inset */}
         <form className="form-card" onSubmit={handleSubmit}>
           <p className="heading">Iniciar Sesión</p>
 
@@ -55,6 +56,7 @@ export const Login = () => {
             </svg>
             <input
               type="text"
+              name="username"
               required
               autoComplete="username"
               placeholder="Nombre de usuario"
@@ -71,6 +73,7 @@ export const Login = () => {
             </svg>
             <input
               type="password"
+              name="password"
               required
               autoComplete="current-password"
               placeholder="Contraseña"
@@ -83,9 +86,9 @@ export const Login = () => {
           {/* Botones de Acción */}
           <div className="btn-group">
             <button type="submit" className="button1" disabled={loading}>
-              {loading ? 'Ingresando…' : 'Iniciar Sesión'}
+              {loading ? "Ingresando…" : "Iniciar Sesión"}
             </button>
-            <button type="button" className="button2" onClick={() => navigate('/register')}>
+            <button type="button" className="button2" onClick={() => navigate("/register")}>
               Registrarse
             </button>
           </div>

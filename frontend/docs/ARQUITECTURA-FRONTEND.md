@@ -1,8 +1,14 @@
 # Arquitectura del Frontend — CITio / Gestor de Servicios
 
-> Documento de referencia del estado actual del frontend (`frontend/`).
+> Documento de referencia del frontend (`frontend/`).
 > Describe decisiones tomadas, estructura, contrato con el backend, autenticación,
-> y riesgos detectados. Última revisión: commit `b46a395` ("Se añadio Register, Home y layout").
+> y riesgos detectados.
+>
+> ⚠️ **Este documento describe el estado previo a la línea de trabajo A.** La arquitectura
+> actual del frontend (TypeScript, capas `domain/lib/repositories/services/context` y
+> autenticación por token Bearer) está documentada en
+> [`../specs/001-authentication/plan.md`](../specs/001-authentication/plan.md).
+> Revisión original: commit `b46a395`.
 
 ---
 

@@ -1,39 +1,55 @@
-import { useCallback, useEffect, useState } from 'react';
-import { Link } from 'react-router-dom';
-import { useAuth } from '../context/AuthContext';
-import { getApiError } from '../services/apiClient';
-import { getSectores } from '../services/catalogosService';
+import { useCallback, useEffect, useState } from "react";
+import { Link } from "react-router-dom";
+
+import { useAuth } from "../context/useAuth";
+import { getApiError } from "../domain/errors";
+import { esPersonalCIT } from "../domain/roles";
+import { getSectores } from "../services/catalogosService";
 import {
   createPublicacion,
   deletePublicacion,
   getPublicaciones,
   updatePublicacion,
-} from '../services/publicacionesService';
+} from "../services/publicacionesService";
+import type { Publicacion, Sector, TipoContenido } from "../domain/entidades";
 
-const TIPOS_CONTENIDO = ['patologia', 'enfermedad', 'parasito', 'plaga', 'otro'];
+const TIPOS_CONTENIDO: TipoContenido[] = [
+  "patologia",
+  "enfermedad",
+  "parasito",
+  "plaga",
+  "otro",
+];
 
-const INITIAL_FORM = {
-  titulo: '',
-  contenido: '',
-  tipo_contenido: 'enfermedad',
-  sector: '',
+interface FormularioPublicacion {
+  titulo: string;
+  contenido: string;
+  tipo_contenido: TipoContenido;
+  sector: string;
+}
+
+const INITIAL_FORM: FormularioPublicacion = {
+  titulo: "",
+  contenido: "",
+  tipo_contenido: "enfermedad",
+  sector: "",
 };
 
-const fechaFormato = (fecha) =>
-  new Date(fecha).toLocaleDateString('es-AR', { dateStyle: 'medium' });
+const fechaFormato = (fecha: string): string =>
+  new Date(fecha).toLocaleDateString("es-AR", { dateStyle: "medium" });
 
 export default function Publicaciones() {
   const { user } = useAuth();
-  const isCIT = user?.role === 'cit' || user?.role === 'admin';
+  const isCIT = esPersonalCIT(user?.rol);
 
-  const [publicaciones, setPublicaciones] = useState([]);
-  const [sectores, setSectores] = useState([]);
+  const [publicaciones, setPublicaciones] = useState<Publicacion[]>([]);
+  const [sectores, setSectores] = useState<Sector[]>([]);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState('');
+  const [error, setError] = useState("");
 
   const [showForm, setShowForm] = useState(false);
-  const [editing, setEditing] = useState(null);
-  const [form, setForm] = useState(INITIAL_FORM);
+  const [editing, setEditing] = useState<Publicacion | null>(null);
+  const [form, setForm] = useState<FormularioPublicacion>(INITIAL_FORM);
   const [saving, setSaving] = useState(false);
 
   const loadData = useCallback(async () => {
@@ -42,14 +58,14 @@ export default function Publicaciones() {
       setPublicaciones(data);
       setSectores(sectoresData);
     } catch (err) {
-      setError(getApiError(err, 'No se pudieron cargar las publicaciones.'));
+      setError(getApiError(err, "No se pudieron cargar las publicaciones."));
     } finally {
       setLoading(false);
     }
   }, []);
 
   useEffect(() => {
-    loadData();
+    void loadData();
   }, [loadData]);
 
   const openCreate = () => {
@@ -58,23 +74,28 @@ export default function Publicaciones() {
     setShowForm(true);
   };
 
-  const openEdit = (publicacion) => {
+  const openEdit = (publicacion: Publicacion) => {
     setEditing(publicacion);
     setForm({
       titulo: publicacion.titulo,
       contenido: publicacion.contenido,
       tipo_contenido: publicacion.tipo_contenido,
-      sector: publicacion.Sector?.codigo ?? '',
+      sector: publicacion.Sector?.codigo ?? "",
     });
     setShowForm(true);
-    window.scrollTo({ top: 0, behavior: 'smooth' });
+    window.scrollTo({ top: 0, behavior: "smooth" });
   };
 
-  const handleChange = (e) => setForm((prev) => ({ ...prev, [e.target.name]: e.target.value }));
+  const handleChange = (
+    e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>,
+  ) => {
+    const { name, value } = e.target;
+    setForm((prev) => ({ ...prev, [name]: value }) as FormularioPublicacion);
+  };
 
-  const handleSubmit = async (e) => {
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    setError('');
+    setError("");
     setSaving(true);
     try {
       if (editing) {
@@ -84,22 +105,22 @@ export default function Publicaciones() {
       }
       setShowForm(false);
       setEditing(null);
-      loadData();
+      void loadData();
     } catch (err) {
-      setError(getApiError(err, 'No se pudo guardar la publicación.'));
+      setError(getApiError(err, "No se pudo guardar la publicación."));
     } finally {
       setSaving(false);
     }
   };
 
-  const handleDelete = async (publicacion) => {
+  const handleDelete = async (publicacion: Publicacion) => {
     if (!window.confirm(`¿Eliminar "${publicacion.titulo}"?`)) return;
-    setError('');
+    setError("");
     try {
       await deletePublicacion(publicacion.id);
       setPublicaciones((prev) => prev.filter((item) => item.id !== publicacion.id));
     } catch (err) {
-      setError(getApiError(err, 'No se pudo eliminar la publicación.'));
+      setError(getApiError(err, "No se pudo eliminar la publicación."));
     }
   };
 
@@ -108,7 +129,7 @@ export default function Publicaciones() {
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div>
           <h1 className="text-3xl font-bold text-white">Publicaciones</h1>
-          <p className="mt-1 text-slate-300">
+          <p className="mt-2 text-slate-300">
             Contenido técnico sobre patologías, enfermedades, parásitos y plagas.
           </p>
         </div>
@@ -117,7 +138,7 @@ export default function Publicaciones() {
             onClick={showForm ? () => setShowForm(false) : openCreate}
             className="rounded-lg bg-cit-600 px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-cit-500"
           >
-            {showForm ? 'Cancelar' : '+ Nueva publicación'}
+            {showForm ? "Cancelar" : "+ Nueva publicación"}
           </button>
         )}
       </div>
@@ -131,7 +152,7 @@ export default function Publicaciones() {
       {isCIT && showForm && (
         <form onSubmit={handleSubmit} className="mt-6 rounded-2xl border border-cit-600/40 bg-cit-800 p-6">
           <h2 className="mb-4 text-lg font-semibold text-cit-neon">
-            {editing ? 'Editar publicación' : 'Nueva publicación'}
+            {editing ? "Editar publicación" : "Nueva publicación"}
           </h2>
           <div className="grid gap-4 sm:grid-cols-2">
             <input
@@ -184,7 +205,7 @@ export default function Publicaciones() {
             disabled={saving}
             className="mt-4 rounded-lg bg-cit-600 px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-cit-500 disabled:opacity-60"
           >
-            {saving ? 'Guardando…' : editing ? 'Guardar cambios' : 'Crear publicación'}
+            {saving ? "Guardando…" : editing ? "Guardar cambios" : "Crear publicación"}
           </button>
         </form>
       )}
@@ -202,17 +223,16 @@ export default function Publicaciones() {
             >
               <div className="flex items-start justify-between gap-2">
                 <h2 className="font-semibold text-white">{publicacion.titulo}</h2>
-                <span className="rounded-full bg-cit-700 px-2.5 py-0.5 text-xs whitespace-nowrap text-cit-neon">
+                <span className="whitespace-nowrap rounded-full bg-cit-700 px-2.5 py-0.5 text-xs text-cit-neon">
                   {publicacion.tipo_contenido}
                 </span>
               </div>
-              <p className="mt-2 flex-1 text-sm text-slate-300 line-clamp-3">
+              <p className="mt-2 line-clamp-3 flex-1 text-sm text-slate-300">
                 {publicacion.contenido}
               </p>
               <div className="mt-4 flex flex-wrap items-center justify-between gap-2 text-xs text-slate-400">
                 <span>
-                  {publicacion.Sector?.nombre || 'Sin sector'} ·{' '}
-                  {fechaFormato(publicacion.createdAt)}
+                  {publicacion.Sector?.nombre || "Sin sector"} · {fechaFormato(publicacion.createdAt)}
                 </span>
                 <div className="flex gap-2">
                   <Link
@@ -230,7 +250,7 @@ export default function Publicaciones() {
                         Editar
                       </button>
                       <button
-                        onClick={() => handleDelete(publicacion)}
+                        onClick={() => void handleDelete(publicacion)}
                         className="rounded-lg bg-red-900/50 px-3 py-1.5 text-red-200 transition-colors hover:bg-red-800"
                       >
                         Eliminar

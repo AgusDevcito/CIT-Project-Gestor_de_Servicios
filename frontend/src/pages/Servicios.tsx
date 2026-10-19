@@ -1,33 +1,46 @@
-import { useCallback, useEffect, useState } from 'react';
-import { useAuth } from '../context/AuthContext';
-import { getApiError } from '../services/apiClient';
-import { getSectores } from '../services/catalogosService';
-import { createServicio, getServicios } from '../services/serviciosService';
-import { createSolicitud } from '../services/solicitudesService';
+import { useCallback, useEffect, useState } from "react";
 
-const INITIAL_FORM = {
-  servicio_nombre: '',
-  servicio_description: '',
-  servicio_precio: '',
-  sector: '',
-  servicio_img: '',
+import { useAuth } from "../context/useAuth";
+import { getApiError } from "../domain/errors";
+import { esPersonalCIT } from "../domain/roles";
+import { getSectores } from "../services/catalogosService";
+import { createServicio, getServicios } from "../services/serviciosService";
+import { createSolicitud } from "../services/solicitudesService";
+import type { Sector, Servicio } from "../domain/entidades";
+
+interface FormularioServicio {
+  servicio_nombre: string;
+  servicio_description: string;
+  servicio_precio: string;
+  sector: string;
+  servicio_img: string;
+}
+
+const INITIAL_FORM: FormularioServicio = {
+  servicio_nombre: "",
+  servicio_description: "",
+  servicio_precio: "",
+  sector: "",
+  servicio_img: "",
 };
 
-const precioFormato = (precio) =>
-  new Intl.NumberFormat('es-AR', { style: 'currency', currency: 'ARS' }).format(Number(precio));
+const precioFormato = (precio: number | string): string =>
+  new Intl.NumberFormat("es-AR", { style: "currency", currency: "ARS" }).format(
+    Number(precio),
+  );
 
 export default function Servicios() {
   const { user } = useAuth();
-  const isCIT = user?.role === 'cit' || user?.role === 'admin';
+  const isCIT = esPersonalCIT(user?.rol);
 
-  const [servicios, setServicios] = useState([]);
-  const [sectores, setSectores] = useState([]);
+  const [servicios, setServicios] = useState<Servicio[]>([]);
+  const [sectores, setSectores] = useState<Sector[]>([]);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState('');
-  const [feedback, setFeedback] = useState('');
+  const [error, setError] = useState("");
+  const [feedback, setFeedback] = useState("");
 
   const [showForm, setShowForm] = useState(false);
-  const [form, setForm] = useState(INITIAL_FORM);
+  const [form, setForm] = useState<FormularioServicio>(INITIAL_FORM);
   const [saving, setSaving] = useState(false);
 
   const loadData = useCallback(async () => {
@@ -36,22 +49,25 @@ export default function Servicios() {
       setServicios(data);
       setSectores(sectoresData);
     } catch (err) {
-      setError(getApiError(err, 'No se pudieron cargar los servicios.'));
+      setError(getApiError(err, "No se pudieron cargar los servicios."));
     } finally {
       setLoading(false);
     }
   }, []);
 
   useEffect(() => {
-    loadData();
+    void loadData();
   }, [loadData]);
 
-  const handleChange = (e) => setForm((prev) => ({ ...prev, [e.target.name]: e.target.value }));
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
+    const { name, value } = e.target;
+    setForm((prev) => ({ ...prev, [name]: value }));
+  };
 
-  const handleCreate = async (e) => {
+  const handleCreate = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    setError('');
-    setFeedback('');
+    setError("");
+    setFeedback("");
     setSaving(true);
     try {
       await createServicio({
@@ -61,23 +77,25 @@ export default function Servicios() {
       });
       setForm(INITIAL_FORM);
       setShowForm(false);
-      setFeedback('Servicio creado correctamente.');
-      loadData();
+      setFeedback("Servicio creado correctamente.");
+      void loadData();
     } catch (err) {
-      setError(getApiError(err, 'No se pudo crear el servicio.'));
+      setError(getApiError(err, "No se pudo crear el servicio."));
     } finally {
       setSaving(false);
     }
   };
 
-  const handleSolicitar = async (servicio) => {
-    setError('');
-    setFeedback('');
+  const handleSolicitar = async (servicio: Servicio) => {
+    setError("");
+    setFeedback("");
     try {
       await createSolicitud(servicio.id);
-      setFeedback(`Solicitud enviada para "${servicio.servicio_nombre}". Podés seguirla en Solicitudes.`);
+      setFeedback(
+        `Solicitud enviada para "${servicio.servicio_nombre}". Podés seguirla en Solicitudes.`,
+      );
     } catch (err) {
-      setError(getApiError(err, 'No se pudo solicitar el servicio.'));
+      setError(getApiError(err, "No se pudo solicitar el servicio."));
     }
   };
 
@@ -93,7 +111,7 @@ export default function Servicios() {
             onClick={() => setShowForm((prev) => !prev)}
             className="rounded-lg bg-cit-600 px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-cit-500"
           >
-            {showForm ? 'Cancelar' : '+ Nuevo servicio'}
+            {showForm ? "Cancelar" : "+ Nuevo servicio"}
           </button>
         )}
       </div>
@@ -171,7 +189,7 @@ export default function Servicios() {
             disabled={saving}
             className="mt-4 rounded-lg bg-cit-600 px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-cit-500 disabled:opacity-60"
           >
-            {saving ? 'Guardando…' : 'Crear servicio'}
+            {saving ? "Guardando…" : "Crear servicio"}
           </button>
         </form>
       )}
@@ -185,7 +203,7 @@ export default function Servicios() {
           {servicios.map((servicio) => (
             <article
               key={servicio.id}
-              className="flex flex-col rounded-2xl border border-cit-600/40 bg-cit-800 overflow-hidden"
+              className="flex flex-col overflow-hidden rounded-2xl border border-cit-600/40 bg-cit-800"
             >
               {servicio.servicio_img && (
                 <img
@@ -198,7 +216,7 @@ export default function Servicios() {
                 <div className="flex items-start justify-between gap-2">
                   <h2 className="font-semibold text-white">{servicio.servicio_nombre}</h2>
                   <span className="rounded-full bg-cit-700 px-2.5 py-0.5 text-xs text-cit-neon">
-                    {servicio.Sector?.nombre || 'Sin sector'}
+                    {servicio.Sector?.nombre || "Sin sector"}
                   </span>
                 </div>
                 <p className="mt-2 flex-1 text-sm text-slate-300">{servicio.servicio_description}</p>
@@ -206,12 +224,12 @@ export default function Servicios() {
                   <div>
                     <p className="font-bold text-cit-neon">{precioFormato(servicio.servicio_precio)}</p>
                     <p className="text-xs text-slate-400">
-                      Proveedor: {servicio.Proveedor?.username || '—'}
+                      Proveedor: {servicio.Proveedor?.username || "—"}
                     </p>
                   </div>
                   {!isCIT && (
                     <button
-                      onClick={() => handleSolicitar(servicio)}
+                      onClick={() => void handleSolicitar(servicio)}
                       className="rounded-lg bg-cit-600 px-3 py-1.5 text-sm font-semibold text-white transition-colors hover:bg-cit-500"
                     >
                       Solicitar

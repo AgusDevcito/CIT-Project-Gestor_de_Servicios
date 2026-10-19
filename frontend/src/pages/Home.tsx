@@ -1,9 +1,9 @@
-import logoCitio from '../assets/logo-CITio.png';
-import { useAuth } from '../context/AuthContext';
+import logoCitio from "../assets/logo-CITio.png";
+import { useAuth } from "../context/useAuth";
 
 export default function Home() {
   const { user } = useAuth();
-  const displayName = user?.firstName || user?.username;
+  const displayName = user?.nombre || user?.username;
 
   return (
     <div className="flex min-h-[60vh] items-center justify-center">
@@ -15,7 +15,7 @@ export default function Home() {
               Hola, <span className="text-cit-neon">{displayName}</span>
             </>
           ) : (
-            'Bienvenido a CITio'
+            "Bienvenido a CITio"
           )}
         </h1>
         <p className="mt-3 text-slate-300">

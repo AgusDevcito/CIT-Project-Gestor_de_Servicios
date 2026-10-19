@@ -1,48 +1,56 @@
-import { useEffect, useState } from 'react';
-import { useAuth } from '../context/AuthContext';
-import { getApiError } from '../services/apiClient';
-import { updateProfile } from '../services/profileService';
+import { useEffect, useState } from "react";
 
-const INITIAL_FORM = { first_name: '', last_name: '', avatar_url: '' };
+import { useAuth } from "../context/useAuth";
+import { getApiError } from "../domain/errors";
+import { updateProfile } from "../services/profileService";
 
-const ROLE_LABELS = {
-  cit: 'Personal CIT',
-  user: 'Usuario',
-  admin: 'Administrador',
+interface FormularioPerfil {
+  first_name: string;
+  last_name: string;
+  avatar_url: string;
+}
+
+const INITIAL_FORM: FormularioPerfil = {
+  first_name: "",
+  last_name: "",
+  avatar_url: "",
 };
 
 export default function Perfil() {
-  const { user, checkSession } = useAuth();
-  const [form, setForm] = useState(INITIAL_FORM);
+  const { user, refresh } = useAuth();
+  const [form, setForm] = useState<FormularioPerfil>(INITIAL_FORM);
   const [editing, setEditing] = useState(false);
   const [saving, setSaving] = useState(false);
-  const [error, setError] = useState('');
-  const [feedback, setFeedback] = useState('');
+  const [error, setError] = useState("");
+  const [feedback, setFeedback] = useState("");
 
   useEffect(() => {
     if (user) {
       setForm({
-        first_name: user.firstName ?? '',
-        last_name: user.lastName ?? '',
-        avatar_url: user.avatarUrl ?? '',
+        first_name: user.nombre ?? "",
+        last_name: user.apellido ?? "",
+        avatar_url: user.avatarUrl ?? "",
       });
     }
   }, [user]);
 
-  const handleChange = (e) => setForm((prev) => ({ ...prev, [e.target.name]: e.target.value }));
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const { name, value } = e.target;
+    setForm((prev) => ({ ...prev, [name]: value }));
+  };
 
-  const handleSubmit = async (e) => {
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    setError('');
-    setFeedback('');
+    setError("");
+    setFeedback("");
     setSaving(true);
     try {
-      await updateProfile(user.userId, form);
-      await checkSession();
+      await updateProfile(user!.id, form);
+      await refresh();
       setEditing(false);
-      setFeedback('Perfil actualizado correctamente.');
+      setFeedback("Perfil actualizado correctamente.");
     } catch (err) {
-      setError(getApiError(err, 'No se pudo actualizar el perfil.'));
+      setError(getApiError(err, "No se pudo actualizar el perfil."));
     } finally {
       setSaving(false);
     }
@@ -75,16 +83,16 @@ export default function Perfil() {
             />
           ) : (
             <div className="flex h-16 w-16 items-center justify-center rounded-full bg-cit-700 text-2xl text-cit-neon">
-              {(user.firstName || user.username || '?').charAt(0).toUpperCase()}
+              {(user.nombre || user.username || "?").charAt(0).toUpperCase()}
             </div>
           )}
           <div>
             <p className="text-xl font-semibold text-white">
-              {user.firstName} {user.lastName}
+              {user.nombre} {user.apellido}
             </p>
             <p className="text-sm text-slate-300">@{user.username}</p>
             <span className="mt-1 inline-block rounded-full border border-cit-neon/40 px-2.5 py-0.5 text-xs text-cit-neon">
-              {ROLE_LABELS[user.role] || user.role}
+              {user.rol}
             </span>
           </div>
         </div>
@@ -136,7 +144,7 @@ export default function Perfil() {
               disabled={saving}
               className="rounded-lg bg-cit-600 px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-cit-500 disabled:opacity-60"
             >
-              {saving ? 'Guardando…' : 'Guardar cambios'}
+              {saving ? "Guardando…" : "Guardar cambios"}
             </button>
             <button
               type="button"
