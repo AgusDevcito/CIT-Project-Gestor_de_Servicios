@@ -21,6 +21,21 @@
 | Tests | **No hay tests en frontend** |
 | Build | `vite build` OK — 316 kB JS (99.9 kB gzip) |
 
+> **Nota sobre el estado real de la migración a TypeScript (verificado):**
+>
+> - El commit `8969814` en `agusdev`, titulado *"Merge: se migro el proyecto a typescript"*, tiene
+>   **un solo padre** (`b46a395`) y **solo agrega este documento**. No introduce ningún
+>   archivo TS.
+> - La migración TS **existe, pero en `origin/gonzadvlop`** (`051c7f3`): 63 archivos `.ts` en
+>   `backend/src/` con arquitectura por capas (`routes → controllers → services → repositories →
+>   models`), `backend/tsconfig.json` (`strict: true`) y `backend/tests/cit-registration.test.ts`.
+>   **`051c7f3` no es ancestro de `agusdev`**: esa migración todavía no llegó a tu rama.
+> - **El frontend es JavaScript al 100% en todas las ramas.** No hay `tsconfig.json`, ni `.ts`,
+>   ni `.tsx` en ningún lado. La migración TS del frontend **no ha comenzado**.
+>
+> Consecuencia práctica: los `@types/react` / `@types/react-dom` instalados hoy no son "basura",
+> son la **precondición** de la migración TS del frontend que todavía no ocurrió. Ver §2.4.
+
 El frontend es una SPA funcional que cubre: login, registro (con carga de documento para personal CIT),
 home, servicios, solicitudes, publicaciones (+ detalle), propuestas y perfil.
 
@@ -50,11 +65,28 @@ home, servicios, solicitudes, publicaciones (+ detalle), propuestas y perfil.
 
 ### 2.3 Dependencias declaradas pero sin uso
 
-`postcss`, `autoprefixer`, `@types/react`, `@types/react-dom` están en `package.json` pero
-ningún archivo las referencia. Se pueden quitar sin impacto funcional.
+| Paquete | Veredicto | Motivo |
+|---|---|---|
+| `postcss` | **Borrar** | Tailwind v4 corre como plugin de Vite (`@tailwindcss/vite`). No hay `postcss.config.js` ni pipeline PostCSS. No se usará en ningún escenario (tampoco con TS). |
+| `autoprefixer` | **Borrar** | Ídem: el prefixing lo resuelve el motor de Tailwind v4. |
+| `@types/react`, `@types/react-dom` | **Mantener** | Hoy sin uso porque el front es JS. **Son la precondición de la migración TS del frontend** (pendiente, ver §1). Con TS pasan a ser obligatorias. |
+| `tailwind.config.js` | **Borrar** | Sintaxis de Tailwind v3 (`content` / `theme.extend` / `plugins`) que v4 ignora en silencio. La config real es el bloque `@theme` de `src/index.css`. Si se quiere config en JS, hay que declararla con `@config "..."` en el CSS. |
 
-Además, `react-router-dom` incluye `@remix-run/router` como dependencia transitiva
+Además, `react-router-dom` arrastra `@remix-run/router` como dependencia transitiva
 (≈90 kB del bundle) que no se usa de forma explícita.
+
+### 2.4 Dependencias a añadir para la capa visual
+
+| Paquete | Propósito | Prioridad |
+|---|---|---|
+| `clsx` | Unir clases condicionales (`cn('base', isActive && 'activo')`). Hoy cada componente arma el `className` con template literals. | Alta |
+| `tailwind-merge` | Evitar conflictos de utilidades Tailwind al componer clases. Complementa a `clsx`. | Media |
+| `vitest` + `@testing-library/react` + `jsdom` | Tests. Hoy el frontend **no tiene ningún test** ni script `test`. | Media |
+
+> **Si el frontend migra a TS**, el set mínimo sería: `typescript`, `@types/react`,
+> `@types/react-dom`, `tsx` (o equivalente), un `tsconfig.json` con `strict: true`, y un script
+> `"typecheck": "tsc --noEmit"` — replicando lo que ya hizo el backend en
+> `backend/package.json` (`"typecheck": "tsc --noEmit"`).
 
 ---
 
@@ -64,6 +96,7 @@ Además, `react-router-dom` incluye `@remix-run/router` como dependencia transit
 frontend/
 ├── .env.development          # VITE_API_URL=http://localhost:3000/api
 ├── .oxlintrc.json            # Reglas de lint
+├── .gitignore                # El de la plantilla de Vite (ignora node_modules, dist, *.local)
 ├── index.html                # Shell de la SPA
 ├── package.json
 ├── tailwind.config.js        # ⚠️ archivo muerto (ver §7.1)
@@ -75,7 +108,9 @@ frontend/
 │   └── icons.svg             # ⚠️ no referenciado en ninguna parte
 ├── specs/
 │   └── 001-authentication/
-│       └── tasks.md          # Plan de 16 tareas de autenticación (ver §10)
+│       ├── spec.md              # Requisitos de la línea de trabajo A (ver §10)
+│       ├── plan.md              # Arquitectura objetivo y decisiones técnicas
+│       └── task.md              # Tareas de implementación por fase
 └── src/
     ├── main.jsx              # Punto de entrada: BrowserRouter > AuthProvider > App
     ├── App.jsx               # Tabla de rutas
@@ -424,6 +459,12 @@ si no está definida, permite cualquier origen. En producción, si no está defi
 >
 > ### ⚠️ C3 (VERIFICADO): falta `credentials: true` — rompe la autenticación por cookie
 >
+> **Nota (2026-10-19):** este hallazgo-era válido para la autenticación **por cookie**. Con el
+> backend TS el contrato pasó a **token Bearer**, y en ese modelo **`credentials: true` no es
+> necesario** (no hay cookies que enviar). El hallazgo queda **resuelto por el cambio de
+> contrato**; se conserva la evidencia porque explica por qué la implementación actual
+> (cookie + `withCredentials: true`) no puede funcionar contra el backend actual.
+>
 > El `cors()` actual **no declara `credentials: true`**:
 >
 > ```js
@@ -484,8 +525,9 @@ si no está definida, permite cualquier origen. En producción, si no está defi
 
 > `frontend/.env.development` es la **única** piece de config de entorno del frontend, y ya está
 > versionada en git (no es un secreto, pero conviene saber que está trackeada).
-> **No existe `frontend/.env.production`** ni `.env.example`. Tampoco hay `.gitignore` en
-> `frontend/` (el de `backend/` sí existe) → un `.env` con secretos de URL quedaría versionado.
+> **No existe `frontend/.env.production`** ni `.env.example`. El `frontend/.gitignore` es el de
+> la plantilla de Vite: ignora `node_modules`, `dist` y `*.local`, pero **no ignora `.env*`** →
+> un `.env` con secretos de URL quedaría versionado.
 
 ---
 
@@ -662,28 +704,52 @@ En este proyecto:
 
 ---
 
-## 10. Specs de autenticación — estado de las tareas
+## 10. Specs de autenticación — línea de trabajo A
 
-`frontend/specs/001-authentication/tasks.md` define 16 tareas. Estado actual:
+La línea de trabajo A está formalizada en `frontend/specs/001-authentication/`:
+
+| Artefacto | Contenido |
+|---|---|
+| `spec.md` | Requisitos (FR-1…FR-14, NFR-1…NFR-9), contrato de API verificado contra el backend TS, criterios de aceptación (CA-1…CA-18) y deuda conocida |
+| `plan.md` | Arquitectura por capas (`domain` → `lib` → `repositories` → `services` → `context`), 8 decisiones técnicas (D-1…D-8) y flujos |
+| `task.md` | 3 prerrequisitos + 23 tareas etiquetadas por fase (A / B / C) |
+
+### 10.1 Cambio de contrato respecto a la versión anterior de este documento
+
+> La tabla de tareas anterior (16 ítems, basada en `tasks.md`).reflectía la autenticación
+> **por cookie `HttpOnly`**. El backend actual (TypeScript, `origin/gonzadvlop @ 051c7f3`)
+> **revirtió a token Bearer en el header `Authorization`** y ya no lee cookies
+> (`getTokenFromRequest` solo consulta `req.headers.authorization`).
+>
+> | Pieza | Esperaba | El backend TS hace |
+> |---|---|---|
+> | `apiClient.js` | `withCredentials: true` (cookie) | no lee cookies |
+> | `authService.login` | descartaba el `token` del body | **devuelve el token en el body** |
+> | `AuthContext.getProfile` | sin header | **exige `Authorization: Bearer`** |
+>
+> Conclusión: la UI de login/registro es reutilizable; **la capa de transporte y estado
+> hay que rehacerla**. Es el alcance de la línea de trabajo A.
+
+### 10.2 Estado de las tareas originales (referencia histórica)
 
 | # | Tarea | Estado |
 |---|---|---|
-| 1 | `cookieParser` en app | ✅ Hecho |
-| 2 | Set-cookie en login | ✅ Hecho |
-| 3 | `requireAuth` lee cookie | ✅ Hecho (con fallback a header) |
-| 4 | `apiClient.js` | ✅ Hecho |
-| 5 | Refactor `authService.js` | ✅ Hecho |
-| 6 | `AuthContext` | ✅ Hecho |
+| 1 | `cookieParser` en app | ⚠️ **Revertido** en la versión TS (ya no se usa `cookie-parser`) |
+| 2 | Set-cookie en login | ⚠️ **Revertido** en la versión TS |
+| 3 | `requireAuth` lee cookie | ⚠️ **Revertido**: ahora solo lee el header `Authorization` |
+| 4 | `apiClient.js` | ⚠️ **A reemplazar** (tarea T-6) |
+| 5 | Refactor `authService.js` | ⚠️ **A reemplazar** (tarea T-8) |
+| 6 | `AuthContext` | ⚠️ **A rehacer** con `status` explícito (tarea T-11) |
 | 7 | `AuthProvider` en `main.jsx` | ✅ Hecho |
 | 8 | `ProtectedRoute` | ✅ Hecho (el prop `roles` no se usa) |
 | 9 | Rutas protegidas | ✅ Hecho |
-| 10 | Manejo global de 401 | ⚠️ Parcial (dispara en el check inicial de sesión) |
+| 10 | Manejo global de 401 | ⚠️ **A rehacer** con guardas (tarea T-6) |
 | 11 | UI Login/Register | ✅ Hecho |
-| 12 | `docs/api-contract.md` | ❌ No existe |
-| 13 | Tests backend (`auth.test.js`) | ❌ No existe (solo `cit-registration.test.js`) |
-| 14 | Tests frontend (`__tests__/`) | ❌ No existe |
-| 15 | `npm test` (frontend) | ❌ No hay script `test` en el frontend |
-| 16 | Revisión de CORS | ⚠️ Parcial (`credentials` no configurado) |
+| 12 | `docs/api-contract.md` | ⬜ Tarea T-22 |
+| 13 | Tests backend (`auth.test.js`) | ⬜ En el backend TS: `tests/cit-registration.test.ts` |
+| 14 | Tests frontend (`__tests__/`) | ⬜ Tarea T-16 |
+| 15 | `npm test` (frontend) | ⬜ Tarea T-16 |
+| 16 | Revisión de CORS | ✅ **Resuelto por el cambio de contrato**: con Bearer no hace falta `credentials: true` |
 
 ---
 
@@ -695,7 +761,7 @@ En este proyecto:
 |---|---|---|---|---|
 | C1 | **La navegación solo tiene "Inicio"**. No hay enlaces a servicios, solicitudes, publicaciones, propuestas ni perfil | `components/Layout.jsx:5` | 5 de 9 rutas son inalcanzables por UI | ✅ Reproducido en navegador |
 | C2 | **`/register` redirige a `/login` para usuarios anónimos** (el 401 del check inicial dispara `cit:unauthorized`) | `context/AuthContext.jsx:45-50` + `services/apiClient.js:18` | El registro solo funciona clickeando el botón desde el login | ✅ Reproducido en navegador |
-| C3 | **`cors()` sin `credentials: true`** | `backend/app.js:15-19` | La cookie **no viaja** y la petición se bloquea: el login falla en dev **y** en producción | ✅ Reproducido con servidor Express real |
+| C3 | **`cors()` sin `credentials: true`** — solo afectaba a la auth por cookie | `backend/app.js:15-19` | ⚠️ **Resuelto por el cambio de contrato**: con el backend TS (Bearer) no hace falta `credentials: true` | ✅ Reproducido con servidor Express real |
 
 ### Altos
 
@@ -704,8 +770,8 @@ En este proyecto:
 | A1 | No hay forma de **adjuntar archivos** (imágenes/videos) a una publicación desde la UI, pese a ser un caso de uso central del README | `pages/Publicaciones.jsx` | Funcionalidad incompleta |
 | A2 | El control por rol se duplica en 4 páginas y el prop `roles` de `ProtectedRoute` está sin uso | `pages/*.jsx` + `components/ProtectedRoute.jsx` | Reglas de acceso inconsistentes y código muerto |
 | A3 | **Sin tests en el frontend** (ni script `test`) | `frontend/package.json` | Sin red de seguridad para refactors |
-| A4 | `frontend/.gitignore` no existe | `frontend/` | Un `.env` con secretos quedaría versionado |
-| A5 | No hay `frontend/.env.example` ni `.env.production` | `frontend/` | Configuración opaca para el equipo y para CI/CD |
+| A4 | `frontend/.gitignore` (el de la plantilla) **no ignora `.env*`** | `frontend/.gitignore` | Un `.env` con secretos quedaría versionado |
+| A5 | No hay `frontend/.env.example` ni `.env.production`; `.env.development` está **versionado** | `frontend/.env.development` | Configuración opaca para el equipo y para CI/CD |
 
 ### Medios
 
@@ -743,8 +809,10 @@ En este proyecto:
    sesión ni en rutas públicas. Opción mínima: ampliar la guarda a
    `!['/login','/register'].includes(window.location.pathname)`. Opción robusta: añadir un flag
    `skipAuthRedirect` por request en `apiClient`.
-3. **Configurar `credentials: true`** en el `cors()` del backend y definir `CORS_ORIGINS` con los
-   orígenes exactos (nunca `*` cuando `credentials` está activo). Verificado en §7.8.
+3. **Sustituir la autenticación por cookie por token Bearer**, según el contrato del backend TS
+   (`frontend/specs/001-authentication/plan.md`, decisión D-1). En este modelo **no** hace falta
+   `credentials: true` en el `cors()` del backend; sí hay que definir `CORS_ORIGINS` con los
+   orígenes exactos en producción.
 
 ### Siguiente sprint
 
@@ -767,7 +835,8 @@ En este proyecto:
    mutación" no escala.
 10. **Documentar el contrato de API** (`frontend/docs/api-contract.md`) y
     **desacoplar el frontend de los alias de Sequelize** con una capa de DTOs en los servicios.
-11. **Añadir `.gitignore` y `.env.example`** en `frontend/`.
+11. **Añadir `.env.example`** en `frontend/` y extender el `.gitignore` para excluir `.env*`
+    (dejando versionado solo `.env.development`, que no contiene secretos).
 12. **Unificar el manejo de errores**: `getApiError` con mensajes en español para errores de red,
     y un componente `Alert`/`Toast` compartido en lugar de los `div` de error/feedback duplicados
     en 6 páginas.
