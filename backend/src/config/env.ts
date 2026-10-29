@@ -2,7 +2,7 @@ import dotenv from "dotenv";
 
 dotenv.config();
 
-const requiredVariables = ["DB_NAME", "DB_USER", "DB_HOST"] as const;
+const requiredVariables = ["DB_NAME", "DB_USER"] as const;
 
 const toBool = (value: string | undefined): boolean => value === "true";
 
@@ -10,6 +10,12 @@ const parseCorsOrigins = (value: string | undefined): string[] =>
     value
         ? value.split(",").map((origin) => origin.trim()).filter(Boolean)
         : [];
+
+const dbHost = process.env.DB_HOST ?? "localhost";
+const defaultDbPort =
+    dbHost === "localhost" || dbHost === "127.0.0.1"
+        ? process.env.DB_PORT_PUBLISHED ?? "5432"
+        : "5432";
 
 export interface DatabaseConfig {
     readonly name: string;
@@ -45,8 +51,8 @@ export const env: AppEnv = {
         name: process.env.DB_NAME ?? "",
         user: process.env.DB_USER ?? "",
         password: String(process.env.DB_PASSWORD ?? ""),
-        host: process.env.DB_HOST ?? "",
-        port: Number(process.env.DB_PORT ?? 5432),
+        host: dbHost,
+        port: Number(process.env.DB_PORT ?? defaultDbPort),
         dialect: process.env.DB_DIALECT ?? "postgres",
         ssl: toBool(process.env.DB_SSL),
         sync: toBool(process.env.DB_SYNC),

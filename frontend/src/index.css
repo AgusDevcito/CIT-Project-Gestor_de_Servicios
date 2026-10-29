@@ -1,0 +1,31 @@
+@import "tailwindcss";
+
+@theme {
+  --color-cit-900: #090a0f;
+  --color-cit-800: #0d2e0f;
+  --color-cit-700: #14351a;
+  --color-cit-600: #447232;
+  --color-cit-500: #258f2a;
+  --color-cit-neon: #0dfc19;
+}
+
+body {
+  background-color: var(--color-cit-900);
+  color: #e5e7eb;
+  font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+}
+
+/* Campo de formulario compartido (estilo dark inset del login) */
+@utility input-base {
+  width: 100%;
+  border-radius: 0.75rem;
+  border: 1px solid rgb(68 114 50 / 0.4);
+  background-color: var(--color-cit-900);
+  padding: 0.6rem 0.9rem;
+  color: #ffffff;
+  outline: none;
+
+  &:focus {
+    border-color: var(--color-cit-neon);
+  }
+}
