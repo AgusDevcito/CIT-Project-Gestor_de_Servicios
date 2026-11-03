@@ -1,4 +1,5 @@
 import { notFoundError, validationError } from "../errors/AppError.js";
+import * as mailService from "../utils/mail.js";
 import { hashPassword } from "../helpers/password.js";
 import * as userRepository from "../repositories/user.repository.js";
 import { ROL } from "../constants/roles.js";
@@ -50,7 +51,13 @@ export const create = async (input: CreateUserInput) => {
         role: role ?? ROL.USER,
     });
 
-    return toPublicUser(user);
+    // Enviar correo de bienvenida al nuevo usuario
+    try {
+        await mailService.sendRegistrationEmail(email, username);
+    } catch (e) {
+        // Log the error but do not impedir la creación del usuario
+        console.error("Error enviando email de registro:", e);
+    }
 };
 
 export const list = () => userRepository.findAllWithProfile();
