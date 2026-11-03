@@ -8,11 +8,23 @@ export const getAllProfiles = asyncHandler(async (_req: Request, res: Response) 
 });
 
 export const getProfileByUserId = asyncHandler(async (req: Request, res: Response) => {
-    const data = await profileService.getByUserId(Number(req.params.userId));
+    const user = (req as any).user;
+    const requestedId = Number(req.params.userId);
+    console.log('getProfileByUserId middleware user', user);
+    console.log('getProfileByUserId check IDs', { userId: user?.id, requestedId });
+    if (!user || user.id !== requestedId) {
+        console.log('getProfileByUserId unauthorized');
+        return res.status(403).json({ msg: "No tienes permisos para realizar esta acción." });
+    }
+    const data = await profileService.getByUserId(requestedId);
     res.json({ data });
 });
 
 export const updateProfile = asyncHandler(async (req: Request, res: Response) => {
+    const user = (req as any).user;
+    if (!user || user.id !== Number(req.params.userId)) {
+        return res.status(403).json({ msg: "No tienes permisos para realizar esta acción." });
+    }
     const data = await profileService.update(Number(req.params.userId), req.body ?? {});
     res.json({ msg: "Perfil actualizado", data });
 });

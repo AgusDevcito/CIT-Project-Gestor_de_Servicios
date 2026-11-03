@@ -50,6 +50,9 @@ export const register = async (input: RegisterInput) => {
     if (!ROLES.includes(role)) {
         throw validationError("El rol solicitado no es válido.");
     }
+    if (role === ROL.ADMIN) {
+        throw validationError("El rol ADMIN no puede ser asignado en el registro público.");
+    }
 
     validateCITRegistration({ role, documentUrl: resolvedDocumentUrl, file: uploadedFile });
 

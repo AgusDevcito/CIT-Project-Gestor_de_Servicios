@@ -6,8 +6,6 @@ import * as solicitudRepository from "../repositories/solicitud.repository.js";
 import * as userRepository from "../repositories/user.repository.js";
 import * as mailService from "../utils/mail.js";
 
-import * as mailService from "../utils/mail.js";
-
 export const list = (user: { id: number; role: Rol }) => {
     const where =
         user.role === "admin" || user.role === "cit" ? {} : { user_id: user.id };

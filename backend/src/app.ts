@@ -1,11 +1,11 @@
 import cors from "cors";
-import express from "express";
+import cookieParser from "cookie-parser";
 import { env } from "./config/env.js";
 import { errorHandler, notFoundHandler } from "./middlewares/error.middleware.js";
-import "./models/index.js";
+import express from "express";
 import { routes } from "./routes/index.js";
 
-export const createApp = (): express.Express => {
+export const createApp = (): ReturnType<typeof express> => {
     const app = express();
 
     app.use(
@@ -18,11 +18,12 @@ export const createApp = (): express.Express => {
                       : true,
         }),
     );
-    app.use(express.json({ limit: "1mb" }));
+    app.use(cookieParser());
 
-    app.get("/", (_req, res) => {
-        res.json({ ok: true });
-    });
+    app.use(express.json({ limit: "1mb" }));
+    app.get("/", (_req: any, res: any) => {
+    res.json({ ok: true });
+});
 
     app.use("/api", routes);
 
