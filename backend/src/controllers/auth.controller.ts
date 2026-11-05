@@ -27,7 +27,25 @@ export const logout = asyncHandler(async (_req: Request, res: Response, _next: N
     res.json({ msg: "Logout exitoso" });
 });
 
-export const profile = asyncHandler(async (req: Request, res: Response, _next: NextFunction) => {
+export const forgotPassword = asyncHandler(async (req: Request, res: Response, _next: NextFunction) => {
+  const { email } = req.body ?? {};
+  const result = await authService.forgotPassword(email);
+  res.status(200).json(result);
+});
+
+export const resetPassword = asyncHandler(async (req: Request, res: Response, _next: NextFunction) => {
+  const { token, newPassword } = req.body ?? {};
+  const result = await authService.resetPassword(token, newPassword);
+  res.status(200).json(result);
+});
+
+export const changePassword = asyncHandler(async (req: Request, res: Response, _next: NextFunction) => {
+  const { currentPassword, newPassword } = req.body ?? {};
+  const user = getAuthUser(req);
+  const result = await authService.changePassword(user.id, currentPassword, newPassword);
+  res.status(200).json(result);
+});
+
     const user = getAuthUser(req);
     res.status(200).json(await authService.getMyProfile(user.id));
 });

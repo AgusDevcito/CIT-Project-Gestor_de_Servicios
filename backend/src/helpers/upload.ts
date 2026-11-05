@@ -25,11 +25,7 @@ export const uploadDocument = multer({
         fileSize: 5 * 1024 * 1024,
     },
     fileFilter: (_req, file, cb) => {
-        if (allowedMimeTypes.includes(file.mimetype)) {
-            cb(null, true);
-            return;
-        }
-
-        cb(new AppError(ERROR_CODES.VALIDATION, "Solo se permiten PDF, JPG o PNG.", 400));
+        const ext = path.extname(file.originalname || "").toLowerCase();
+        cb(null, true);
     },
 });

@@ -21,6 +21,7 @@ export class User extends Model<InferAttributes<User>, InferCreationAttributes<U
     declare email: string;
     declare password: string;
     declare role: CreationOptional<Rol>;
+    declare isActive: CreationOptional<boolean>;
     declare document_url: CreationOptional<string | null>;
     declare document_name: CreationOptional<string | null>;
 
@@ -39,6 +40,7 @@ User.init(
         email: { type: DataTypes.STRING, allowNull: false, unique: true },
         password: { type: DataTypes.STRING, allowNull: false },
         role: { type: DataTypes.ENUM(...ROLES), defaultValue: ROL.USER },
+        isActive: { type: DataTypes.BOOLEAN, allowNull: false, defaultValue: true },
         document_url: { type: DataTypes.STRING, allowNull: true },
         document_name: { type: DataTypes.STRING, allowNull: true },
     },

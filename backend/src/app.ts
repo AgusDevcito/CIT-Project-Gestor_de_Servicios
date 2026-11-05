@@ -2,36 +2,54 @@ import cors from "cors";
 import cookieParser from "cookie-parser";
 import { env } from "./config/env.js";
 import { errorHandler, notFoundHandler } from "./middlewares/error.middleware.js";
-import express from "express";
+import express, { Request, Response } from "express";
 import { routes } from "./routes/index.js";
-
 import { metricsMiddleware } from "./metrics.js";
-    const app = express();
 
-    app.use(
-        cors({
-            origin:
-                env.corsOrigins.length > 0
-                    ? env.corsOrigins
-                    : env.isProduction
-                      ? false
-                      : true,
-        }),
-    );
-    app.use(cookieParser());
+export const createApp = (): ReturnType<typeof express> => {
+  const app = express();
 
-    app.use(metricsMiddleware);
+  // CORS configuration – allow credentials and origins from env
+  app.use(
+    cors({
+      origin:
+        env.corsOrigins.length > 0
+          ? env.corsOrigins
+          : env.isProduction
+          ? false
+          : true,
+      credentials: true,
+    })
+  );
 
-    app.get("/", (_req: any, res: any) => {
+  // Body parser for JSON payloads
+  app.use(express.json({ limit: "1mb" }));
+
+  // Cookie parser for HttpOnly JWT cookies
+  app.use(cookieParser());
+
+  // Metrics middleware (if any)
+  app.use(metricsMiddleware);
+    // Debug request logger
+    app.use((req, _res, next) => { console.log('Incoming request', req.method, req.path); next(); });
+
+  // Simple health endpoint
+  app.get("/", (_req: Request, res: Response) => {
     res.json({ ok: true });
-});
+  });
 
-    app.use("/api", routes);
+  // API routes
+  app.use("/api", routes);
 
-    app.use(notFoundHandler);
-    app.use(errorHandler);
+  // 404 and error handling
+  app.use(notFoundHandler);
+  app.use(errorHandler);
 
-    return app;
+  return app;
 };
+
+// Ensure DB is initialized for tests
+import { initDB } from "./config/db.js";
+(async () => { await initDB(); })();
 
 export const app = createApp();

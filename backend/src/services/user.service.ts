@@ -60,7 +60,18 @@ export const create = async (input: CreateUserInput) => {
     }
 };
 
-export const list = () => userRepository.findAllWithProfile();
+export const list = async (options?: { page?: number; size?: number; search?: string; role?: string }) => {
+  const page = options?.page ?? 1;
+  const size = options?.size ?? 10;
+  const offset = (page - 1) * size;
+  const result = await userRepository.findAllWithProfilePaginated({ offset, limit: size, search: options?.search, role: options?.role });
+  return {
+    total: result.count,
+    page,
+    size,
+    data: result.rows,
+  };
+};
 
 export const getById = async (id: number) => {
     assertValidId(id);
@@ -87,7 +98,13 @@ export const update = async (id: number, input: UpdateUserInput) => {
     return toPublicUser(user);
 };
 
-export const remove = async (id: number) => {
+export const setActiveStatus = async (id: number, active: boolean) => {
+  assertValidId(id);
+  const user = await userRepository.findByPk(id);
+  if (!user) throw notFoundError("Usuario no encontrado");
+  await userRepository.update(user, { isActive: active } as any);
+  return toPublicUser(user);
+};
     assertValidId(id);
 
     const user = await userRepository.findByPk(id);

@@ -15,6 +15,7 @@ export const getAuthUser = (req: Request): JwtPayload => {
 };
 
 export const requireAuth: RequestHandler = (req, res, next) => {
+    console.log('requireAuth received Cookie header', req.headers.cookie);
     const token = getTokenFromRequest(req);
 
     if (!token) {

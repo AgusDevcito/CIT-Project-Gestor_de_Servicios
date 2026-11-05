@@ -12,6 +12,8 @@ export const getProfileByUserId = asyncHandler(async (req: Request, res: Respons
     const requestedId = Number(req.params.userId);
     console.log('getProfileByUserId middleware user', user);
     console.log('getProfileByUserId check IDs', { userId: user?.id, requestedId });
+    console.log('Controller params', req.params);
+    console.log('Controller check', { userId: user?.id, requestedId, equal: user?.id === requestedId });
     if (!user || user.id !== requestedId) {
         console.log('getProfileByUserId unauthorized');
         return res.status(403).json({ msg: "No tienes permisos para realizar esta acción." });

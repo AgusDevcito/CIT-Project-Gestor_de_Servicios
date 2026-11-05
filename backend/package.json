@@ -9,6 +9,7 @@
     "dotenv": "^17.4.2",
     "express": "^5.2.1",
     "express-validator": "^7.3.2",
+    "file-type": "^20.0.0",
     "jsonwebtoken": "^9.0.3",
     "multer": "^2.3.0",
     "pg": "^8.23.0",
@@ -29,6 +30,7 @@
   "keywords": [],
   "type": "module",
   "devDependencies": {
+    "@jest/globals": "^29.7.0",
     "@types/bcrypt": "^6.0.0",
     "@types/cookie-parser": "^1.4.10",
     "@types/cors": "^2.8.19",

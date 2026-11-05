@@ -18,11 +18,22 @@ export const getUserbyID = asyncHandler(async (req: Request, res: Response) => {
 });
 
 export const updateUser = asyncHandler(async (req: Request, res: Response) => {
-    const data = await userService.update(Number(req.params.id), req.body ?? {});
-    res.json({ msg: "Se actualizaron los datos del usuario", data });
+  console.log('updateUser controller invoked', req.params, req.body);
+  const data = await userService.update(Number(req.params.id), req.body ?? {});
+  res.json({ msg: "Se actualizaron los datos del usuario", data });
+});
+
+export const activateUser = asyncHandler(async (req: Request, res: Response) => {
+  const data = await userService.setActiveStatus(Number(req.params.id), true);
+  res.json({ msg: "Usuario activado", data });
+});
+
+export const deactivateUser = asyncHandler(async (req: Request, res: Response) => {
+  const data = await userService.setActiveStatus(Number(req.params.id), false);
+  res.json({ msg: "Usuario desactivado", data });
 });
 
 export const deleteUser = asyncHandler(async (req: Request, res: Response) => {
-    const data = await userService.remove(Number(req.params.id));
-    res.json({ msg: "usuario eliminado", data });
+  const data = await userService.remove(Number(req.params.id));
+  res.json({ msg: "usuario eliminado", data });
 });

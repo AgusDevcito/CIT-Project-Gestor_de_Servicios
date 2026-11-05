@@ -41,9 +41,8 @@ console.log('Created user id', createdUser.id);
 async function loginAndGetCookie(username: string, password: string) {
     const res = await request(app).post("/api/login").send({ username, password }).expect(200);
     const token = res.headers["set-cookie"]?.[0]?.split('=')[1]?.split(';')[0];
-    const payload = token ? verifyToken(token) : null;
-    console.log('Login payload', payload);
-    return res.headers["set-cookie"]?.[0] ?? "";
+    console.log('Login payload', token ? verifyToken(token) : null);
+    return token ? `token=${token}` : "";
 }
 
 test("user can get own profile", async () => {

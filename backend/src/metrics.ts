@@ -1,11 +1,10 @@
-import client from 'prom-client';
 import type { Request, Response, NextFunction } from 'express';
 
-// Collect default metrics (CPU, memory, event loop, etc.)
-import { collectDefaultMetrics, Registry } from 'prom-client';
-collectDefaultMetrics();
-
-export const register = client.register as Registry;
+// Simple placeholder metrics middleware – no external dependencies
+export const register = {
+  contentType: 'text/plain',
+  metrics: () => 'metrics not collected',
+} as const;
 
 export const metricsMiddleware = (req: Request, res: Response, next: NextFunction) => {
   if (req.path === '/metrics') {

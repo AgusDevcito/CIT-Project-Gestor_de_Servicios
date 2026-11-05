@@ -1,10 +1,12 @@
 import { Router } from "express";
 import {
-    createUser,
+    getUserbyID,
     deleteUser,
     getallUsers,
-    getUserbyID,
     updateUser,
+    activateUser,
+    deactivateUser,
+    createUser,
 } from "../controllers/user.controller.js";
 import { requireAuth } from "../middlewares/auth.middleware.js";
 import { requireRole } from "../middlewares/role.middleware.js";
@@ -17,5 +19,7 @@ userRouter.use(requireAuth, requireRole(ROL.ADMIN));
 userRouter.get("/user/:id", getUserbyID);
 userRouter.get("/users", getallUsers);
 userRouter.put("/user/:id", updateUser);
+userRouter.patch("/user/:id/activate", activateUser);
+userRouter.patch("/user/:id/deactivate", deactivateUser);
 userRouter.delete("/user/:id", deleteUser);
 userRouter.post("/user/create", createUser);
