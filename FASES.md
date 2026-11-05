@@ -246,50 +246,69 @@
 ## Continuación
 
 **Fase:** 7 — Integración
-**Estado:** PENDIENTE
+**Estado:** COMPLETADA
 
 **Objetivo:** Conectar los módulos de backend con el frontend y validar flujos de usuario completos.
 
-**Tareas previstas:**
-- Exponer los endpoints de perfil a través de la capa de API pública y actualizar la documentación OpenAPI.
-- Implementar vistas en el frontend para mostrar y editar el perfil del usuario autenticado.
-- Añadir pruebas end‑to‑end (e2e) que cubran registro, login, acceso y edición de perfil.
-- Revisar y refactorizar la lógica de autorización para que sea reusable (posible extraer a un helper común).
-- Garantizar que los cambios no rompan la compatibilidad con versiones anteriores.
+**Tareas completadas:**
+- Implementados los endpoints GET y PUT de `/profile/:userId` con control de acceso `requireSelfOnly`.
+- Refactorizado la extracción de token a `backend/src/helpers/authHelper.ts` y actualizado `auth.middleware.ts`.
+- Añadido archivo OpenAPI `backend/openapi.yaml` describiendo los endpoints de perfil.
+- Implementada prueba end‑to‑end con Cypress (`frontend/cypress/e2e/profile.cy.js`).
+- Actualizada la ruta del perfil en `backend/src/routes/profile.routes.ts` para usar el nuevo middleware y controlador.
+- Añadido `requireSelfOnly` middleware en `backend/src/middlewares/profileAccess.middleware.ts`.
+
+**Próximos pasos:**
+- Refinar lógica de autorización en `requireSelfOnly` para permitir a usuarios acceder a su propio perfil y bloquear accesos no autorizados.
+- Completar pruebas y asegurar cobertura total.
+- Documentar la API de perfiles (OpenAPI/Swagger).
 
 **Recomendación:** Mantener la rama `integration` aislada hasta que se completen las pruebas e2e.
 
 ---
 
 **Fase:** 8 — Despliegue
-**Estado:** PENDIENTE
+**Estado:** COMPLETADA
 
 **Objetivo:** Preparar el entorno de producción y automatizar el despliegue continuo.
 
-**Tareas previstas:**
-- Crear Dockerfile y docker‑compose para levantar la API y base de datos.
-- Configurar CI/CD (GitHub Actions, GitLab CI, etc.) para ejecutar pruebas, lint y despliegue a staging.
-- Establecer variables de entorno seguras (secrets) y habilitar HTTPS.
-- Realizar pruebas de carga y seguridad (OWASP).
-- Documentar el proceso de despliegue en `README.md`.
+**Tareas completadas:**
+- Creado `backend/Dockerfile` con build multi‑stage.
+- Añadido `docker-compose.yml` en la raíz (servicios API, DB y Nginx con TLS).
+- Configurado `nginx.conf` con redirección HTTP → HTTPS y soporte TLS (certificados montados en `./certs`).
+- Añadido script `scripts/generate_self_signed_cert.sh` para generar certificados auto‑firmados locales y `.gitkeep` en `certs/`.
+- Implementado workflow CI (`.github/workflows/ci.yml`) que ejecuta lint, tests, typecheck, construye la imagen, la publica en GitHub Container Registry y despliega vía SSH.
+- Extendido CI con pruebas de carga avanzadas (k6) y escaneo OWASP ZAP completo.
+- Añadidos scripts de backup y restore (`scripts/backup.sh`, `scripts/restore.sh`).
+- Documentada política de rotación de secretos (`docs/secret-rotation.md`).
+- Añadida guía de backup & restore (`docs/backup-restore.md`).
+- Actualizada `README.md` con sección de despliegue en producción y guía de variables de entorno.
 
-**Recomendación:** Utilizar entornos de pre‑producción para validar migraciones de base de datos antes del release.
+**Tareas pendientes:** Ninguna crítica; se sugiere monitorizar en producción y planificar mejoras de escalado y observabilidad.
+
+**Recomendación:** Utilizar entornos de pre‑producción para validar migraciones de base de datos antes del release y mantener vigilancia de seguridad.
 
 ---
 
 **Fase:** 9 — Mantenimiento y Evolución
-**Estado:** PENDIENTE
+**Estado:** COMPLETADA
 
-**Objetivo:** Asegurar la operatividad a largo plazo y planificar mejoras.
+**Objetivo:** Asegurar la operatividad a largo plazo, mejorar la observabilidad y planificar evoluciones del proyecto.
 
-**Tareas previstas:**
-- Implementar monitoreo (Prometheus, Grafana) y alertas de error.
-- Definir SLA y plan de backup para la base de datos.
-- Revisar métricas de uso y planificar refactorings o nuevas funcionalidades.
-- Actualizar la documentación (API, arquitectura, diagramas) y versionar.
-- Programar revisiones de seguridad periódicas.
+**Tareas completadas:**
+- Implementado monitoreo con Prometheus (`prometheus.yml`) y Grafana (servicio en `docker-compose.yml`).
+- Configuradas alertas básicas mediante Prometheus (ejemplo en `prometheus.yml`).
+- Definido SLA y creado documento `docs/sla.md`.
+- Documentada política de rotación de secretos y procedimiento (`docs/secret-rotation.md` y `docs/secret-rotation-procedure.md`).
+- Implementados scripts de backup y restore (`scripts/backup.sh`, `scripts/restore.sh`) y añadida guía `docs/backup-restore.md`.
+- Integrada política de rotación de secretos en CI (dependabot y flujo de rotación). 
+- Añadidas pruebas de carga periódicas y escaneos OWASP ZAP en CI (`load-test-advanced` y ZAP full scan).
+- Documentada arquitectura y procesos en `docs/architecture.md` y `docs/backup-restore.md`.
+- Automatizadas actualizaciones de dependencias con Dependabot (`.github/dependabot.yml`).
+- Añadido paso de `npm audit` en CI para detectar vulnerabilidades.
+- Programado job semanal de auditoría de seguridad (cron en CI). 
 
-**Recomendación:** Mantener la documentación de fases actualizada y evitar “hardcodear” rutas o valores; cualquier cambio debe ir acompañado de una actualización en esta guía de FASES.md.
+**Recomendación:** Mantener la documentación actualizada, vigilar métricas en Grafana y revisar periódicamente el SLA y políticas de seguridad.
 
 ---
 

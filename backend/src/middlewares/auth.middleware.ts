@@ -4,21 +4,7 @@ import { unauthorizedError } from "../errors/AppError.js";
 import { verifyToken } from "../helpers/jwt.js";
 import type { JwtPayload } from "../helpers/jwt.js";
 
-const getTokenFromRequest = (req: Request): string | null => {
-    // Prefer Authorization header (Bearer scheme)
-    const authorization = req.headers.authorization;
-    if (authorization && authorization.startsWith("Bearer ")) {
-        return authorization.slice(7);
-    }
-    // Fallback to HttpOnly cookie named 'token'
-    if (req.cookies && typeof req.cookies === "object" && "token" in req.cookies) {
-        const cookieToken = (req.cookies as any)["token"];
-        if (typeof cookieToken === "string" && cookieToken.trim()) {
-            return cookieToken;
-        }
-    }
-    return null;
-};
+import { getTokenFromRequest } from "../helpers/authHelper.js";
 
 // Acceso tipado al usuario autenticado. Evita repetir "req.user!" en cada controlador.
 export const getAuthUser = (req: Request): JwtPayload => {

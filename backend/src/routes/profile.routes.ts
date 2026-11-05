@@ -16,13 +16,13 @@ profileRouter.get("/profiles", requireAuth, requireRole(ROL.ADMIN), getAllProfil
 profileRouter.get(
     "/profile/:userId",
     requireAuth,
-    (req, res) => {
-        res.json({ data: { first_name: "Original", last_name: "User", avatar_url: null } });
-    },
+    requireSelfOnly,
+    getProfileByUserId,
 );
 profileRouter.put(
     "/profile/:userId",
     requireAuth,
+    requireSelfOnly,
     validateProfileUpdate,
     updateProfile,
 );

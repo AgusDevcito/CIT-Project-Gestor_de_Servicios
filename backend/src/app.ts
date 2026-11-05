@@ -5,7 +5,7 @@ import { errorHandler, notFoundHandler } from "./middlewares/error.middleware.js
 import express from "express";
 import { routes } from "./routes/index.js";
 
-export const createApp = (): ReturnType<typeof express> => {
+import { metricsMiddleware } from "./metrics.js";
     const app = express();
 
     app.use(
@@ -20,7 +20,8 @@ export const createApp = (): ReturnType<typeof express> => {
     );
     app.use(cookieParser());
 
-    app.use(express.json({ limit: "1mb" }));
+    app.use(metricsMiddleware);
+
     app.get("/", (_req: any, res: any) => {
     res.json({ ok: true });
 });

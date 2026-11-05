@@ -1,0 +1,73 @@
+openapi: 3.0.0
+info:
+  title: Gestor de Servicios API
+  version: 1.0.0
+paths:
+  /profile/{userId}:
+    get:
+      summary: Obtener perfil de usuario
+      parameters:
+        - name: userId
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Perfil encontrado
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProfileResponse'
+        '403':
+          description: No autorizado
+        '404':
+          description: No encontrado
+    put:
+      summary: Actualizar perfil de usuario
+      parameters:
+        - name: userId
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ProfileUpdate'
+      responses:
+        '200':
+          description: Perfil actualizado
+        '403':
+          description: No autorizado
+        '404':
+          description: No encontrado
+components:
+  schemas:
+    ProfileResponse:
+      type: object
+      properties:
+        data:
+          $ref: '#/components/schemas/Profile'
+    Profile:
+      type: object
+      properties:
+        first_name:
+          type: string
+        last_name:
+          type: string
+        avatar_url:
+          type: string
+          nullable: true
+    ProfileUpdate:
+      type: object
+      properties:
+        first_name:
+          type: string
+        last_name:
+          type: string
+        avatar_url:
+          type: string
+          nullable: true
