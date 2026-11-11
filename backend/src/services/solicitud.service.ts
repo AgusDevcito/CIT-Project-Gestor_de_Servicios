@@ -3,6 +3,8 @@ import { ESTADO } from "../constants/estados.js";
 import type { Rol } from "../constants/roles.js";
 import * as catalogRepository from "../repositories/catalog.repository.js";
 import * as solicitudRepository from "../repositories/solicitud.repository.js";
+import * as userRepository from "../repositories/user.repository.js";
+import * as mailService from "../utils/mail.js";
 
 export const list = (user: { id: number; role: Rol }) => {
     const where =
@@ -36,6 +38,11 @@ export const updateEstado = async (id: number, estadoValue: unknown) => {
 
     solicitud.estado_id = estado.id;
     await solicitudRepository.save(solicitud);
+    // Notificar al usuario por correo
+    const user = await userRepository.findByPk(solicitud.user_id);
+    if (user && user.email) {
+        await mailService.sendSolicitudStatusEmail(user.email, id, estado.nombre);
+    }
 
     return solicitud;
 };

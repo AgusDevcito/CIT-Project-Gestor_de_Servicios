@@ -9,8 +9,9 @@ import { signToken } from "../helpers/jwt.js";
 import { comparePasswords, hashPassword } from "../helpers/password.js";
 import * as profileRepository from "../repositories/profile.repository.js";
 import * as userRepository from "../repositories/user.repository.js";
+import * as tokenRepo from "../repositories/citActivationToken.repository.js";
+import { createActivationToken, activateUserWithToken } from "../services/activation.service.js";
 import { ROL, ROLES } from "../constants/roles.js";
-import type { Rol } from "../constants/roles.js";
 
 export interface RegisterInput {
     first_name?: string;
@@ -32,7 +33,6 @@ export const register = async (input: RegisterInput) => {
         username,
         email,
         password,
-        role: requestedRole,
         document_url,
     } = input;
 
@@ -40,9 +40,12 @@ export const register = async (input: RegisterInput) => {
     const resolvedDocumentUrl = uploadedFile
         ? `/uploads/${uploadedFile.filename}`
         : document_url;
-    const role = (requestedRole || ROL.USER) as Rol;
 
-    const requiredFields = { first_name, last_name, username, email, password, role };
+    // El registro público siempre crea un usuario con rol "user".
+    // El personal CIT y los administradores son dados de alta por administración.
+    const role = ROL.USER;
+
+    const requiredFields = { first_name, last_name, username, email, password };
     if (Object.values(requiredFields).some((value) => !String(value ?? "").trim())) {
         throw validationError("Todos los campos obligatorios deben estar completos.");
     }
@@ -51,7 +54,10 @@ export const register = async (input: RegisterInput) => {
         throw validationError("El rol solicitado no es válido.");
     }
 
-    validateCITRegistration({ role, documentUrl: resolvedDocumentUrl, file: uploadedFile });
+    const requestedRole = (input.role as string) ?? ROL.USER;
+    if (requestedRole === ROL.CIT) {
+        validateCITRegistration({ role: requestedRole, documentUrl: resolvedDocumentUrl, file: uploadedFile });
+    }
 
     await userRepository.createUserWithProfile(
         {
@@ -69,7 +75,7 @@ export const register = async (input: RegisterInput) => {
         },
     );
 
-    return { documentUrl: resolvedDocumentUrl };
+    return { documentUrl: resolvedDocumentUrl ?? null };
 };
 
 export const login = async (username?: string, password?: string) => {
@@ -82,12 +88,51 @@ export const login = async (username?: string, password?: string) => {
         throw unauthorizedError("Credenciales incorrectas o invalidas");
     }
 
+    if (!user.isActive) {
+        throw unauthorizedError("Cuenta desactivada. Contacte al administrador.");
+    }
+    const pending = await tokenRepo.findValidByUser(user.id);
+    if (pending) {
+        throw unauthorizedError("Cuenta pendiente de activación. Complete el proceso antes de iniciar sesión.");
+    }
+
     const isMatch = await comparePasswords(password as string, user.password);
     if (!isMatch) {
         throw unauthorizedError("Contraseña Incorrecta");
     }
-
     return { token: signToken({ id: user.id, email: user.email, role: user.role }) };
+};
+
+export const forgotPassword = async (email: string) => {
+    const genericMsg = { msg: "Si el email está registrado, recibirás un enlace para restablecer la contraseña" };
+    if (!email) return genericMsg;
+    const user = await userRepository.findByEmail(email);
+    if (!user) {
+        return genericMsg;
+    }
+    const token = await createActivationToken(user.id, 15 * 60 * 1000);
+    await import("../utils/mail.js").then((m) => m.sendPasswordResetEmail(email, token));
+    return genericMsg;
+};
+
+export const resetPassword = async (plainToken: string, newPassword: string) => {
+    if (!/^(?=.*[A-Za-z])(?=.*\d)[A-Za-z\d]{8,}$/.test(newPassword)) {
+        throw validationError("La contraseña debe tener al menos 8 caracteres, incluir una letra y un número.");
+    }
+    await activateUserWithToken(plainToken, newPassword);
+    return { msg: "Contraseña actualizada correctamente" };
+};
+
+export const changePassword = async (userId: number, currentPassword: string, newPassword: string) => {
+    const user = await userRepository.findByPk(userId);
+    if (!user) throw notFoundError("Usuario no encontrado");
+    const match = await comparePasswords(currentPassword, user.password);
+    if (!match) throw unauthorizedError("Contraseña actual incorrecta");
+    if (!/^(?=.*[A-Za-z])(?=.*\d)[A-Za-z\d]{8,}$/.test(newPassword)) {
+        throw validationError("La nueva contraseña debe tener al menos 8 caracteres, incluir una letra y un número.");
+    }
+    await userRepository.update(user, { password: await hashPassword(newPassword) });
+    return { msg: "Contraseña cambiada correctamente" };
 };
 
 export const getMyProfile = async (userId: number) => {

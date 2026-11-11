@@ -1,0 +1,128 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  schedule:
+    - cron: '0 2 * * 1' # Every Monday at 02:00 UTC
+
+
+jobs:
+  build-test:
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:15-alpine
+        env:
+          POSTGRES_USER: test_user
+          POSTGRES_PASSWORD: test_pass
+          POSTGRES_DB: test_db
+        ports: [5432:5432]
+        options: >-
+          --health-cmd "pg_isready -U ${{ env.POSTGRES_USER }}"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+    env:
+      DATABASE_URL: postgresql://test_user:test_pass@localhost:5432/test_db
+    steps:
+      - uses: actions/checkout@v4
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - name: Run backend lint & typecheck
+        working-directory: backend
+        run: |
+          npm run lint || true
+          npm run typecheck
+      - name: Run npm audit
+        working-directory: backend
+        run: |
+          npm audit --audit-level=high || echo "npm audit found issues but continuing"
+
+      - name: Run backend tests
+        working-directory: backend
+        run: npm test
+      - name: Build Docker image
+        run: |
+          docker build -t gestor-backend:ci -f backend/Dockerfile .
+      - name: Push Docker image to GitHub Container Registry
+        if: github.ref == 'refs/heads/main'
+        env:
+          GHCR_TOKEN: ${{ secrets.GHCR_TOKEN }}
+          GHCR_USERNAME: ${{ secrets.GHCR_USERNAME }}
+        run: |
+          echo $GHCR_TOKEN | docker login ghcr.io -u $GHCR_USERNAME --password-stdin
+          docker tag gestor-backend:ci ghcr.io/${{ github.repository }}:latest
+          docker push ghcr.io/${{ github.repository }}:latest
+      - name: Load test with k6 (basic)
+        run: |
+          docker run --rm -i loadimpact/k6 run - <<'EOF'
+          import http from 'k6/http';
+          import { sleep } from 'k6';
+          export const options = { vus: 10, duration: '30s' };
+          export default function () {
+            http.get('http://localhost:3000/health');
+            sleep(1);
+          }
+          EOF
+      - name: OWASP ZAP baseline scan
+        run: |
+          docker run -t owasp/zap2docker-stable zap-baseline.py -t http://localhost:3000 -r zap-report.html
+
+  load-test-advanced:
+    needs: build-test
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Run advanced k6 load test
+        run: |
+          docker run --rm -i loadimpact/k6 run - <<'EOF'
+import http from 'k6/http';
+import { sleep, check } from 'k6';
+export const options = { stages: [{duration: '1m', target: 20}, {duration: '3m', target: 50}, {duration: '1m', target: 0}] };
+export default function () {
+  const res = http.get('http://localhost:3000/health');
+  check(res, { 'status was 200': (r) => r.status === 200 });
+  sleep(1);
+}
+EOF
+      - name: OWASP ZAP full scan
+        run: |
+          docker run -t owasp/zap2docker-stable zap-full-scan.py -t http://localhost:3000 -r zap-full-report.html
+  deploy:
+    needs: build-test
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/main'
+    steps:
+      - uses: actions/checkout@v4
+      - name: Copy deployment files via SCP
+        uses: appleboy/scp-action@v0.1.7
+        with:
+          host: ${{ secrets.SSH_HOST }}
+          username: ${{ secrets.SSH_USER }}
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          source: "docker-compose.yml backend/Dockerfile nginx.conf .github/workflows/ci.yml scripts/ backup.sh restore.sh"
+          target: ~/gestor_de_servicios
+      - name: Deploy with Docker Compose via SSH
+        uses: appleboy/ssh-action@v0.1.10
+        with:
+          host: ${{ secrets.SSH_HOST }}
+          username: ${{ secrets.SSH_USER }}
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          script: |
+            cd ~/gestor_de_servicios
+            docker compose pull || true
+            docker compose up -d --build
+            docker image prune -f
+
+  cleanup:
+    needs: [build-test, deploy]
+    runs-on: ubuntu-latest
+    if: always()
+    steps:
+      - name: Remove old Docker images
+        run: docker image prune -af

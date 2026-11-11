@@ -1,10 +1,14 @@
 import { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 
 import "./Login.css";
 import logoCitio from "../../assets/logo-CITio.png";
 import { useAuth } from "../../context/useAuth";
 import { getApiError } from "../../domain/errors";
+
+interface LoginLocationState {
+  sessionExpired?: boolean;
+}
 
 export const Login = () => {
   const [username, setUsername] = useState("");
@@ -13,6 +17,8 @@ export const Login = () => {
   const [loading, setLoading] = useState(false);
   const { login } = useAuth();
   const navigate = useNavigate();
+  const location = useLocation();
+  const sessionExpired = Boolean((location.state as LoginLocationState | null)?.sessionExpired);
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -46,6 +52,15 @@ export const Login = () => {
         {/* Formulario con estilo Dark Inset */}
         <form className="form-card" onSubmit={handleSubmit}>
           <p className="heading">Iniciar Sesión</p>
+
+          {sessionExpired && !error && (
+            <div
+              role="status"
+              className="rounded-lg border border-amber-500/40 bg-amber-500/10 px-3 py-2 text-center text-xs text-amber-200"
+            >
+              Tu sesión expiró. Por favor, iniciá sesión nuevamente.
+            </div>
+          )}
 
           {error && <div className="error-badge">{error}</div>}
 

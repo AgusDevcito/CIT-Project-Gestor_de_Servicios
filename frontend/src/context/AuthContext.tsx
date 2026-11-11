@@ -27,7 +27,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 
     const rutaActual = window.location.pathname;
     if (!RUTAS_PUBLICAS.some((ruta) => rutaActual.startsWith(ruta))) {
-      navigate("/login", { replace: true });
+      navigate("/login", { replace: true, state: { sessionExpired: true } });
     }
   }, [navigate]);
 

@@ -6,7 +6,6 @@ import "./Register.css";
 import logoCitio from "../../assets/logo-CITio.png";
 import { useAuth } from "../../context/useAuth";
 import { getApiError } from "../../domain/errors";
-import { ROL } from "../../domain/roles";
 
 interface FormularioRegistro {
   first_name: string;
@@ -14,7 +13,6 @@ interface FormularioRegistro {
   username: string;
   email: string;
   password: string;
-  role: string;
 }
 
 const INITIAL_FORM: FormularioRegistro = {
@@ -23,48 +21,29 @@ const INITIAL_FORM: FormularioRegistro = {
   username: "",
   email: "",
   password: "",
-  role: ROL.USER,
 };
-
-/** Tamaño máximo del documento, alineado con `backend/src/helpers/upload.ts`. */
-const MAX_DOCUMENTO_BYTES = 5 * 1024 * 1024;
-const TIPOS_DOCUMENTO = ".pdf,.jpg,.jpeg,.png";
 
 export const Register = () => {
   const [form, setForm] = useState<FormularioRegistro>(INITIAL_FORM);
-  const [documentFile, setDocumentFile] = useState<File | null>(null);
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
   const [success, setSuccess] = useState(false);
   const { register } = useAuth();
   const navigate = useNavigate();
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
     setForm((prev) => ({ ...prev, [name]: value }));
   };
 
-  const isCIT = form.role === ROL.CIT;
-
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setError("");
-
-    if (isCIT && !documentFile) {
-      setError("Para registrarte como personal CIT debés adjuntar el documento que lo avale.");
-      return;
-    }
-
-    if (documentFile && documentFile.size > MAX_DOCUMENTO_BYTES) {
-      setError("El documento supera el tamaño máximo permitido (5 MB).");
-      return;
-    }
-
     setLoading(true);
+
     try {
       const formData = new FormData();
       Object.entries(form).forEach(([key, value]) => formData.append(key, value));
-      if (documentFile) formData.append("document", documentFile);
 
       await register(formData);
       setSuccess(true);
@@ -168,29 +147,6 @@ export const Register = () => {
                 onChange={handleChange}
               />
             </div>
-
-            <div className="field">
-              <select
-                name="role"
-                className="input-field select-field"
-                value={form.role}
-                onChange={handleChange}
-              >
-                <option value={ROL.USER}>Usuario</option>
-                <option value={ROL.CIT}>Personal CIT</option>
-              </select>
-            </div>
-
-            {isCIT && (
-              <label className="file-field">
-                <span className="file-label">Documento que avale la relación con el CIT (PDF, JPG o PNG)</span>
-                <input
-                  type="file"
-                  accept={TIPOS_DOCUMENTO}
-                  onChange={(e) => setDocumentFile(e.target.files?.[0] ?? null)}
-                />
-              </label>
-            )}
 
             <div className="btn-group">
               <button type="submit" className="button1" disabled={loading}>

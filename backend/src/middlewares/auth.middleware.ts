@@ -3,16 +3,7 @@ import type { Rol } from "../constants/roles.js";
 import { unauthorizedError } from "../errors/AppError.js";
 import { verifyToken } from "../helpers/jwt.js";
 import type { JwtPayload } from "../helpers/jwt.js";
-
-const getTokenFromRequest = (req: Request): string | null => {
-    const authorization = req.headers.authorization;
-
-    if (!authorization || !authorization.startsWith("Bearer ")) {
-        return null;
-    }
-
-    return authorization.slice(7);
-};
+import { getTokenFromRequest } from "../helpers/authHelper.js";
 
 // Acceso tipado al usuario autenticado. Evita repetir "req.user!" en cada controlador.
 export const getAuthUser = (req: Request): JwtPayload => {

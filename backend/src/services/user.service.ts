@@ -1,4 +1,5 @@
 import { notFoundError, validationError } from "../errors/AppError.js";
+import * as mailService from "../utils/mail.js";
 import { hashPassword } from "../helpers/password.js";
 import * as userRepository from "../repositories/user.repository.js";
 import { ROL } from "../constants/roles.js";
@@ -50,10 +51,32 @@ export const create = async (input: CreateUserInput) => {
         role: role ?? ROL.USER,
     });
 
+    try {
+        await mailService.sendRegistrationEmail(email, username);
+    } catch (e) {
+        console.error("Error enviando email de registro:", e);
+    }
+
     return toPublicUser(user);
 };
 
-export const list = () => userRepository.findAllWithProfile();
+export const list = async (options?: { page?: number; size?: number; search?: string; role?: string }) => {
+    const page = options?.page ?? 1;
+    const size = options?.size ?? 10;
+    const offset = (page - 1) * size;
+    const result = await userRepository.findAllWithProfilePaginated({
+        offset,
+        limit: size,
+        search: options?.search,
+        role: options?.role,
+    });
+    return {
+        total: result.count,
+        page,
+        size,
+        data: result.rows,
+    };
+};
 
 export const getById = async (id: number) => {
     assertValidId(id);
@@ -77,6 +100,14 @@ export const update = async (id: number, input: UpdateUserInput) => {
     if (input.password) data.password = await hashPassword(input.password);
 
     await userRepository.update(user, data);
+    return toPublicUser(user);
+};
+
+export const setActiveStatus = async (id: number, active: boolean) => {
+    assertValidId(id);
+    const user = await userRepository.findByPk(id);
+    if (!user) throw notFoundError("Usuario no encontrado");
+    await userRepository.update(user, { isActive: active });
     return toPublicUser(user);
 };
 

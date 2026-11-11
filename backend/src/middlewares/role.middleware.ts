@@ -13,5 +13,5 @@ export const requireRole = (...allowedRoles: Rol[]): RequestHandler =>
         return next();
     };
 
-export const requireCIT = requireRole(ROL.CIT);
+export const requireCIT = requireRole(ROL.CIT, ROL.ADMIN);
 export const requireUser = requireRole(ROL.USER);

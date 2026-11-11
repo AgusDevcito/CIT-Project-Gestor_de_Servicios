@@ -8,8 +8,8 @@ export const createUser = asyncHandler(async (req: Request, res: Response) => {
 });
 
 export const getallUsers = asyncHandler(async (_req: Request, res: Response) => {
-    const data = await userService.list();
-    res.json({ count: data.length, data });
+    const result = await userService.list();
+    res.json({ count: result.total, data: result.data });
 });
 
 export const getUserbyID = asyncHandler(async (req: Request, res: Response) => {
@@ -20,6 +20,16 @@ export const getUserbyID = asyncHandler(async (req: Request, res: Response) => {
 export const updateUser = asyncHandler(async (req: Request, res: Response) => {
     const data = await userService.update(Number(req.params.id), req.body ?? {});
     res.json({ msg: "Se actualizaron los datos del usuario", data });
+});
+
+export const activateUser = asyncHandler(async (req: Request, res: Response) => {
+    const data = await userService.setActiveStatus(Number(req.params.id), true);
+    res.json({ msg: "Usuario activado", data });
+});
+
+export const deactivateUser = asyncHandler(async (req: Request, res: Response) => {
+    const data = await userService.setActiveStatus(Number(req.params.id), false);
+    res.json({ msg: "Usuario desactivado", data });
 });
 
 export const deleteUser = asyncHandler(async (req: Request, res: Response) => {
