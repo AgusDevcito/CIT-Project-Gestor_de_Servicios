@@ -8,8 +8,28 @@ export const getServicios = asyncHandler(async (_req: Request, res: Response) =>
     res.json({ count: data.length, data });
 });
 
+export const getServicioById = asyncHandler(async (req: Request, res: Response) => {
+    const data = await servicioService.getById(Number(req.params.id));
+    res.json({ data });
+});
+
 export const createServicio = asyncHandler(async (req: Request, res: Response) => {
     const user = getAuthUser(req);
     const data = await servicioService.create(req.body ?? {}, user.id);
     res.status(201).json({ data });
 });
+
+export const createResenaServicio = asyncHandler(
+    async (req: Request, res: Response) => {
+        const user = getAuthUser(req);
+        const data = await servicioService.createResena(
+            Number(req.params.id),
+            req.body ?? {},
+            user,
+        );
+        res.status(201).json({
+            msg: "Calificación y reseña registradas correctamente.",
+            data,
+        });
+    },
+);

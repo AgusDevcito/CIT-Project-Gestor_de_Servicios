@@ -9,6 +9,7 @@ import {
 import { sequelize } from "../config/db.js";
 import type { Estado } from "./estado.model.js";
 import type { Sector } from "./sector.model.js";
+import type { Servicio } from "./servicio.model.js";
 import type { User } from "./user.model.js";
 
 export class Propuesta extends Model<InferAttributes<Propuesta>, InferCreationAttributes<Propuesta>> {
@@ -18,6 +19,13 @@ export class Propuesta extends Model<InferAttributes<Propuesta>, InferCreationAt
     declare problematica: string;
     declare estado_id: number;
     declare solicitante: number;
+    declare nombre_organismo: CreationOptional<string | null>;
+    declare email_contacto: CreationOptional<string | null>;
+    declare telefono_contacto: CreationOptional<string | null>;
+    declare bienes_recursos: CreationOptional<string | null>;
+    declare documento_url: CreationOptional<string | null>;
+    declare documento_nombre: CreationOptional<string | null>;
+    declare servicio_generado_id: CreationOptional<number | null>;
     declare cirRevisorId: CreationOptional<number | null>;
     declare citJustificacion: CreationOptional<string | null>;
     declare citFechaRevision: CreationOptional<Date | null>;
@@ -26,6 +34,7 @@ export class Propuesta extends Model<InferAttributes<Propuesta>, InferCreationAt
     declare Revisor?: NonAttribute<User>;
     declare Sector?: NonAttribute<Sector>;
     declare Estado?: NonAttribute<Estado>;
+    declare ServicioGenerado?: NonAttribute<Servicio>;
 }
 
 Propuesta.init(
@@ -40,6 +49,13 @@ Propuesta.init(
         },
         estado_id: { type: DataTypes.INTEGER, allowNull: false },
         solicitante: { type: DataTypes.INTEGER, allowNull: false },
+        nombre_organismo: { type: DataTypes.STRING(150), defaultValue: null },
+        email_contacto: { type: DataTypes.STRING(150), defaultValue: null },
+        telefono_contacto: { type: DataTypes.STRING(60), defaultValue: null },
+        bienes_recursos: { type: DataTypes.TEXT, defaultValue: null },
+        documento_url: { type: DataTypes.TEXT, defaultValue: null },
+        documento_nombre: { type: DataTypes.STRING(255), defaultValue: null },
+        servicio_generado_id: { type: DataTypes.INTEGER, defaultValue: null },
         cirRevisorId: { type: DataTypes.INTEGER, defaultValue: null },
         citJustificacion: { type: DataTypes.TEXT, defaultValue: null },
         citFechaRevision: { type: DataTypes.DATE, defaultValue: null },

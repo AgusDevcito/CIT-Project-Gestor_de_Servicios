@@ -4,6 +4,7 @@ import {
     deletePublicacion,
     getAllPublicaciones,
     getPublicacionById,
+    togglePublicacionEstado,
     updatePublicacion,
 } from "../controllers/publicacion.controller.js";
 import {
@@ -11,23 +12,31 @@ import {
     deleteArchivo,
     getArchivosByPublicacion,
 } from "../controllers/archivo.controller.js";
-import { requireAuth } from "../middlewares/auth.middleware.js";
+import { optionalAuth, requireAuth } from "../middlewares/auth.middleware.js";
 import { requireCIT } from "../middlewares/role.middleware.js";
 
 export const publicacionesRouter = Router();
 
-// Todos los usuarios autenticados pueden leer publicaciones y sus archivos.
-publicacionesRouter.get("/publicaciones", requireAuth, getAllPublicaciones);
-publicacionesRouter.get("/publicacion/:id", requireAuth, getPublicacionById);
+// Lectura de publicaciones: público y usuarios normales ven únicamente las publicadas;
+// el personal CIT y Admin ven también los borradores/despublicadas.
+publicacionesRouter.get("/publicaciones", optionalAuth, getAllPublicaciones);
+publicacionesRouter.get("/publicacion/:id", optionalAuth, getPublicacionById);
 publicacionesRouter.get(
     "/publicacion/:publicacionId/archivos",
-    requireAuth,
+    optionalAuth,
     getArchivosByPublicacion,
 );
 
-// Solo un trabajador CIT puede administrar el contenido tecnico.
+// Administración de publicaciones: exclusivo para personal CIT y Admin.
 publicacionesRouter.post("/publicacion/crear", requireAuth, requireCIT, createPublicacion);
+publicacionesRouter.post("/publicacion", requireAuth, requireCIT, createPublicacion);
 publicacionesRouter.put("/publicacion/:id", requireAuth, requireCIT, updatePublicacion);
+publicacionesRouter.patch(
+    "/publicacion/:id/estado",
+    requireAuth,
+    requireCIT,
+    togglePublicacionEstado,
+);
 publicacionesRouter.delete("/publicacion/:id", requireAuth, requireCIT, deletePublicacion);
 publicacionesRouter.post(
     "/publicacion/:publicacionId/archivos",

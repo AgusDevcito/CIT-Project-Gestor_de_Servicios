@@ -15,6 +15,7 @@ export class Profile extends Model<InferAttributes<Profile>, InferCreationAttrib
     declare first_name: string;
     declare last_name: string;
     declare avatar_url: CreationOptional<string | null>;
+    declare bio: CreationOptional<string | null>;
 
     declare User?: NonAttribute<User>;
 }
@@ -26,6 +27,7 @@ Profile.init(
         first_name: { type: DataTypes.STRING, allowNull: false },
         last_name: { type: DataTypes.STRING, allowNull: false },
         avatar_url: { type: DataTypes.STRING(250), allowNull: true },
+        bio: { type: DataTypes.TEXT, allowNull: true, defaultValue: null },
     },
     {
         sequelize,

@@ -1,18 +1,30 @@
-import { http } from "../lib/http";
-import type { Servicio } from "../domain/entidades";
+/**
+ * Servicio de Servicios del CIT: casos de uso para catálogo, detalle, alta
+ * y registro de calificaciones/reseñas.
+ */
 
-export const getServicios = async (): Promise<Servicio[]> => {
-  const { data } = await http.get<{ data: Servicio[] }>("/servicios");
-  return data.data;
-};
+import * as serviciosRepository from "../repositories/servicios.repository";
+import type {
+  CrearResenaInput,
+  CrearServicioInput,
+  ResenaServicio,
+  Servicio,
+} from "../domain/servicios";
 
-/** Solo personal CIT. */
-export const createServicio = async (payload: {
-  servicio_nombre: string;
-  servicio_description: string;
-  servicio_precio: number;
-  sector: string;
-  servicio_img?: string;
-}): Promise<void> => {
-  await http.post("/servicios", payload);
-};
+export const getServicios = async (): Promise<Servicio[]> =>
+  serviciosRepository.listarServicios();
+
+export const getServicioById = async (id: number): Promise<Servicio> =>
+  serviciosRepository.obtenerServicioPorId(id);
+
+/** Solo personal CIT y Admin. */
+export const createServicio = async (
+  payload: CrearServicioInput,
+): Promise<Servicio> => serviciosRepository.crearServicio(payload);
+
+/** Solo usuarios con solicitud previa del servicio. */
+export const createResenaServicio = async (
+  servicioId: number,
+  payload: CrearResenaInput,
+): Promise<{ msg: string; data: ResenaServicio }> =>
+  serviciosRepository.crearResenaServicio(servicioId, payload);

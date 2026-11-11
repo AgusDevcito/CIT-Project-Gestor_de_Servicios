@@ -1,5 +1,6 @@
 export const ESTADO = {
     PENDIENTE: "PENDIENTE",
+    EN_REVISION: "EN_REVISION",
     APROBADO: "APROBADO",
     RECHAZADO: "RECHAZADO",
     ACEPTADA: "ACEPTADA",
@@ -10,5 +11,6 @@ export type EstadoCodigo = (typeof ESTADO)[keyof typeof ESTADO];
 
 export const DECISIONES_PROPUESTA = {
     APROBADO: ESTADO.APROBADO,
+    ACEPTADA: ESTADO.ACEPTADA,
     RECHAZADO: ESTADO.RECHAZADO,
 } as const;

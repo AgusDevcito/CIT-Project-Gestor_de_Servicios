@@ -1,31 +1,57 @@
-import { http } from "../lib/http";
-import type { Propuesta } from "../domain/entidades";
+/**
+ * Servicio de Propuestas: casos de uso para envío, seguimiento, toma en revisión
+ * y dictamen técnico con generación de servicio en catálogo.
+ */
 
-/** Solo CIT: devuelve las propuestas con estado PENDIENTE. */
-export const getPropuestasPendientes = async (): Promise<Propuesta[]> => {
-  const { data } = await http.get<{ data: Propuesta[] }>("/propuestas");
-  return data.data;
-};
+import * as propuestasRepository from "../repositories/propuestas.repository";
+import type {
+  CrearPropuestaInput,
+  DecisionDictamen,
+  OpcionesServicioPropuestaInput,
+  Propuesta,
+} from "../domain/propuestas";
 
-/** Solo usuario normal: crea una nueva problemática a resolver. */
-export const crearPropuesta = async (payload: {
-  titulo: string;
-  sector: string;
-  problematica: string;
-}): Promise<{ msg: string }> => {
-  const { data } = await http.post<{ msg: string }>("/propuesta/crear", payload);
-  return data;
-};
+/**
+ * Devuelve las propuestas visibles según el rol autenticado:
+ * - Rol `user`: todas sus propias propuestas enviadas.
+ * - Rol `cit` / `admin`: todas las propuestas del sistema (o filtradas por `estado`).
+ */
+export const getPropuestas = async (estado?: string): Promise<Propuesta[]> =>
+  propuestasRepository.listarPropuestas(estado);
 
-/** Solo CIT: decisión "APROBADO" | "RECHAZADO" con justificación (mín. 15 caracteres). */
+/** Devuelve las propuestas con estado PENDIENTE. */
+export const getPropuestasPendientes = async (): Promise<Propuesta[]> =>
+  propuestasRepository.listarPropuestas("PENDIENTE");
+
+/** Solo CIT/Admin: obtiene el detalle completo de una propuesta por ID. */
+export const getPropuestaById = async (id: number): Promise<Propuesta> =>
+  propuestasRepository.obtenerPropuestaPorId(id);
+
+/** Solo usuario normal: crea una nueva problemática / propuesta. */
+export const crearPropuesta = async (
+  payload: CrearPropuestaInput,
+): Promise<{ msg: string; data?: Propuesta }> =>
+  propuestasRepository.crearPropuesta(payload);
+
+/** Solo CIT/Admin: toma una propuesta pendiente pasándola al estado EN_REVISION. */
+export const tomarPropuestaEnRevision = async (
+  id: number,
+): Promise<{ msg: string; data?: Propuesta }> =>
+  propuestasRepository.tomarEnRevision(id);
+
+/**
+ * Solo CIT/Admin: decisión "ACEPTADA" | "APROBADO" | "RECHAZADO" con justificación
+ * (mín. 15 caracteres). Si se acepta, genera el servicio en el catálogo.
+ */
 export const dictaminarPropuesta = async (
   id: number,
-  decision: "APROBADO" | "RECHAZADO",
+  decision: DecisionDictamen,
   justificacion: string,
-): Promise<{ msg: string }> => {
-  const { data } = await http.post<{ msg: string }>(`/propuestas/dictaminar/${id}`, {
+  opcionesServicio?: OpcionesServicioPropuestaInput,
+): Promise<{ msg: string; data?: Propuesta }> =>
+  propuestasRepository.dictaminarPropuesta(
+    id,
     decision,
     justificacion,
-  });
-  return data;
-};
+    opcionesServicio,
+  );

@@ -1,10 +1,8 @@
 /**
  * Modelos de dominio: lo que consume la UI.
  *
- * Deliberadamente NO reproducen la forma de los modelos de Sequelize que devuelve
- * el backend (alias `User`, `Sector`, `Proveedor`...). Esos alias son un detalle de
- * la capa de persistencia y quedan aislados en `repositories/`, de modo que un
- * cambio en el backend se traduzca en un solo archivo.
+ * Centraliza los tipos de sesión y reexporta los contratos modulares de
+ * `catalogos`, `servicios`, `solicitudes`, `publicaciones`, `propuestas` y `perfil`.
  */
 
 import type { Rol } from "./roles";
@@ -28,26 +26,6 @@ export interface LoginInput {
   password: string;
 }
 
-/* ------------------------------------------------------------------ */
-/* DTOs: la forma exacta que devuelve el backend                       */
-/* ------------------------------------------------------------------ */
-
-export interface UsuarioDTO {
-  id: number;
-  username: string;
-  email: string;
-  role: Rol;
-}
-
-export interface PerfilDTO {
-  id: number;
-  user_id: number;
-  first_name: string;
-  last_name: string;
-  avatar_url: string | null;
-  User: UsuarioDTO;
-}
-
 export interface LoginResponseDTO {
   msg: string;
   token: string;
@@ -59,92 +37,73 @@ export interface RegisterResponseDTO {
 }
 
 /* ------------------------------------------------------------------ */
-/* Entidades de negocio                                                */
+/* Reexportaciones por módulo                                          */
 /* ------------------------------------------------------------------ */
 
-export interface Sector {
-  id: number;
-  codigo: string;
-  nombre: string;
-  activo: boolean;
-}
+export type {
+  CatalogoListResponseDTO,
+  Estado,
+  EstadoDTO,
+  Sector,
+  SectorDTO,
+} from "./catalogos";
 
-export interface Estado {
-  id: number;
-  codigo: string;
-  nombre: string;
-  activo: boolean;
-}
+export type {
+  CrearResenaInput,
+  CrearServicioInput,
+  PerfilResumenDTO,
+  ResenaItemResponseDTO,
+  ResenaServicio,
+  ResenaServicioDTO,
+  Servicio,
+  ServicioDTO,
+  ServicioItemResponseDTO,
+  ServiciosListResponseDTO,
+  Usuario,
+  UsuarioResumenDTO,
+} from "./servicios";
 
-export interface Usuario {
-  id: number;
-  username: string;
-  email: string;
-  role: Rol;
-}
+export type {
+  Solicitud,
+  SolicitudDTO,
+  SolicitudItemResponseDTO,
+  SolicitudesListResponseDTO,
+} from "./solicitudes";
 
-export interface Servicio {
-  id: number;
-  servicio_nombre: string;
-  servicio_description: string;
-  servicio_img: string | null;
-  sector_id: number;
-  servicio_precio: number;
-  proveedor_id: number;
-  createdAt: string;
-  Proveedor?: Usuario;
-  Sector?: Sector;
-}
+export type {
+  ArchivoItemResponseDTO,
+  ArchivoPublicacion,
+  ArchivoPublicacionDTO,
+  ArchivosListResponseDTO,
+  CrearArchivoInput,
+  GuardarPublicacionInput,
+  Publicacion,
+  PublicacionDTO,
+  PublicacionesListResponseDTO,
+  PublicacionItemResponseDTO,
+  TipoArchivo,
+  TipoContenido,
+} from "./publicaciones";
 
-export interface Solicitud {
-  id: number;
-  user_id: number;
-  servicio_id: number;
-  estado_id: number;
-  fecha_solicitud: string | null;
-  createdAt: string;
-  Servicio?: Servicio;
-  Estado?: Estado;
-}
+export type {
+  CrearPropuestaInput,
+  DecisionDictamen,
+  Propuesta,
+  PropuestaDTO,
+  PropuestaMutationResponseDTO,
+  PropuestasListResponseDTO,
+} from "./propuestas";
 
-export type TipoContenido = "patologia" | "enfermedad" | "parasito" | "plaga" | "otro";
-export type TipoArchivo = "imagen" | "video";
-
-export interface ArchivoPublicacion {
-  id: number;
-  tipo: TipoArchivo;
-  archivo_url: string;
-  archivo_nombre: string | null;
-  orden: number | null;
-  publicacion_id: number;
-}
-
-export interface Publicacion {
-  id: number;
-  titulo: string;
-  contenido: string;
-  tipo_contenido: TipoContenido;
-  sector_id: number;
-  author_id: number | null;
-  createdAt: string;
-  Autor?: Usuario;
-  Sector?: Sector;
-  Archivo?: ArchivoPublicacion[];
-}
-
-export interface Propuesta {
-  id: number;
-  titulo: string;
-  sector_id: number;
-  problematica: string;
-  estado_id: number;
-  solicitante: number;
-  cirRevisorId: number | null;
-  citJustificacion: string | null;
-  citFechaRevision: string | null;
-  createdAt: string;
-  Solicitante?: Usuario;
-  Revisor?: Usuario;
-  Sector?: Sector;
-  Estado?: Estado;
-}
+export type {
+  ActividadPerfil,
+  ActividadPerfilDTO,
+  ActividadPerfilResponseDTO,
+  ActualizarPerfilInput,
+  CambiarPasswordInput,
+  EstadoInscripcionCapacitacion,
+  InscripcionCapacitacion,
+  InscripcionCapacitacionDTO,
+  PerfilDTO,
+  PerfilResponseDTO,
+  UsuarioDTO,
+} from "./perfil";

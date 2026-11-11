@@ -136,7 +136,13 @@ export const changePassword = async (userId: number, currentPassword: string, ne
 };
 
 export const getMyProfile = async (userId: number) => {
-    const profile = await profileRepository.findByUserIdWithUser(userId);
+    let profile = await profileRepository.findByUserIdWithUser(userId);
+    if (!profile) {
+        const user = await userRepository.findByPk(userId);
+        if (!user) throw notFoundError("Perfil no encontrado");
+        await profileRepository.ensureForUser(user.id, user.username);
+        profile = await profileRepository.findByUserIdWithUser(userId);
+    }
     if (!profile) throw notFoundError("Perfil no encontrado");
     return profile;
 };

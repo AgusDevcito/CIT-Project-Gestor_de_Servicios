@@ -1,40 +1,56 @@
-import { http } from "../lib/http";
-import type { Publicacion, TipoContenido } from "../domain/entidades";
+/**
+ * Servicio de Publicaciones y Archivos Adjuntos: casos de uso para lectura y ABM.
+ */
 
-export const getPublicaciones = async (): Promise<Publicacion[]> => {
-  const { data } = await http.get<{ data: Publicacion[] }>("/publicaciones");
-  return data.data;
-};
+import * as publicacionesRepository from "../repositories/publicaciones.repository";
+import type {
+  ArchivoPublicacion,
+  CrearArchivoInput,
+  GuardarPublicacionInput,
+  Publicacion,
+} from "../domain/publicaciones";
 
-export const getPublicacionById = async (id: number): Promise<Publicacion> => {
-  const { data } = await http.get<{ data: Publicacion }>(`/publicacion/${id}`);
-  return data.data;
-};
+export const getPublicaciones = async (): Promise<Publicacion[]> =>
+  publicacionesRepository.listarPublicaciones();
 
-/** Solo personal CIT. */
-export const createPublicacion = async (payload: {
-  titulo: string;
-  contenido: string;
-  tipo_contenido: TipoContenido;
-  sector: string;
-}): Promise<void> => {
-  await http.post("/publicacion/crear", payload);
-};
+export const getPublicacionById = async (id: number): Promise<Publicacion> =>
+  publicacionesRepository.obtenerPublicacionPorId(id);
 
-/** Solo personal CIT. */
+/** Solo personal CIT y Admin. */
+export const createPublicacion = async (
+  payload: GuardarPublicacionInput,
+): Promise<Publicacion> => publicacionesRepository.crearPublicacion(payload);
+
+/** Solo personal CIT y Admin. */
 export const updatePublicacion = async (
   id: number,
-  payload: {
-    titulo: string;
-    contenido: string;
-    tipo_contenido: TipoContenido;
-    sector: string;
-  },
-): Promise<void> => {
-  await http.put(`/publicacion/${id}`, payload);
-};
+  payload: GuardarPublicacionInput,
+): Promise<Publicacion> =>
+  publicacionesRepository.actualizarPublicacion(id, payload);
 
-/** Solo personal CIT. */
-export const deletePublicacion = async (id: number): Promise<void> => {
-  await http.delete(`/publicacion/${id}`);
-};
+/** Publicar o despublicar (solo personal CIT y Admin). */
+export const toggleEstadoPublicacion = async (
+  id: number,
+  publicado?: boolean,
+): Promise<Publicacion> =>
+  publicacionesRepository.cambiarEstadoPublicacion(id, publicado);
+
+/** Solo personal CIT y Admin. */
+export const deletePublicacion = async (id: number): Promise<void> =>
+  publicacionesRepository.eliminarPublicacion(id);
+
+export const getArchivosByPublicacion = async (
+  publicacionId: number,
+): Promise<ArchivoPublicacion[]> =>
+  publicacionesRepository.listarArchivosPorPublicacion(publicacionId);
+
+/** Solo personal CIT y Admin. */
+export const addArchivo = async (
+  publicacionId: number,
+  payload: CrearArchivoInput,
+): Promise<ArchivoPublicacion> =>
+  publicacionesRepository.agregarArchivo(publicacionId, payload);
+
+/** Solo personal CIT y Admin. */
+export const deleteArchivo = async (archivoId: number): Promise<void> =>
+  publicacionesRepository.eliminarArchivo(archivoId);

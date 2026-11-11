@@ -18,6 +18,7 @@ routes.use("/", userRouter);
 routes.use("/", propuestasRouter);
 routes.use("/", publicacionesRouter);
 routes.use("/", catalogosRouter);
+routes.use("/", serviciosRouter);
 routes.use("/", citApplicationsRouter);
 routes.use("/", citActivationRoutes);
 routes.use("/", solicitudesRouter);

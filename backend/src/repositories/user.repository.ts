@@ -1,7 +1,5 @@
 import { Op } from "sequelize";
 import { sequelize } from "../config/db.js";
-
-
 import { Profile, User } from "../models/index.js";
 import type { Rol } from "../constants/roles.js";
 
@@ -22,8 +20,19 @@ export interface CreateProfileData {
 
 const publicUserAttributes = { exclude: ["password"] };
 
-export const findByUsernameWithProfile = (username: string) =>
-  User.findOne({ where: { username }, include: { model: Profile, as: "Profile" } });
+export const findByUsernameWithProfile = (usernameOrEmail: string) => {
+  const clean = usernameOrEmail.trim();
+  return User.findOne({
+    where: {
+      [Op.or]: [
+        { username: clean },
+        { username: { [Op.iLike]: clean } },
+        { email: { [Op.iLike]: clean } },
+      ],
+    },
+    include: { model: Profile, as: "Profile" },
+  });
+};
 
 export const findByPk = (id: number) => User.findByPk(id);
 
@@ -62,7 +71,7 @@ export const findAllWithProfilePaginated = async (options: {
     limit: options.limit,
     order: [["id", "ASC"]],
   });
-  return result; // { rows, count }
+  return result;
 };
 
 export const create = (data: CreateUserData) => User.create(data);

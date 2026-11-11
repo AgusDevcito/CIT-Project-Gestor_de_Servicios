@@ -14,12 +14,12 @@ import { ROL } from "../constants/roles.js";
 
 export const userRouter = Router();
 
-userRouter.use(requireAuth, requireRole(ROL.ADMIN));
+const adminOnly = [requireAuth, requireRole(ROL.ADMIN)] as const;
 
-userRouter.get("/user/:id", getUserbyID);
-userRouter.get("/users", getallUsers);
-userRouter.put("/user/:id", updateUser);
-userRouter.patch("/user/:id/activate", activateUser);
-userRouter.patch("/user/:id/deactivate", deactivateUser);
-userRouter.delete("/user/:id", deleteUser);
-userRouter.post("/user/create", createUser);
+userRouter.get("/user/:id", ...adminOnly, getUserbyID);
+userRouter.get("/users", ...adminOnly, getallUsers);
+userRouter.put("/user/:id", ...adminOnly, updateUser);
+userRouter.patch("/user/:id/activate", ...adminOnly, activateUser);
+userRouter.patch("/user/:id/deactivate", ...adminOnly, deactivateUser);
+userRouter.delete("/user/:id", ...adminOnly, deleteUser);
+userRouter.post("/user/create", ...adminOnly, createUser);

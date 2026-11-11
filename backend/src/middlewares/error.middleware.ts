@@ -19,7 +19,16 @@ export const errorHandler: ErrorRequestHandler = (error, _req, res, _next) => {
     if (multerError?.name === "MulterError" && multerError?.code === "LIMIT_FILE_SIZE") {
         return res
             .status(413)
-            .json({ msg: "El archivo supera el tamaño máximo permitido." });
+            .json({ msg: "El archivo supera el tamaño máximo permitido (5 MB)." });
+    }
+    if (
+        multerError?.name === "MulterError" &&
+        (multerError?.code === "LIMIT_FILE_COUNT" ||
+            multerError?.code === "LIMIT_UNEXPECTED_FILE")
+    ) {
+        return res
+            .status(400)
+            .json({ msg: "Solo se permite adjuntar un único archivo por envío." });
     }
 
     console.error("Error no controlado:", error);

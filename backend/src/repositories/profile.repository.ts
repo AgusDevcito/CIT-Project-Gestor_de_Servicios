@@ -6,6 +6,13 @@ const userInclude = {
     attributes: { exclude: ["password"] },
 };
 
+export interface UpdateProfileData {
+    first_name?: string;
+    last_name?: string;
+    avatar_url?: string | null;
+    bio?: string | null;
+}
+
 export const findAllWithUser = () => Profile.findAll({ include: userInclude });
 
 export const findByUserIdWithUser = (userId: number) =>
@@ -14,7 +21,17 @@ export const findByUserIdWithUser = (userId: number) =>
 export const findByUserId = (userId: number) =>
     Profile.findOne({ where: { user_id: userId } });
 
-export const update = (
-    profile: Profile,
-    data: { first_name?: string; last_name?: string; avatar_url?: string | null },
-) => profile.update(data);
+export const ensureForUser = async (userId: number, fallbackName: string) => {
+    const existing = await findByUserId(userId);
+    if (existing) return existing;
+    return Profile.create({
+        user_id: userId,
+        first_name: fallbackName || "Usuario",
+        last_name: "",
+        avatar_url: null,
+        bio: null,
+    });
+};
+
+export const update = (profile: Profile, data: UpdateProfileData) =>
+    profile.update(data);

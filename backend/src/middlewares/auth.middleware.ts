@@ -13,6 +13,20 @@ export const getAuthUser = (req: Request): JwtPayload => {
     return req.user;
 };
 
+export const optionalAuth: RequestHandler = (req, _res, next) => {
+    const token = getTokenFromRequest(req);
+    if (!token) {
+        return next();
+    }
+
+    try {
+        req.user = verifyToken(token);
+    } catch {
+        // En rutas públicas/mixtas, un token expirado o ausente se trata como visitante anónimo
+    }
+    return next();
+};
+
 export const requireAuth: RequestHandler = (req, res, next) => {
     const token = getTokenFromRequest(req);
 

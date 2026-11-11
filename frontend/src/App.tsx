@@ -6,6 +6,7 @@ import { Login } from "./pages/auth/Login";
 import { Register } from "./pages/auth/Register";
 import Home from "./pages/Home";
 import Servicios from "./pages/Servicios";
+import ServicioDetalle from "./pages/ServicioDetalle";
 import Solicitudes from "./pages/Solicitudes";
 import Publicaciones from "./pages/Publicaciones";
 import PublicacionDetalle from "./pages/PublicacionDetalle";
@@ -26,7 +27,13 @@ function App() {
         <Route element={<Layout />}>
           <Route index element={<Home />} />
           <Route path="servicios" element={<Servicios />} />
-          <Route path="solicitudes" element={<Solicitudes />} />
+          <Route path="servicios/:id" element={<ServicioDetalle />} />
+
+          {/* Apartado interno exclusivo para personal CIT y Administradores */}
+          <Route element={<ProtectedRoute roles={["cit", "admin"]} />}>
+            <Route path="solicitudes" element={<Solicitudes />} />
+          </Route>
+
           <Route path="publicaciones" element={<Publicaciones />} />
           <Route path="publicaciones/:id" element={<PublicacionDetalle />} />
           <Route path="propuestas" element={<Propuestas />} />

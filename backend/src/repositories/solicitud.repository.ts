@@ -1,9 +1,19 @@
-import type { Order, WhereOptions } from "sequelize";
-import { Estado, Servicio, Solicitud } from "../models/index.js";
+import type { Includeable, Order, WhereOptions } from "sequelize";
+import { Estado, Profile, Sector, Servicio, Solicitud, User } from "../models/index.js";
 
-const includes = [
-    { model: Servicio, as: "Servicio" },
+const includes: Includeable[] = [
+    {
+        model: Servicio,
+        as: "Servicio",
+        include: [{ model: Sector, as: "Sector" }],
+    },
     { model: Estado, as: "Estado" },
+    {
+        model: User,
+        as: "Solicitante",
+        attributes: { exclude: ["password"] },
+        include: [{ model: Profile, as: "Profile" }],
+    },
 ];
 
 const createdAtDesc: Order = [["createdAt", "DESC"]];
