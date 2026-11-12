@@ -18,3 +18,8 @@ export const updateSolicitudEstado = async (
   estadoCodigo: string,
 ): Promise<Solicitud> =>
   solicitudesRepository.actualizarEstadoSolicitud(id, estadoCodigo);
+
+/** Permite a personal CIT o al solicitante titular eliminar una solicitud. */
+export const deleteSolicitud = async (id: number): Promise<void> => {
+  await solicitudesRepository.eliminarSolicitud(id);
+};

@@ -112,3 +112,13 @@ export const dictaminarPropuestaCIT = asyncHandler(async (req: Request, res: Res
         data: propuesta,
     });
 });
+
+export const eliminarPropuesta = asyncHandler(async (req: Request, res: Response) => {
+    const user = getAuthUser(req);
+    const data = await propuestaService.remove(Number(req.params.id), user);
+    res.status(200).json({
+        ok: true,
+        msg: `Propuesta "${data.titulo}" eliminada correctamente.`,
+        data,
+    });
+});

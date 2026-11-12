@@ -131,3 +131,10 @@ export const dictaminarPropuesta = async (
     data: data.data ? mapearPropuesta(data.data) : undefined,
   };
 };
+
+export const eliminarPropuesta = async (
+  id: number,
+): Promise<{ msg: string }> => {
+  const { data } = await http.delete<{ msg: string }>(`/propuestas/${id}`);
+  return data;
+};

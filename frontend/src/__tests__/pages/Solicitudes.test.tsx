@@ -18,6 +18,7 @@ vi.mock("../../services/propuestasService", () => ({
   getPropuestas: vi.fn(),
   tomarPropuestaEnRevision: vi.fn(),
   dictaminarPropuesta: vi.fn(),
+  deletePropuesta: vi.fn(),
 }));
 
 const crearContexto = (user: UsuarioAutenticado | null): AuthContextValue => ({
@@ -295,6 +296,36 @@ describe("pages/Solicitudes (Spec-002 Fase D)", () => {
         "Actualmente el laboratorio no dispone de los reactivos específicos solicitados.",
         undefined,
       );
+    });
+  });
+
+  it("permite a personal CIT eliminar una propuesta con confirmación", async () => {
+    vi.spyOn(window, "confirm").mockReturnValue(true);
+    vi.mocked(propuestasService.deletePropuesta).mockResolvedValue();
+
+    render(
+      <AuthContext.Provider value={crearContexto(usuarioCIT)}>
+        <MemoryRouter initialEntries={["/solicitudes"]}>
+          <Solicitudes />
+        </MemoryRouter>
+      </AuthContext.Provider>,
+    );
+
+    const btnEliminar = await screen.findByRole("button", {
+      name: "Eliminar propuesta Diagnóstico Regional de Garrapata Bovina",
+    });
+    expect(btnEliminar).toBeInTheDocument();
+
+    fireEvent.click(btnEliminar);
+
+    await waitFor(() => {
+      expect(propuestasService.deletePropuesta).toHaveBeenCalledWith(101);
+    });
+
+    await waitFor(() => {
+      expect(
+        screen.getByText(/fue eliminada exitosamente/i),
+      ).toBeInTheDocument();
     });
   });
 });

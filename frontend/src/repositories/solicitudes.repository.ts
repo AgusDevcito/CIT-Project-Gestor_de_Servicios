@@ -48,3 +48,10 @@ export const actualizarEstadoSolicitud = async (
   );
   return mapearSolicitud(data.data);
 };
+
+export const eliminarSolicitud = async (
+  id: number,
+): Promise<{ msg: string }> => {
+  const { data } = await http.delete<{ msg: string }>(`/solicitudes/${id}`);
+  return data;
+};

@@ -24,3 +24,12 @@ export const updateSolicitudEstado = asyncHandler(
         res.json({ data });
     },
 );
+
+export const deleteSolicitud = asyncHandler(async (req: Request, res: Response) => {
+    const user = getAuthUser(req);
+    const data = await solicitudService.remove(Number(req.params.id), user);
+    res.json({
+        msg: "Solicitud eliminada correctamente.",
+        data,
+    });
+});
