@@ -297,4 +297,37 @@ describe("pages/Propuestas (Spec-002 Fase F)", () => {
     ).toBeInTheDocument();
     expect(screen.getByText("Pendiente")).toBeInTheDocument();
   });
+
+  it("permite eliminar una propuesta registrada con confirmación", async () => {
+    vi.spyOn(window, "confirm").mockReturnValue(true);
+    vi.mocked(propuestasService.getPropuestas).mockResolvedValue([
+      propuestaExistenteMock,
+    ]);
+    vi.mocked(propuestasService.deletePropuesta).mockResolvedValue();
+
+    render(
+      <AuthContext.Provider value={crearContexto(usuarioNormal)}>
+        <MemoryRouter initialEntries={["/propuestas"]}>
+          <Propuestas />
+        </MemoryRouter>
+      </AuthContext.Provider>,
+    );
+
+    const btnEliminar = await screen.findByRole("button", {
+      name: `Eliminar propuesta ${propuestaExistenteMock.titulo}`,
+    });
+    expect(btnEliminar).toBeInTheDocument();
+
+    fireEvent.click(btnEliminar);
+
+    await waitFor(() => {
+      expect(propuestasService.deletePropuesta).toHaveBeenCalledWith(25);
+    });
+
+    await waitFor(() => {
+      expect(
+        screen.getByText(/fue eliminada exitosamente/i),
+      ).toBeInTheDocument();
+    });
+  });
 });

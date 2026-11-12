@@ -32,3 +32,5 @@ export const findById = (id: number) => Solicitud.findByPk(id);
 export const create = (data: CreateSolicitudData) => Solicitud.create(data);
 
 export const save = (solicitud: Solicitud) => solicitud.save();
+
+export const deleteById = (id: number) => Solicitud.destroy({ where: { id } });

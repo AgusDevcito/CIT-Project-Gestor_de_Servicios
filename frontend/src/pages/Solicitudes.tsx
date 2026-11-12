@@ -16,6 +16,7 @@ import { esPersonalCIT } from "../domain/roles";
 import { formatearFecha, obtenerNombreVisible } from "../lib/formatters";
 import { getSectores } from "../services/catalogosService";
 import {
+  deletePropuesta,
   dictaminarPropuesta,
   getPropuestas,
   tomarPropuestaEnRevision,
@@ -86,6 +87,7 @@ export default function Solicitudes() {
   const [servicioDescripcion, setServicioDescripcion] = useState("");
   const [servicioPrecio, setServicioPrecio] = useState("0");
   const [procesandoDictamen, setProcesandoDictamen] = useState(false);
+  const [deletingId, setDeletingId] = useState<number | null>(null);
 
   const loadData = useCallback(async () => {
     if (!isCIT) {
@@ -262,6 +264,34 @@ export default function Solicitudes() {
     }
   };
 
+  const handleDeletePropuesta = async (propuesta: Propuesta) => {
+    if (
+      !window.confirm(
+        `¿Estás seguro de que deseás eliminar permanentemente la propuesta "${propuesta.titulo}"? Esta acción no se puede deshacer.`,
+      )
+    ) {
+      return;
+    }
+
+    setError("");
+    setFeedback("");
+    setDeletingId(propuesta.id);
+    try {
+      await deletePropuesta(propuesta.id);
+      setPropuestas((prev) => prev.filter((p) => p.id !== propuesta.id));
+      if (seleccionadaId === propuesta.id) {
+        setSeleccionadaId(null);
+      }
+      setFeedback(
+        `La propuesta "${propuesta.titulo}" fue eliminada exitosamente.`,
+      );
+    } catch (err) {
+      setError(getApiError(err, "No se pudo eliminar la propuesta."));
+    } finally {
+      setDeletingId(null);
+    }
+  };
+
   if (!isCIT) {
     return (
       <Alert variant="error" title="Acceso restringido">
@@ -406,13 +436,24 @@ export default function Solicitudes() {
                             </Badge>
                           </td>
                           <td className="px-4 py-3.5 text-right">
-                            <Button
-                              size="sm"
-                              variant={activa ? "primary" : "secondary"}
-                              onClick={() => abrirDetalle(propuesta)}
-                            >
-                              Revisar detalle
-                            </Button>
+                            <div className="flex items-center justify-end gap-1.5">
+                              <Button
+                                size="sm"
+                                variant={activa ? "primary" : "secondary"}
+                                onClick={() => abrirDetalle(propuesta)}
+                              >
+                                Revisar detalle
+                              </Button>
+                              <Button
+                                size="sm"
+                                variant="danger"
+                                loading={deletingId === propuesta.id}
+                                onClick={() => void handleDeletePropuesta(propuesta)}
+                                aria-label={`Eliminar propuesta ${propuesta.titulo}`}
+                              >
+                                Eliminar
+                              </Button>
+                            </div>
                           </td>
                         </tr>
                       );
@@ -786,6 +827,17 @@ export default function Solicitudes() {
                       </form>
                     </div>
                   )}
+
+                  <div className="border-t border-[#30363d] pt-3">
+                    <Button
+                      variant="danger"
+                      className="w-full"
+                      loading={deletingId === propuestaSeleccionada.id}
+                      onClick={() => void handleDeletePropuesta(propuestaSeleccionada)}
+                    >
+                      Eliminar propuesta
+                    </Button>
+                  </div>
                 </div>
               </Card>
             </div>

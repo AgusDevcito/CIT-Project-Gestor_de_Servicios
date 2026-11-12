@@ -1,4 +1,5 @@
 import type { Includeable, Order, Transaction, WhereOptions } from "sequelize";
+import { sequelize } from "../config/db.js";
 import { Estado, Profile, Propuesta, Sector, Servicio, User } from "../models/index.js";
 
 const includes: Includeable[] = [
@@ -75,3 +76,14 @@ export const findByDocumentoUrl = (documentoUrl: string) =>
 
 export const save = (propuesta: Propuesta, transaction?: Transaction) =>
     propuesta.save({ transaction });
+
+export const deleteById = async (id: number) => {
+    return sequelize.transaction(async (transaction: Transaction) => {
+        await Servicio.update(
+            { propuesta_id: null },
+            { where: { propuesta_id: id }, transaction },
+        );
+        const deletedCount = await Propuesta.destroy({ where: { id }, transaction });
+        return deletedCount > 0;
+    });
+};

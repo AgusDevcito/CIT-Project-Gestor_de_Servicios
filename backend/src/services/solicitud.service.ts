@@ -2,6 +2,7 @@ import {
     AppError,
     ERROR_CODES,
     conflictError,
+    forbiddenError,
     notFoundError,
     validationError,
 } from "../errors/AppError.js";
@@ -84,4 +85,25 @@ export const updateEstado = async (id: number, estadoValue: unknown) => {
     }
 
     return solicitud;
+};
+
+export const remove = async (id: number, user: { id: number; role: Rol }) => {
+    if (!Number.isFinite(id) || id <= 0) {
+        throw validationError("El identificador de la solicitud no es válido.");
+    }
+    const solicitud = await solicitudRepository.findById(id);
+    if (!solicitud) {
+        throw notFoundError("Solicitud no encontrada.");
+    }
+
+    if (
+        user.role !== "cit" &&
+        user.role !== "admin" &&
+        solicitud.user_id !== user.id
+    ) {
+        throw forbiddenError("No tienes permisos para eliminar esta solicitud.");
+    }
+
+    await solicitudRepository.deleteById(id);
+    return { id };
 };

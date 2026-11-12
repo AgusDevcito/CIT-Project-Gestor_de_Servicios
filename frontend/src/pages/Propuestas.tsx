@@ -20,7 +20,11 @@ import {
   getSectores,
   SECTORES_OFICIALES_CIT,
 } from "../services/catalogosService";
-import { crearPropuesta, getPropuestas } from "../services/propuestasService";
+import {
+  crearPropuesta,
+  deletePropuesta,
+  getPropuestas,
+} from "../services/propuestasService";
 
 interface FormularioPropuesta {
   nombre_organismo: string;
@@ -71,6 +75,7 @@ export default function Propuestas() {
   });
   const [archivoAdjunto, setArchivoAdjunto] = useState<File | null>(null);
   const [saving, setSaving] = useState(false);
+  const [deletingId, setDeletingId] = useState<number | null>(null);
 
   const cargarDatos = useCallback(async () => {
     if (!user) {
@@ -277,6 +282,29 @@ export default function Propuestas() {
       setError(getApiError(err, "No se pudo registrar la propuesta."));
     } finally {
       setSaving(false);
+    }
+  };
+
+  const handleDeletePropuesta = async (propuesta: Propuesta) => {
+    if (
+      !window.confirm(
+        `¿Estás seguro de que deseás eliminar la propuesta "${propuesta.titulo}"? Esta acción no se puede deshacer.`,
+      )
+    ) {
+      return;
+    }
+
+    setError("");
+    setFeedback("");
+    setDeletingId(propuesta.id);
+    try {
+      await deletePropuesta(propuesta.id);
+      setMisPropuestas((prev) => prev.filter((p) => p.id !== propuesta.id));
+      setFeedback(`La propuesta "${propuesta.titulo}" fue eliminada exitosamente.`);
+    } catch (err) {
+      setError(getApiError(err, "No se pudo eliminar la propuesta."));
+    } finally {
+      setDeletingId(null);
     }
   };
 
@@ -781,6 +809,18 @@ export default function Propuestas() {
                       )}
                     </div>
                   )}
+
+                  <div className="flex justify-end border-t border-[#30363d] pt-2">
+                    <Button
+                      variant="danger"
+                      size="sm"
+                      loading={deletingId === propuesta.id}
+                      onClick={() => void handleDeletePropuesta(propuesta)}
+                      aria-label={`Eliminar propuesta ${propuesta.titulo}`}
+                    >
+                      Eliminar propuesta
+                    </Button>
+                  </div>
                 </Card>
               );
             })}

@@ -33,6 +33,8 @@ import {
   getProfileByUserId,
   updateProfile,
 } from "../services/profileService";
+import { deletePropuesta } from "../services/propuestasService";
+import { deleteSolicitud } from "../services/solicitudesService";
 
 interface FormularioPerfil {
   first_name: string;
@@ -104,6 +106,8 @@ export default function Perfil() {
   const [savingPassword, setSavingPassword] = useState(false);
   const [error, setError] = useState("");
   const [feedback, setFeedback] = useState("");
+  const [deletingPropuestaId, setDeletingPropuestaId] = useState<number | null>(null);
+  const [deletingSolicitudId, setDeletingSolicitudId] = useState<number | null>(null);
 
   // Modal de detalle de propuesta y resultado de revisión
   const [propuestaDetalle, setPropuestaDetalle] = useState<Propuesta | null>(
@@ -231,6 +235,51 @@ export default function Perfil() {
       setError(getApiError(err, "No se pudo cambiar la contraseña."));
     } finally {
       setSavingPassword(false);
+    }
+  };
+
+  const handleDeletePropuesta = async (propuesta: Propuesta) => {
+    if (
+      !window.confirm(
+        `¿Estás seguro de que deseás eliminar la propuesta "${propuesta.titulo}"? Esta acción no se puede deshacer.`,
+      )
+    ) {
+      return;
+    }
+    setError("");
+    setFeedback("");
+    setDeletingPropuestaId(propuesta.id);
+    try {
+      await deletePropuesta(propuesta.id);
+      setPropuestas((prev) => prev.filter((p) => p.id !== propuesta.id));
+      setFeedback(`La propuesta "${propuesta.titulo}" fue eliminada exitosamente.`);
+    } catch (err) {
+      setError(getApiError(err, "No se pudo eliminar la propuesta."));
+    } finally {
+      setDeletingPropuestaId(null);
+    }
+  };
+
+  const handleDeleteSolicitud = async (solicitud: Solicitud) => {
+    const nombre = solicitud.Servicio?.servicio_nombre || `Solicitud #${solicitud.id}`;
+    if (
+      !window.confirm(
+        `¿Estás seguro de que deseás eliminar la solicitud para "${nombre}"? Esta acción no se puede deshacer.`,
+      )
+    ) {
+      return;
+    }
+    setError("");
+    setFeedback("");
+    setDeletingSolicitudId(solicitud.id);
+    try {
+      await deleteSolicitud(solicitud.id);
+      setServiciosContratados((prev) => prev.filter((s) => s.id !== solicitud.id));
+      setFeedback(`La solicitud de servicio fue eliminada exitosamente.`);
+    } catch (err) {
+      setError(getApiError(err, "No se pudo eliminar la solicitud."));
+    } finally {
+      setDeletingSolicitudId(null);
     }
   };
 
@@ -616,6 +665,16 @@ export default function Perfil() {
                         >
                           Ver detalles y revisión
                         </Button>
+                        <Button
+                          type="button"
+                          size="sm"
+                          variant="danger"
+                          loading={deletingPropuestaId === prop.id}
+                          onClick={() => void handleDeletePropuesta(prop)}
+                          aria-label={`Eliminar propuesta ${prop.titulo}`}
+                        >
+                          Eliminar
+                        </Button>
                       </div>
                     </div>
                   );
@@ -688,9 +747,21 @@ export default function Perfil() {
                           </p>
                         </div>
 
-                        <Badge variant={badgeVariantPorEstado(codigoEstado)}>
-                          {sol.Estado?.nombre ?? codigoEstado}
-                        </Badge>
+                        <div className="flex items-center gap-2">
+                          <Badge variant={badgeVariantPorEstado(codigoEstado)}>
+                            {sol.Estado?.nombre ?? codigoEstado}
+                          </Badge>
+                          <Button
+                            type="button"
+                            size="sm"
+                            variant="danger"
+                            loading={deletingSolicitudId === sol.id}
+                            onClick={() => void handleDeleteSolicitud(sol)}
+                            aria-label={`Eliminar solicitud ${nombreServicio}`}
+                          >
+                            Eliminar
+                          </Button>
+                        </div>
                       </div>
 
                       <p className="rounded-md border border-[#21262d] bg-[#0d1117]/70 px-3 py-2 text-xs text-[#8b949e]">

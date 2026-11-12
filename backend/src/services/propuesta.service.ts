@@ -8,6 +8,7 @@ import {
     AppError,
     ERROR_CODES,
     conflictError,
+    forbiddenError,
     notFoundError,
     validationError,
 } from "../errors/AppError.js";
@@ -440,4 +441,31 @@ export const dictate = async (
     });
 
     return propuestaRepository.findByIdWithIncludes(id);
+};
+
+export const remove = async (id: number, user: { id: number; role: Rol }) => {
+    if (!Number.isFinite(id) || id <= 0) {
+        throw validationError("El identificador de la propuesta no es válido.");
+    }
+    const propuesta = await propuestaRepository.findByIdWithIncludes(id);
+    if (!propuesta) {
+        throw notFoundError("Propuesta no encontrada.");
+    }
+
+    if (
+        user.role !== "cit" &&
+        user.role !== "admin" &&
+        propuesta.solicitante !== user.id
+    ) {
+        throw forbiddenError("No tienes permisos para eliminar esta propuesta.");
+    }
+
+    if (propuesta.documento_url) {
+        const uploadDir = path.resolve(process.cwd(), "uploads");
+        const filePath = path.join(uploadDir, path.basename(propuesta.documento_url));
+        await safeUnlink(filePath);
+    }
+
+    await propuestaRepository.deleteById(id);
+    return { id, titulo: propuesta.titulo };
 };

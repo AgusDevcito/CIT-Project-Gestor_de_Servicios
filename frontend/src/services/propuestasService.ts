@@ -55,3 +55,8 @@ export const dictaminarPropuesta = async (
     justificacion,
     opcionesServicio,
   );
+
+/** Permite a personal CIT o al autor eliminar una propuesta. */
+export const deletePropuesta = async (id: number): Promise<void> => {
+  await propuestasRepository.eliminarPropuesta(id);
+};

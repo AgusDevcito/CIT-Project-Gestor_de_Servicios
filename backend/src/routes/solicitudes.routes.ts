@@ -1,6 +1,7 @@
 import { Router } from "express";
 import {
     createSolicitud,
+    deleteSolicitud,
     getSolicitudes,
     updateSolicitudEstado,
 } from "../controllers/solicitud.controller.js";
@@ -12,6 +13,7 @@ export const solicitudesRouter = Router();
 
 solicitudesRouter.get("/solicitudes", requireAuth, getSolicitudes);
 solicitudesRouter.post("/solicitudes", requireAuth, requireUser, createSolicitud);
+solicitudesRouter.delete("/solicitudes/:id", requireAuth, deleteSolicitud);
 solicitudesRouter.patch(
     "/solicitudes/:id/estado",
     requireAuth,

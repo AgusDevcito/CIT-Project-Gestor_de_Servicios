@@ -3,6 +3,7 @@ import {
     crearPropuesta,
     descargarDocumentoPropuesta,
     dictaminarPropuestaCIT,
+    eliminarPropuesta,
     obtenerPropuestaPorId,
     obtenerPropuestas,
     tomarPropuestaEnRevision,
@@ -15,6 +16,7 @@ export const propuestasRouter = Router();
 
 propuestasRouter.get("/propuestas", requireAuth, obtenerPropuestas);
 propuestasRouter.get("/propuestas/:id", requireAuth, requireCIT, obtenerPropuestaPorId);
+propuestasRouter.delete("/propuestas/:id", requireAuth, eliminarPropuesta);
 propuestasRouter.get("/uploads/:filename", requireAuth, descargarDocumentoPropuesta);
 
 propuestasRouter.post(
