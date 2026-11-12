@@ -11,6 +11,7 @@ export const register = asyncHandler(async (req: Request, res: Response, _next: 
 export const login = asyncHandler(async (req: Request, res: Response, _next: NextFunction) => {
     const { username, password } = req.body ?? {};
     const result = await authService.login(username, password);
+    res.cookie("token", result.token, { httpOnly: true });
     res.status(200).json({ msg: "Usuario Logueado", token: result.token });
 });
 

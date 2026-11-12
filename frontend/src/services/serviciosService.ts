@@ -22,6 +22,11 @@ export const createServicio = async (
   payload: CrearServicioInput,
 ): Promise<Servicio> => serviciosRepository.crearServicio(payload);
 
+/** Solo personal CIT y Admin. */
+export const deleteServicio = async (id: number): Promise<void> => {
+  await serviciosRepository.eliminarServicio(id);
+};
+
 /** Solo usuarios con solicitud previa del servicio. */
 export const createResenaServicio = async (
   servicioId: number,

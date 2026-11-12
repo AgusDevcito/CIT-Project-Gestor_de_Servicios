@@ -92,6 +92,17 @@ export const inscribirCapacitacion = async (userId: number, publicacionId: numbe
         throw notFoundError("La capacitación o actividad solicitada no existe.");
     }
 
+    const TIPOS_INSCRIBIBLES: readonly string[] = [
+        "capacitacion",
+        "inscripcion",
+        "jornada",
+    ];
+    if (!TIPOS_INSCRIBIBLES.includes(publicacion.tipo_contenido)) {
+        throw validationError(
+            "Solo es posible inscribirse en publicaciones de tipo capacitación, inscripción o jornada.",
+        );
+    }
+
     const existente = await InscripcionCapacitacion.findOne({
         where: {
             user_id: userId,

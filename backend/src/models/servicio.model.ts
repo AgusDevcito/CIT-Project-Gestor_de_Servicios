@@ -13,6 +13,9 @@ import type { Sector } from "./sector.model.js";
 import type { Solicitud } from "./solicitud.model.js";
 import type { User } from "./user.model.js";
 
+export const ESTADOS_SERVICIO = ["ACTIVO", "ARCHIVADO", "CANCELADO"] as const;
+export type EstadoServicio = (typeof ESTADOS_SERVICIO)[number];
+
 export class Servicio extends Model<InferAttributes<Servicio>, InferCreationAttributes<Servicio>> {
     declare id: CreationOptional<number>;
     declare servicio_nombre: string;
@@ -22,6 +25,9 @@ export class Servicio extends Model<InferAttributes<Servicio>, InferCreationAttr
     declare servicio_precio: number;
     declare proveedor_id: number;
     declare propuesta_id: CreationOptional<number | null>;
+    declare estado_servicio: CreationOptional<EstadoServicio>;
+    declare motivo_cancelacion: CreationOptional<string | null>;
+    declare fecha_cambio_estado: CreationOptional<Date | null>;
 
     declare Proveedor?: NonAttribute<User>;
     declare Sector?: NonAttribute<Sector>;
@@ -40,6 +46,24 @@ Servicio.init(
         servicio_precio: { type: DataTypes.DECIMAL(10, 2), allowNull: false },
         proveedor_id: { type: DataTypes.INTEGER, allowNull: false },
         propuesta_id: { type: DataTypes.INTEGER, allowNull: true, defaultValue: null },
+        estado_servicio: {
+            type: DataTypes.STRING(20),
+            allowNull: false,
+            defaultValue: "ACTIVO",
+            validate: {
+                isIn: [ESTADOS_SERVICIO],
+            },
+        },
+        motivo_cancelacion: {
+            type: DataTypes.TEXT,
+            allowNull: true,
+            defaultValue: null,
+        },
+        fecha_cambio_estado: {
+            type: DataTypes.DATE,
+            allowNull: true,
+            defaultValue: null,
+        },
     },
     {
         sequelize,

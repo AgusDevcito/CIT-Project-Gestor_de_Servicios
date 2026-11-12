@@ -1,22 +1,11 @@
-import { useCallback, useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 
 import logoCitio from "../assets/logo-CITio.png";
-import { Alert } from "../components/ui/Alert";
 import { Badge, badgeVariantPorRol } from "../components/ui/Badge";
 import { Card } from "../components/ui/Card";
-import { Skeleton } from "../components/ui/Skeleton";
 import { useAuth } from "../context/useAuth";
-import type { Publicacion, Servicio } from "../domain/entidades";
-import { getApiError } from "../domain/errors";
 import { esPersonalCIT, labelDeRol } from "../domain/roles";
-import {
-  formatearFecha,
-  formatearPrecio,
-  obtenerNombreVisible,
-} from "../lib/formatters";
-import { getPublicaciones } from "../services/publicacionesService";
-import { getServicios } from "../services/serviciosService";
+import { obtenerNombreVisible } from "../lib/formatters";
 
 interface AreaEspecialidad {
   categoria: string;
@@ -94,51 +83,6 @@ export default function Home() {
   const { user } = useAuth();
   const isCIT = esPersonalCIT(user?.rol);
   const displayName = user ? obtenerNombreVisible(user) : "";
-
-  const [serviciosCatalogo, setServiciosCatalogo] = useState<Servicio[]>([]);
-  const [publicacionesRecientes, setPublicacionesRecientes] = useState<Publicacion[]>([]);
-  const [loadingDinamico, setLoadingDinamico] = useState<boolean>(Boolean(user));
-  const [errorDinamico, setErrorDinamico] = useState<string>("");
-
-  const cargarResumenPlataforma = useCallback(async () => {
-    if (!user) {
-      setLoadingDinamico(false);
-      return;
-    }
-
-    setLoadingDinamico(true);
-    setErrorDinamico("");
-
-    const [serviciosRes, publicacionesRes] = await Promise.allSettled([
-      getServicios(),
-      getPublicaciones(),
-    ]);
-
-    if (serviciosRes.status === "fulfilled") {
-      setServiciosCatalogo(serviciosRes.value.slice(0, 3));
-    }
-    if (publicacionesRes.status === "fulfilled") {
-      setPublicacionesRecientes(publicacionesRes.value.slice(0, 3));
-    }
-
-    if (
-      serviciosRes.status === "rejected" &&
-      publicacionesRes.status === "rejected"
-    ) {
-      setErrorDinamico(
-        getApiError(
-          serviciosRes.reason,
-          "No se pudo sincronizar el resumen en vivo de la plataforma.",
-        ),
-      );
-    }
-
-    setLoadingDinamico(false);
-  }, [user]);
-
-  useEffect(() => {
-    void cargarResumenPlataforma();
-  }, [cargarResumenPlataforma]);
 
   return (
     <div className="space-y-8">
@@ -448,76 +392,6 @@ export default function Home() {
             </Card>
           ))}
         </div>
-
-        {/* Servicios activos cargados desde el backend (cuando hay sesión) */}
-        {user && (
-          <div className="pt-2">
-            {errorDinamico && (
-              <Alert variant="error" className="mb-4">
-                <div className="flex flex-wrap items-center justify-between gap-2">
-                  <span>{errorDinamico}</span>
-                  <button
-                    type="button"
-                    onClick={() => void cargarResumenPlataforma()}
-                    className="rounded border border-[#f85149]/50 px-2.5 py-1 text-xs font-semibold text-white hover:bg-[#da3633]/30"
-                  >
-                    Reintentar
-                  </button>
-                </div>
-              </Alert>
-            )}
-
-            {loadingDinamico ? (
-              <Card header={<span className="text-xs font-medium text-[#8b949e]">Cargando servicios activos del catálogo…</span>}>
-                <Skeleton lines={3} />
-              </Card>
-            ) : (
-              serviciosCatalogo.length > 0 && (
-                <Card
-                  header={
-                    <div className="flex items-center justify-between">
-                      <span className="text-xs font-semibold uppercase tracking-wide text-[#3fb950]">
-                        Servicios destacados disponibles para solicitud en línea
-                      </span>
-                      <Link
-                        to="/servicios"
-                        className="text-xs text-[#58a6ff] hover:underline"
-                      >
-                        Ir a Servicios
-                      </Link>
-                    </div>
-                  }
-                >
-                  <div className="grid gap-3 sm:grid-cols-3">
-                    {serviciosCatalogo.map((servicio) => (
-                      <div
-                        key={servicio.id}
-                        className="flex flex-col justify-between rounded-md border border-[#30363d] bg-[#0d1117] p-3"
-                      >
-                        <div>
-                          <div className="flex items-start justify-between gap-2">
-                            <p className="text-sm font-semibold text-white">
-                              {servicio.servicio_nombre}
-                            </p>
-                            {servicio.Sector && (
-                              <Badge variant="info">{servicio.Sector.nombre}</Badge>
-                            )}
-                          </div>
-                          <p className="mt-1 line-clamp-2 text-xs text-[#8b949e]">
-                            {servicio.servicio_description}
-                          </p>
-                        </div>
-                        <p className="mt-3 text-xs font-bold text-[#3fb950]">
-                          {formatearPrecio(servicio.servicio_precio)}
-                        </p>
-                      </div>
-                    ))}
-                  </div>
-                </Card>
-              )
-            )}
-          </div>
-        )}
       </section>
 
       {/* 5. Capacitaciones, Formación y Actividades de Divulgación */}
@@ -552,47 +426,6 @@ export default function Home() {
             </Card>
           ))}
         </div>
-
-        {/* Últimas publicaciones técnicas sincronizadas del backend */}
-        {user && !loadingDinamico && publicacionesRecientes.length > 0 && (
-          <Card
-            header={
-              <div className="flex items-center justify-between">
-                <span className="text-xs font-semibold uppercase tracking-wide text-[#3fb950]">
-                  Últimas publicaciones técnicas en CITio
-                </span>
-                <Link
-                  to="/publicaciones"
-                  className="text-xs text-[#58a6ff] hover:underline"
-                >
-                  Ver todas
-                </Link>
-              </div>
-            }
-          >
-            <div className="divide-y divide-[#30363d]">
-              {publicacionesRecientes.map((pub) => (
-                <div
-                  key={pub.id}
-                  className="flex flex-wrap items-center justify-between gap-2 py-2.5 first:pt-0 last:pb-0"
-                >
-                  <div>
-                    <Link
-                      to={`/publicaciones/${pub.id}`}
-                      className="text-sm font-medium text-white hover:text-[#3fb950] hover:underline"
-                    >
-                      {pub.titulo}
-                    </Link>
-                    <p className="text-xs text-[#8b949e]">
-                      {pub.Sector?.nombre ?? "General"} · {formatearFecha(pub.createdAt)}
-                    </p>
-                  </div>
-                  <Badge variant="neutral">{pub.tipo_contenido}</Badge>
-                </div>
-              ))}
-            </div>
-          </Card>
-        )}
       </section>
     </div>
   );

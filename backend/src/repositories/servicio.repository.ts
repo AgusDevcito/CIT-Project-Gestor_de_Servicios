@@ -1,5 +1,14 @@
-import type { Includeable, Order } from "sequelize";
-import { Profile, ResenaServicio, Sector, Servicio, User } from "../models/index.js";
+import type { Includeable, Order, Transaction } from "sequelize";
+import { sequelize } from "../config/db.js";
+import {
+    Profile,
+    Propuesta,
+    ResenaServicio,
+    Sector,
+    Servicio,
+    Solicitud,
+    User,
+} from "../models/index.js";
 
 const baseIncludes: Includeable[] = [
     {
@@ -69,6 +78,19 @@ export const findById = async (id: number) => {
 };
 
 export const create = (data: CreateServicioData) => Servicio.create(data);
+
+export const deleteById = async (id: number) => {
+    return sequelize.transaction(async (transaction: Transaction) => {
+        await ResenaServicio.destroy({ where: { servicio_id: id }, transaction });
+        await Solicitud.destroy({ where: { servicio_id: id }, transaction });
+        await Propuesta.update(
+            { servicio_generado_id: null },
+            { where: { servicio_generado_id: id }, transaction },
+        );
+        const deletedCount = await Servicio.destroy({ where: { id }, transaction });
+        return deletedCount > 0;
+    });
+};
 
 export const findResenaByUserAndServicio = (
     servicioId: number,

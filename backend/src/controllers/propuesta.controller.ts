@@ -40,9 +40,21 @@ export const obtenerPropuestaPorId = asyncHandler(
 
 export const descargarDocumentoPropuesta = asyncHandler(
     async (req: Request, res: Response) => {
+        const user = getAuthUser(req);
         const safeFilename = path.basename(String(req.params.filename ?? ""));
         if (!safeFilename) {
             res.status(400).json({ msg: "Nombre de archivo inválido." });
+            return;
+        }
+
+        const puedeAcceder = await propuestaService.canAccessDocumento(
+            safeFilename,
+            user,
+        );
+        if (!puedeAcceder) {
+            res.status(403).json({
+                msg: "No tienes permisos para acceder a este documento.",
+            });
             return;
         }
 

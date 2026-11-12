@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { Link, useParams } from "react-router-dom";
+import { Link, useNavigate, useParams } from "react-router-dom";
 
 import { Alert } from "../components/ui/Alert";
 import { Badge, badgeVariantPorEstado } from "../components/ui/Badge";
@@ -18,6 +18,7 @@ import {
 } from "../lib/formatters";
 import {
   createResenaServicio,
+  deleteServicio,
   getServicioById,
 } from "../services/serviciosService";
 import { createSolicitud, getSolicitudes } from "../services/solicitudesService";
@@ -39,6 +40,7 @@ function EstrellasVisuales({ valor }: { valor: number }) {
 
 export default function ServicioDetalle() {
   const { id } = useParams();
+  const navigate = useNavigate();
   const servicioId = Number(id);
   const { user } = useAuth();
   const isCIT = esPersonalCIT(user?.rol);
@@ -51,6 +53,7 @@ export default function ServicioDetalle() {
 
   // Contratación
   const [solicitando, setSolicitando] = useState(false);
+  const [eliminando, setEliminando] = useState(false);
 
   // Formulario de calificación y reseña
   const [calificacion, setCalificacion] = useState<number>(5);
@@ -166,6 +169,27 @@ export default function ServicioDetalle() {
       );
     } finally {
       setEnviandoResena(false);
+    }
+  };
+
+  const handleEliminar = async () => {
+    if (!servicio) return;
+    if (
+      !window.confirm(
+        `¿Estás seguro de que deseás eliminar permanentemente el servicio "${servicio.servicio_nombre}"? Esta acción no se puede deshacer.`,
+      )
+    ) {
+      return;
+    }
+
+    setEliminando(true);
+    setError("");
+    try {
+      await deleteServicio(servicio.id);
+      navigate("/servicios");
+    } catch (err) {
+      setError(getApiError(err, "No se pudo eliminar el servicio."));
+      setEliminando(false);
     }
   };
 
@@ -418,6 +442,19 @@ export default function ServicioDetalle() {
                 >
                   {solicitando ? "Procesando solicitud…" : "Solicitar servicio"}
                 </Button>
+              )}
+
+              {isCIT && (
+                <div className="border-t border-[#30363d] pt-3">
+                  <Button
+                    variant="danger"
+                    className="w-full"
+                    loading={eliminando}
+                    onClick={() => void handleEliminar()}
+                  >
+                    {eliminando ? "Eliminando…" : "Eliminar servicio"}
+                  </Button>
+                </div>
               )}
             </div>
           </Card>

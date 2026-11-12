@@ -147,3 +147,20 @@ export const createResena = async (
         comentario: comentarioLimpio,
     });
 };
+
+export const remove = async (id: number, user: { id: number; role: Rol }) => {
+    if (!Number.isFinite(id) || id <= 0) {
+        throw validationError("El identificador del servicio no es válido.");
+    }
+    const servicio = await servicioRepository.findById(id);
+    if (!servicio) {
+        throw notFoundError("Servicio no encontrado.");
+    }
+    if (user.role !== "cit" && user.role !== "admin") {
+        throw forbiddenError(
+            "Solo el personal del CIT o administradores pueden eliminar servicios.",
+        );
+    }
+    await servicioRepository.deleteById(id);
+    return { id, servicio_nombre: servicio.servicio_nombre };
+};

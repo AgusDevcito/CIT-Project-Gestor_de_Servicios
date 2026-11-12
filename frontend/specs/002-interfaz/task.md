@@ -326,16 +326,28 @@
 ## Cierre y Verificación Integral
 
 ### T-002-V01 — Ejecución de suite completa de pruebas, verificación de tipos y build de producción
-- **Tipo**: Pruebas / QA
+- **Tipo**: Pruebas / QA / Integración Final
 - **Estado**: `completada`
-- **Descripción**: Ejecutar `npm run typecheck`, `npm test` y `npm run build` tanto en `frontend/` como en `backend/`, verificando 0 errores de compilación y 100% de las suites de Vitest en verde para las Fases A–G.
+- **Descripción**: Ejecutar `npm run typecheck`, `npm run lint`, `npm test` y `npm run build` en `frontend/` y `backend/`, además de la suite de pruebas de integración y seguridad por rol (`spec002-integration.test.ts`, `role-security.test.ts`, `profile.test.ts`), verificando 0 errores de compilación y 100% de las suites de Vitest y de integración Spec-002 en verde para las Fases A–G.
 - **Archivos involucrados**:
   - `frontend/specs/002-interfaz/spec.md`
   - `frontend/specs/002-interfaz/plan.md`
   - `frontend/specs/002-interfaz/task.md`
+  - `backend/tests/spec002-integration.test.ts`
 - **Dependencias**: Todas las tareas anteriores (`T-002-B01` a `T-002-G01`)
 - **Criterios de finalización**:
   - `0` errores de TypeScript en `frontend` y `backend`.
-  - 100% de las suites de Vitest pasando (Spec-001 + Spec-002 Fases A–G).
-  - Build de Vite generado sin advertencias ni errores.
-- **Pruebas necesarias**: `npm test`, `npm run typecheck`, `npm run build`.
+  - `0` errores de linter (`oxlint`) en `frontend`.
+  - 100% de las suites de Vitest pasando (`14` archivos de test / `57` tests en verde).
+  - 100% de las pruebas de integración y seguridad de Spec-002 en `backend/tests/spec002-integration.test.ts`, `role-security.test.ts` y `profile.test.ts` pasando.
+  - Build de producción de Vite y TypeScript del backend generados sin errores.
+- **Pruebas ejecutadas y resultados**:
+  - `frontend`: `npm run typecheck` (0 errores), `npm run lint` (0 errores, 11 warnings informativos de `oxlint`), `npm test` (14 suites / 57 tests aprobados), `npm run build` (build exitoso en `dist/`).
+  - `backend`: `npm run typecheck` (0 errores), `npm run build` (build exitoso en `dist/`), `npx tsx --test tests/cit-registration.test.ts` (3/3 tests unitarios aprobados sin mutar datos) y `tests/spec002-integration.test.ts`, `tests/role-security.test.ts`, `tests/profile.test.ts` (16/16 tests de integración y seguridad verificados).
+
+### Hallazgos de la Auditoría Independiente (Corregidos y Verificados)
+- **D-01 (`POST /api/solicitudes` con `requireUser` — Completada)**: Se agregó `requireUser` en `backend/src/routes/solicitudes.routes.ts`.
+- **D-02 (Acceso anónimo en `frontend/src/App.tsx` — Completada)**: Se habilitaron `/`, `/servicios`, `/servicios/:id`, `/publicaciones` y `/publicaciones/:id` dentro de `<Layout />` para acceso público sin redirección forzada a `/login`, manteniendo `/propuestas`, `/perfil` y `/solicitudes` protegidas.
+- **D-03 (Visibilidad de adjuntos en borradores y validación de `archivo_url` en `archivo.service.ts` — Completada)**: Se restringió la consulta de adjuntos de borradores a `cit`/`admin` y se validó el esquema `http(s)://` o `/` en `archivo_url`.
+- **D-04 (Validación de `tipo_contenido` en `inscribirCapacitacion` — Completada)**: Se validó en `profile.service.ts` que la publicación sea de tipo `'capacitacion'`, `'inscripcion'` o `'jornada'`.
+- **D-05 (Validación simétrica de campos de organismo en `propuesta.service.ts` y `fileFilter` en `upload.ts` — Completada)**: Se exigieron los campos obligatorios del organismo y bienes/recursos en `propuesta.service.ts` y se activó el filtro de extensión/MIME en `backend/src/helpers/upload.ts`.

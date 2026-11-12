@@ -33,3 +33,12 @@ export const createResenaServicio = asyncHandler(
         });
     },
 );
+
+export const deleteServicio = asyncHandler(async (req: Request, res: Response) => {
+    const user = getAuthUser(req);
+    const data = await servicioService.remove(Number(req.params.id), user);
+    res.json({
+        msg: `Servicio "${data.servicio_nombre}" eliminado correctamente.`,
+        data,
+    });
+});

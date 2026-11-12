@@ -22,22 +22,23 @@ function App() {
         <Route path="/register" element={<Register />} />
       </Route>
 
-      {/* Árbol privado: exige sesión. */}
-      <Route element={<ProtectedRoute />}>
-        <Route element={<Layout />}>
-          <Route index element={<Home />} />
-          <Route path="servicios" element={<Servicios />} />
-          <Route path="servicios/:id" element={<ServicioDetalle />} />
+      {/* Árbol principal con Layout: permite navegación pública en Home, Servicios y Publicaciones */}
+      <Route element={<Layout />}>
+        <Route index element={<Home />} />
+        <Route path="servicios" element={<Servicios />} />
+        <Route path="servicios/:id" element={<ServicioDetalle />} />
+        <Route path="publicaciones" element={<Publicaciones />} />
+        <Route path="publicaciones/:id" element={<PublicacionDetalle />} />
 
-          {/* Apartado interno exclusivo para personal CIT y Administradores */}
-          <Route element={<ProtectedRoute roles={["cit", "admin"]} />}>
-            <Route path="solicitudes" element={<Solicitudes />} />
-          </Route>
-
-          <Route path="publicaciones" element={<Publicaciones />} />
-          <Route path="publicaciones/:id" element={<PublicacionDetalle />} />
+        {/* Rutas que exigen sesión iniciada */}
+        <Route element={<ProtectedRoute />}>
           <Route path="propuestas" element={<Propuestas />} />
           <Route path="perfil" element={<Perfil />} />
+        </Route>
+
+        {/* Apartado interno exclusivo para personal CIT y Administradores */}
+        <Route element={<ProtectedRoute roles={["cit", "admin"]} />}>
+          <Route path="solicitudes" element={<Solicitudes />} />
         </Route>
       </Route>
 

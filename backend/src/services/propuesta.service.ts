@@ -133,10 +133,19 @@ export const create = async (
     const sectorItem = await catalogRepository.findSector(requestedSector ?? sector);
     const pendingState = await ensureEstado(ESTADO.PENDIENTE, "Pendiente");
 
-    if (!tituloLimpio || !sectorItem || !problematicaLimpia || !pendingState) {
+    if (
+        !organismoLimpio ||
+        !emailLimpio ||
+        !telefonoLimpio ||
+        !tituloLimpio ||
+        !sectorItem ||
+        !problematicaLimpia ||
+        !bienesLimpios ||
+        !pendingState
+    ) {
         if (file) await safeUnlink(file.path);
         throw validationError(
-            "Los campos nombre de la propuesta, área orientada y descripción de utilidad son obligatorios.",
+            "Todos los datos del organismo, de la propuesta y de los bienes o recursos son obligatorios.",
         );
     }
 
@@ -243,6 +252,19 @@ export const getById = async (id: number) => {
         throw notFoundError("Propuesta no encontrada.");
     }
     return propuesta;
+};
+
+export const canAccessDocumento = async (
+    safeFilename: string,
+    user: { id: number; role: Rol },
+): Promise<boolean> => {
+    if (user.role === "admin" || user.role === "cit") {
+        return true;
+    }
+    const propuesta = await propuestaRepository.findByDocumentoUrl(
+        `/api/uploads/${safeFilename}`,
+    );
+    return Boolean(propuesta && propuesta.solicitante === user.id);
 };
 
 export const tomarEnRevision = async (id: number, revisorId: number) => {

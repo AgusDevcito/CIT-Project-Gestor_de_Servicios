@@ -238,3 +238,64 @@ flowchart TD
 | **R-02**: Ruptura de los 26 tests existentes de Spec-001 al rediseñar estilos globales (`index.css`, `Login.tsx`, `Register.tsx`). | Medio | Mantener intactos los `labels`, `roles` ARIA, textos de botones y rutas evaluados por los tests de `001-authentication`, ejecutando `npm test` tras cada fase. |
 | **R-03**: Fallo parcial de carga en `Home.tsx` si alguno de los endpoints de resumen demora o falla (ej. `/propuestas` para un rol específico). | Medio | Utilizar `Promise.allSettled()` en lugar de `Promise.all()` en el dashboard de `Home.tsx`, de modo que cada widget muestre su propio estado sin bloquear toda la pantalla. |
 | **R-04**: URLs de imágenes externas rotas o inválidas cargadas por usuarios en Servicios, Publicaciones o Avatar. | Bajo | Implementar manejo de `onError` en los componentes `<img>` para mostrar un placeholder institucional limpio en lugar del ícono de imagen rota del navegador. |
+
+---
+
+## 11. Registro Técnico de Cambios Implementados (Cierre Fases A–G)
+
+### 11.1 Endpoints Agregados o Modificados en el Backend
+- **Catálogos (`backend/src/routes/catalogos.routes.ts`)**:
+  - `GET /api/sectores` y `GET /api/estados`: cambiados a `optionalAuth` con auto-inicialización de catálogo (`seedCatalogos`) si la tabla estuviera vacía.
+- **Servicios y Reseñas (`backend/src/routes/servicios.routes.ts`)**:
+  - `GET /api/servicios`: montado en `routes/index.ts` con `optionalAuth` (incluye `Proveedor`, `Sector` y `Resenas`).
+  - `GET /api/servicios/:id`: nuevo endpoint de detalle individual con reseñas verificadas (`optionalAuth`).
+  - `POST /api/servicios`: protegido con `requireAuth` + `requireCIT`.
+  - `POST /api/servicios/:id/resenas`: nuevo endpoint (`requireAuth`) que valida rol `user`, contratación previa no rechazada y unicidad por `(servicio_id, user_id)` (`409 Conflict`).
+- **Solicitudes de Servicios (`backend/src/routes/solicitudes.routes.ts`)**:
+  - `GET /api/solicitudes`: incluye relación `Solicitante` (`Profile`) y devuelve las propias para `user` o todas para `cit`/`admin`.
+  - `POST /api/solicitudes`: agrega prevención de solicitudes activas duplicadas (`PENDIENTE`, `APROBADO`, `ACEPTADA`) para el mismo servicio y usuario (`409 Conflict`).
+- **Propuestas y Bandeja Interna de Solicitudes CIT (`backend/src/routes/propuestas.routes.ts`)**:
+  - `GET /api/propuestas`: `requireAuth` (devuelve propuestas propias para `user` y todas las propuestas para `cit`/`admin`, con `Solicitante`, `Revisor`, `Sector`, `Estado` y `ServicioGenerado`).
+  - `GET /api/propuestas/:id`: nuevo endpoint (`requireAuth`, `requireCIT`) para detalle completo de una propuesta.
+  - `POST /api/propuestas` y `POST /api/propuesta/crear`: protegidos con `requireAuth` + `requireUser`, soporte `multipart/form-data` (`uploadDocument.single("documento")`), validación binaria `file-type` y prevención de duplicados activos (`409 Conflict`).
+  - `GET /api/uploads/:filename`: nuevo endpoint autenticado (`requireAuth`) que verifica propiedad del archivo (`solicitante === user.id`) o rol `cit`/`admin` (`403 Forbidden` a terceros), previene path traversal (`path.basename`) y envía `X-Content-Type-Options: nosniff`.
+  - `PATCH /api/propuestas/:id/revision`: nuevo endpoint (`requireAuth`, `requireCIT`) para pasar una propuesta de `PENDIENTE` a `EN_REVISION`.
+  - `POST /api/propuestas/dictaminar/:id` y `PATCH /api/propuesta/:id/dictamen`: protegidos con `requireAuth` + `requireCIT`; al aceptar (`ACEPTADA`/`APROBADO`), ejecutan una transacción Sequelize que crea automáticamente el `Servicio` en el catálogo y vincula `servicio_generado_id` ↔ `propuesta_id`.
+- **Publicaciones (`backend/src/routes/publicaciones.routes.ts`)**:
+  - `GET /api/publicaciones` y `GET /api/publicacion/:id`: usan `optionalAuth`, filtrando borradores (`publicado = false`) para usuarios normales y visitantes.
+  - `PATCH /api/publicacion/:id/estado`: nuevo endpoint (`requireAuth`, `requireCIT`) para publicar o despublicar una publicación.
+- **Perfil y Capacitaciones (`backend/src/routes/profile.routes.ts`)**:
+  - `PUT /api/profile/:userId`: protegido con `requireAuth` + `requireSelfOnly`, permite editar únicamente `first_name`, `last_name`, `avatar_url` y `bio` (ignorando `role`/`rol`/`email`).
+  - `GET /api/profile/:userId/actividad`: nuevo endpoint (`requireAuth`, `requireSelfOnly`) que devuelve `{ propuestas, servicios, capacitaciones }` del usuario autenticado.
+  - `GET /api/mis-capacitaciones` y `POST /api/capacitaciones/:publicacionId/inscribirse`: nuevos endpoints (`requireAuth`) para consultar e inscribirse en capacitaciones publicadas evitando inscripciones duplicadas (`409 Conflict`).
+- **Rutas de Administración de Usuarios (`backend/src/routes/user.routes.ts`)**:
+  - Se reemplazó el `userRouter.use(requireAuth, requireRole(ROL.ADMIN))` global por middlewares por ruta (`adminOnly`) sobre `/user/:id`, `/users` y `/user/create`, evitando que intercepte otros routers montados en `"/"`.
+
+### 11.2 Cambios en Modelos y Base de Datos (Migraciones Seguras No Destructivas)
+Mediante `ensureSchemaExtensions()` en `backend/src/services/catalogSeed.service.ts` y `sequelize.sync()` no destructivo:
+1. **Tabla `Servicios` (`servicio.model.ts`)**:
+   - `servicio_nombre` ampliado a `VARCHAR(120)`.
+   - Nueva columna `propuesta_id INTEGER DEFAULT NULL` para trazabilidad con propuestas aceptadas.
+2. **Nueva tabla `ResenasServicios` (`resenaServicio.model.ts`)**:
+   - Campos: `id`, `servicio_id`, `user_id`, `calificacion` (`1..5`), `comentario` (`TEXT`), timestamps e índice único `(servicio_id, user_id)`.
+3. **Tabla `Propuesta` (`propuesta.model.ts`)**:
+   - Nuevas columnas opcionales: `nombre_organismo VARCHAR(150)`, `email_contacto VARCHAR(150)`, `telefono_contacto VARCHAR(60)`, `bienes_recursos TEXT`, `documento_url TEXT`, `documento_nombre VARCHAR(255)`, `servicio_generado_id INTEGER`.
+   - Asociaciones cruzadas `Propuesta` ↔ `Servicio` configuradas con `constraints: false` en `models/index.ts` para evitar referencias cíclicas en `sequelize.sync()`.
+4. **Tabla `Publicaciones` (`publicacion.model.ts`)**:
+   - `titulo` ampliado a `VARCHAR(160)`.
+   - Nueva columna `publicado BOOLEAN NOT NULL DEFAULT true`.
+   - Nuevos valores en `enum_Publicaciones_tipo_contenido`: `'noticia'`, `'jornada'`, `'inscripcion'`, `'capacitacion'`.
+5. **Tabla `Profiles` (`profile.model.ts`)**:
+   - Nueva columna `bio TEXT DEFAULT NULL`.
+6. **Nueva tabla `InscripcionesCapacitaciones` (`inscripcionCapacitacion.model.ts`)**:
+   - Campos: `id`, `user_id`, `publicacion_id`, `estado` (`'INSCRIPTO' | 'EN_CURSO' | 'FINALIZADO' | 'CANCELADO'`), timestamps e índice único `(user_id, publicacion_id)`.
+7. **Catálogo `Estados` (`catalogSeed.service.ts`)**:
+   - Incorporación del estado `EN_REVISION` (*En revisión*) junto a `PENDIENTE`, `APROBADO`, `RECHAZADO`, `ACEPTADA` y `FINALIZADA`.
+
+### 11.3 Observaciones de la Auditoría de Base de Datos y Arquitectura
+1. **Integridad referencial en relación cruzada `Propuesta` ↔ `Servicio`**:
+   - Para evitar errores cíclicos de Sequelize (`_syncModelsWithCyclicReferences`), las asociaciones `Propuesta.servicio_generado_id` y `Servicio.propuesta_id` tienen `constraints: false` en `models/index.ts`. La integridad referencial de dicho vínculo se garantiza transaccionalmente en `propuesta.service.ts` (`sequelize.transaction`), pero no posee restricción `FOREIGN KEY` a nivel motor PostgreSQL.
+2. **Eliminación en cascada de `ArchivoPublicacion`**:
+   - En `models/index.ts`, `Publicacion.hasMany(ArchivoPublicacion)` no declara `onDelete: "CASCADE"` explícito; la baja en cascada se ejecuta programáticamente en `publicacion.service.ts` (`archivoRepository.destroyByPublicacion(id)` antes de `publicacionRepository.destroy(publicacion)`).
+3. **Estrategia de migraciones y `sequelize.sync()`**:
+   - `initDB()` ejecuta `sequelize.sync()` sin opciones destructivas (`force` ni `alter`), y las alteraciones sobre tablas existentes en Supabase se aplican mediante sentencias idempotentes `ALTER TABLE ... ADD COLUMN IF NOT EXISTS` en `ensureSchemaExtensions()` (`catalogSeed.service.ts`). No se utiliza aún una tabla histórica de migraciones versionadas (`SequelizeMeta` / `umzug`).

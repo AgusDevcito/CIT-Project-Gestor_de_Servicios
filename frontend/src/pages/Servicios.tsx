@@ -18,7 +18,11 @@ import {
   getSectores,
   SECTORES_OFICIALES_CIT,
 } from "../services/catalogosService";
-import { createServicio, getServicios } from "../services/serviciosService";
+import {
+  createServicio,
+  deleteServicio,
+  getServicios,
+} from "../services/serviciosService";
 import { createSolicitud, getSolicitudes } from "../services/solicitudesService";
 
 interface FormularioServicio {
@@ -61,6 +65,7 @@ export default function Servicios() {
 
   // Estado de contratación por servicio
   const [solicitandoId, setSolicitandoId] = useState<number | null>(null);
+  const [deletingId, setDeletingId] = useState<number | null>(null);
 
   const loadData = useCallback(async () => {
     setLoading(true);
@@ -185,6 +190,31 @@ export default function Servicios() {
       setError(getApiError(err, "No se pudo solicitar el servicio."));
     } finally {
       setSolicitandoId(null);
+    }
+  };
+
+  const handleDelete = async (servicio: Servicio) => {
+    if (
+      !window.confirm(
+        `¿Estás seguro de que deseás eliminar el servicio "${servicio.servicio_nombre}"? Esta acción no se puede deshacer.`,
+      )
+    ) {
+      return;
+    }
+
+    setError("");
+    setFeedback("");
+    setDeletingId(servicio.id);
+    try {
+      await deleteServicio(servicio.id);
+      setServicios((prev) => prev.filter((item) => item.id !== servicio.id));
+      setFeedback(
+        `El servicio "${servicio.servicio_nombre}" fue eliminado exitosamente.`,
+      );
+    } catch (err) {
+      setError(getApiError(err, "No se pudo eliminar el servicio."));
+    } finally {
+      setDeletingId(null);
     }
   };
 
@@ -481,6 +511,18 @@ export default function Servicios() {
                       >
                         Ver detalle
                       </Link>
+
+                      {isCIT && (
+                        <Button
+                          variant="danger"
+                          size="sm"
+                          loading={deletingId === servicio.id}
+                          onClick={() => void handleDelete(servicio)}
+                          aria-label={`Eliminar ${servicio.servicio_nombre}`}
+                        >
+                          Eliminar
+                        </Button>
+                      )}
 
                       {!isCIT &&
                         (solicitudActiva ? (

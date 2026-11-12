@@ -68,5 +68,10 @@ export const findServicioByPropuestaId = (
 export const findBySolicitante = (solicitanteId: number) =>
     findAll({ solicitante: solicitanteId });
 
+export const findByDocumentoUrl = (documentoUrl: string) =>
+    Propuesta.findOne({
+        where: { documento_url: documentoUrl },
+    });
+
 export const save = (propuesta: Propuesta, transaction?: Transaction) =>
     propuesta.save({ transaction });

@@ -1,6 +1,7 @@
-import { Op } from "sequelize";
+import { Op, type Transaction } from "sequelize";
 import { sequelize } from "../config/db.js";
-import { Profile, User } from "../models/index.js";
+import { DEFAULT_PREFERENCIAS_NOTIFICACION } from "../models/preferenciaNotificacion.model.js";
+import { PreferenciaNotificacion, Profile, User } from "../models/index.js";
 import type { Rol } from "../constants/roles.js";
 
 export interface CreateUserData {
@@ -74,7 +75,68 @@ export const findAllWithProfilePaginated = async (options: {
   return result;
 };
 
-export const create = (data: CreateUserData) => User.create(data);
+export const ensureDefaultNotificationPreferences = async (
+  userId: number,
+  transaction?: Transaction,
+): Promise<PreferenciaNotificacion> => {
+  // En PostgreSQL, un INSERT ... ON CONFLICT DO NOTHING sobre "uq_preferencias_notificaciones_user_id"
+  // garantiza atomicidad absoluta y previene abortar transacciones bajo condiciones de carrera concurrentes.
+  const insertSql = `
+    INSERT INTO public."PreferenciasNotificaciones" (
+      "user_id",
+      "noticias_publicaciones",
+      "cambios_propuestas",
+      "nuevos_servicios",
+      "actualizaciones_plataforma",
+      "actividad_usuario",
+      "createdAt",
+      "updatedAt"
+    )
+    VALUES (
+      :userId,
+      :noticias_publicaciones,
+      :cambios_propuestas,
+      :nuevos_servicios,
+      :actualizaciones_plataforma,
+      :actividad_usuario,
+      NOW(),
+      NOW()
+    )
+    ON CONFLICT ("user_id") DO NOTHING;
+  `;
+
+  await sequelize.query(insertSql, {
+    replacements: {
+      userId,
+      ...DEFAULT_PREFERENCIAS_NOTIFICACION,
+    },
+    ...(transaction ? { transaction } : {}),
+  });
+
+  const preferencia = await PreferenciaNotificacion.findOne({
+    where: { user_id: userId },
+    ...(transaction ? { transaction } : {}),
+  });
+
+  if (!preferencia) {
+    throw new Error(`No se pudo obtener ni crear la preferencia para el usuario ${userId}`);
+  }
+
+  return preferencia;
+};
+
+export const create = async (data: CreateUserData): Promise<User> => {
+  const transaction = await sequelize.transaction();
+  try {
+    const user = await User.create(data, { transaction });
+    await ensureDefaultNotificationPreferences(user.id, transaction);
+    await transaction.commit();
+    return user;
+  } catch (error) {
+    await transaction.rollback();
+    throw error;
+  }
+};
 
 export const update = (
   user: User,
@@ -88,6 +150,7 @@ export const createUserWithProfile = async (userData: CreateUserData, profileDat
   try {
     const user = await User.create(userData, { transaction });
     await Profile.create({ ...profileData, user_id: user.id }, { transaction });
+    await ensureDefaultNotificationPreferences(user.id, transaction);
     await transaction.commit();
     return user;
   } catch (error) {
