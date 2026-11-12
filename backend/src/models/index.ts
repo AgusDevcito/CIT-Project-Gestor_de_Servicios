@@ -1,6 +1,8 @@
 import { ArchivoPublicacion } from "./archivoPublicacion.model.js";
 import { Estado } from "./estado.model.js";
 import { InscripcionCapacitacion } from "./inscripcionCapacitacion.model.js";
+import { Notificacion } from "./notificacion.model.js";
+import { PreferenciaNotificacion } from "./preferenciaNotificacion.model.js";
 import { Profile } from "./profile.model.js";
 import { Propuesta } from "./propuesta.model.js";
 import { Publicacion } from "./publicacion.model.js";
@@ -67,6 +69,16 @@ export const registerAssociations = (): void => {
 
     User.hasMany(Solicitud, { foreignKey: "user_id", as: "Solicitudes" });
     Solicitud.belongsTo(User, { foreignKey: "user_id", as: "Solicitante" });
+    User.hasMany(Solicitud, {
+        foreignKey: "cancelado_por_id",
+        as: "SolicitudesCanceladas",
+        onDelete: "SET NULL",
+    });
+    Solicitud.belongsTo(User, {
+        foreignKey: "cancelado_por_id",
+        as: "CanceladoPor",
+        onDelete: "SET NULL",
+    });
     Servicio.hasMany(Solicitud, { foreignKey: "servicio_id", as: "Solicitudes" });
     Solicitud.belongsTo(Servicio, { foreignKey: "servicio_id", as: "Servicio" });
     Estado.hasMany(Solicitud, { foreignKey: "estado_id", as: "Solicitudes" });
@@ -90,6 +102,28 @@ export const registerAssociations = (): void => {
         foreignKey: "publicacion_id",
         as: "Publicacion",
     });
+
+    User.hasMany(Notificacion, {
+        foreignKey: "user_id",
+        as: "Notificaciones",
+        onDelete: "RESTRICT",
+    });
+    Notificacion.belongsTo(User, {
+        foreignKey: "user_id",
+        as: "Destinatario",
+        onDelete: "RESTRICT",
+    });
+
+    User.hasOne(PreferenciaNotificacion, {
+        foreignKey: "user_id",
+        as: "PreferenciaNotificacion",
+        onDelete: "RESTRICT",
+    });
+    PreferenciaNotificacion.belongsTo(User, {
+        foreignKey: "user_id",
+        as: "User",
+        onDelete: "RESTRICT",
+    });
 };
 
 registerAssociations();
@@ -98,6 +132,8 @@ export {
     ArchivoPublicacion,
     Estado,
     InscripcionCapacitacion,
+    Notificacion,
+    PreferenciaNotificacion,
     Profile,
     Propuesta,
     Publicacion,

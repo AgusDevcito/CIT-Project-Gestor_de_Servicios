@@ -100,4 +100,25 @@ describe("components/ProtectedRoute", () => {
     expect(screen.getByText("Inicio Autenticado")).toBeInTheDocument();
     expect(screen.queryByText("Página de Login")).not.toBeInTheDocument();
   });
+
+  it("permite acceso anónimo a rutas públicas (/, /servicios, /publicaciones) y exige sesión en /propuestas y /perfil", () => {
+    render(
+      <AuthContext.Provider value={crearValorContexto({ status: "anonimo", user: null })}>
+        <MemoryRouter initialEntries={["/publicaciones"]}>
+          <Routes>
+            <Route path="/" element={<div>Inicio Público</div>} />
+            <Route path="/publicaciones" element={<div>Publicaciones Públicas</div>} />
+            <Route element={<ProtectedRoute />}>
+              <Route path="/propuestas" element={<div>Propuestas Privadas</div>} />
+              <Route path="/perfil" element={<div>Perfil Privado</div>} />
+            </Route>
+            <Route path="/login" element={<div>Página de Login</div>} />
+          </Routes>
+        </MemoryRouter>
+      </AuthContext.Provider>,
+    );
+
+    expect(screen.getByText("Publicaciones Públicas")).toBeInTheDocument();
+    expect(screen.queryByText("Página de Login")).not.toBeInTheDocument();
+  });
 });

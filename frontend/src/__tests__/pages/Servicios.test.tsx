@@ -19,6 +19,7 @@ vi.mock("../../services/serviciosService", () => ({
   getServicios: vi.fn(),
   getServicioById: vi.fn(),
   createServicio: vi.fn(),
+  deleteServicio: vi.fn(),
   createResenaServicio: vi.fn(),
 }));
 
@@ -313,5 +314,42 @@ describe("pages/Servicios y pages/ServicioDetalle (Spec-002 Fase C)", () => {
     expect(
       screen.queryByRole("button", { name: "Publicar reseña" }),
     ).not.toBeInTheDocument();
+  });
+
+  it("permite a personal CIT eliminar un servicio desde el catálogo con confirmación", async () => {
+    vi.spyOn(window, "confirm").mockReturnValue(true);
+    vi.mocked(serviciosService.getServicios).mockResolvedValue([servicioMock]);
+    vi.mocked(serviciosService.deleteServicio).mockResolvedValue();
+
+    render(
+      <AuthContext.Provider value={crearContexto(usuarioCIT)}>
+        <MemoryRouter>
+          <Servicios />
+        </MemoryRouter>
+      </AuthContext.Provider>,
+    );
+
+    await waitFor(() => {
+      expect(
+        screen.getByText("Serología para Brucelosis (BPA y FPA)"),
+      ).toBeInTheDocument();
+    });
+
+    const botonEliminar = screen.getByRole("button", {
+      name: "Eliminar Serología para Brucelosis (BPA y FPA)",
+    });
+    expect(botonEliminar).toBeInTheDocument();
+
+    fireEvent.click(botonEliminar);
+
+    await waitFor(() => {
+      expect(serviciosService.deleteServicio).toHaveBeenCalledWith(1);
+    });
+
+    await waitFor(() => {
+      expect(
+        screen.getByText(/fue eliminado exitosamente/i),
+      ).toBeInTheDocument();
+    });
   });
 });

@@ -1,20 +1,10 @@
-import { render, screen, waitFor } from "@testing-library/react";
+import { render, screen } from "@testing-library/react";
 import { MemoryRouter } from "react-router-dom";
-import { beforeEach, describe, expect, it, vi } from "vitest";
+import { describe, expect, it } from "vitest";
 
 import { AuthContext, type AuthContextValue } from "../../context/auth-context";
 import type { UsuarioAutenticado } from "../../domain/entidades";
 import Home from "../../pages/Home";
-import * as publicacionesService from "../../services/publicacionesService";
-import * as serviciosService from "../../services/serviciosService";
-
-vi.mock("../../services/serviciosService", () => ({
-  getServicios: vi.fn(),
-}));
-
-vi.mock("../../services/publicacionesService", () => ({
-  getPublicaciones: vi.fn(),
-}));
 
 const crearContexto = (user: UsuarioAutenticado | null): AuthContextValue => ({
   user,
@@ -27,11 +17,7 @@ const crearContexto = (user: UsuarioAutenticado | null): AuthContextValue => ({
   refresh: async () => {},
 });
 
-describe("pages/Home (Spec-002 Fase B)", () => {
-  beforeEach(() => {
-    vi.clearAllMocks();
-  });
-
+describe("pages/Home (Spec-003 Fase A)", () => {
   it("muestra bienvenida general y accesos de autenticación cuando no hay sesión iniciada", () => {
     render(
       <AuthContext.Provider value={crearContexto(null)}>
@@ -56,34 +42,8 @@ describe("pages/Home (Spec-002 Fase B)", () => {
     expect(screen.getByText(/Sobre la Plataforma CITio/i)).toBeInTheDocument();
   });
 
-  it("muestra bienvenida personalizada con el nombre del usuario autenticado y sincroniza datos del backend", async () => {
-    vi.mocked(serviciosService.getServicios).mockResolvedValue([
-      {
-        id: 1,
-        servicio_nombre: "Análisis Coprológico Cuantitativo",
-        servicio_description: "Determinación HPG en rumiantes",
-        servicio_img: null,
-        sector_id: 2,
-        servicio_precio: 4500,
-        proveedor_id: 1,
-        createdAt: "2026-11-10T10:00:00Z",
-        Sector: { id: 2, codigo: "GANADERO", nombre: "Ganadero", activo: true },
-      },
-    ]);
-
-    vi.mocked(publicacionesService.getPublicaciones).mockResolvedValue([
-      {
-        id: 5,
-        titulo: "Control de garrapatas en bovinos",
-        contenido: "Guía técnica para productores.",
-        tipo_contenido: "parasito",
-        sector_id: 2,
-        author_id: 1,
-        createdAt: "2026-11-10T10:00:00Z",
-      },
-    ]);
-
-    render(
+  it("muestra bienvenida personalizada con el nombre del usuario autenticado sin contadores numéricos ni KPIs ficticios", () => {
+    const { container } = render(
       <AuthContext.Provider
         value={crearContexto({
           id: 7,
@@ -105,20 +65,22 @@ describe("pages/Home (Spec-002 Fase B)", () => {
       screen.getByRole("heading", { name: /Hola, Martín Rodríguez/i }),
     ).toBeInTheDocument();
 
-    await waitFor(() => {
-      expect(
-        screen.getByText("Análisis Coprológico Cuantitativo"),
-      ).toBeInTheDocument();
-      expect(
-        screen.getByText("Control de garrapatas en bovinos"),
-      ).toBeInTheDocument();
-    });
+    // Verificación de T006/T007 y RF-A03: no deben existir contadores numéricos estáticos ni porcentaje
+    expect(screen.queryByText(/\+35/i)).not.toBeInTheDocument();
+    expect(screen.queryByText(/100%/i)).not.toBeInTheDocument();
+    expect(screen.queryByText(/4 Áreas Estratégicas/i)).not.toBeInTheDocument();
+    expect(container.querySelector(".statsStrip")).toBeNull();
+
+    // No deben renderizarse bloques dinámicos no solicitados
+    expect(
+      screen.queryByText(/Servicios destacados disponibles/i),
+    ).not.toBeInTheDocument();
+    expect(
+      screen.queryByText(/Últimas publicaciones técnicas/i),
+    ).not.toBeInTheDocument();
   });
 
-  it("presenta las secciones institucionales de servicios, capacitaciones y accesos rápidos", async () => {
-    vi.mocked(serviciosService.getServicios).mockResolvedValue([]);
-    vi.mocked(publicacionesService.getPublicaciones).mockResolvedValue([]);
-
+  it("presenta las secciones institucionales de servicios, capacitaciones y accesos rápidos", () => {
     render(
       <AuthContext.Provider value={crearContexto(null)}>
         <MemoryRouter>
@@ -133,7 +95,7 @@ describe("pages/Home (Spec-002 Fase B)", () => {
     expect(screen.getByText("Salud Equina")).toBeInTheDocument();
     expect(screen.getByText("Enfermedades Venéreas y Serología")).toBeInTheDocument();
 
-    // Capacitaciones y actividades reales del CIT
+    // Capacitaciones y actividades institucionales
     expect(
       screen.getByText("Formación de Recursos Humanos Científicos"),
     ).toBeInTheDocument();
@@ -159,37 +121,5 @@ describe("pages/Home (Spec-002 Fase B)", () => {
       "href",
       "/perfil",
     );
-  });
-
-  it("muestra aviso de error con opción de reintentar cuando fallan las consultas dinámicas al backend", async () => {
-    vi.mocked(serviciosService.getServicios).mockRejectedValue(
-      new Error("Network error"),
-    );
-    vi.mocked(publicacionesService.getPublicaciones).mockRejectedValue(
-      new Error("Network error"),
-    );
-
-    render(
-      <AuthContext.Provider
-        value={crearContexto({
-          id: 2,
-          username: "cit_user",
-          email: "cit@cit.com",
-          rol: "cit",
-          nombre: "Elena",
-          apellido: "Gómez",
-          avatarUrl: null,
-        })}
-      >
-        <MemoryRouter>
-          <Home />
-        </MemoryRouter>
-      </AuthContext.Provider>,
-    );
-
-    await waitFor(() => {
-      expect(screen.getByRole("alert")).toBeInTheDocument();
-      expect(screen.getByRole("button", { name: "Reintentar" })).toBeInTheDocument();
-    });
   });
 });

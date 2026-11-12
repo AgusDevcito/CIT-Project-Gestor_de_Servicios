@@ -1,10 +1,10 @@
 # Spec 002 — Rediseño de Interfaz y Fases Funcionales A–G (Línea de Trabajo C)
 
-- **Estado**: En revisión / Pendiente de aprobación del usuario
-- **Línea de trabajo**: C — Frontend (React + Vite + TypeScript + Tailwind CSS v4) + Ajustes puntuales de integración Backend
+- **Estado**: Implementada y verificada (Fases A–G completadas — Pendiente de cierre final por el usuario)
+- **Línea de trabajo**: C — Frontend (React + Vite + TypeScript + Tailwind CSS v4) + Integración Backend y Base de Datos
 - **Rama de trabajo**: `frontend`
 - **Dependencias previas**: `001-authentication` (Completada)
-- **Referencia visual**: Experiencia de interfaz y navegación inspirada en GitHub Dark (`#0d1117` / `#161b22` / `#21262d`, bordes sutiles `1px` `#30363d`, tipografía limpia y acentos institucionales CIT en verde sobrio `#238636` / `#2ea043`).
+- **Referencia visual**: Experiencia de interfaz y navegación inspirada en GitHub Dark (`#0d1117` / `#161b22` / `#21262d`, bordes sutiles `1px` `#30363d`, tipografía limpia y acentos institucionales CIT en verde sobrio `#0d2e0f` / `#238636` / `#2ea043`).
 
 ---
 
@@ -218,15 +218,47 @@ A partir del relevamiento exhaustivo del código actual (`frontend/` y `backend/
 - Integración del cambio de contraseña (`PUT /api/change-password`) en `Perfil.tsx`.
 - Gestión de archivos adjuntos de publicaciones (`POST /api/publicacion/:publicacionId/archivos` y `DELETE /api/archivo/:id`) en el frontend.
 
-### 8.2 Decisiones Pendientes de Validación con el Usuario
-1. **DEC-01 — Visibilidad de Propuestas para `user` e historial para `cit`/`admin`**:
-   - *Situación actual*: `GET /api/propuestas` en el backend solo permite acceso a `cit`/`admin` y devuelve únicamente propuestas en estado `PENDIENTE`.
-   - *Propuesta recomendada*: Adaptar `GET /api/propuestas` en el backend (igual que ya funciona `GET /api/solicitudes`) para que:
-     - Si el usuario es `user`, devuelva **sus propias propuestas** (en cualquier estado: `PENDIENTE`, `APROBADO`, `RECHAZADO`) incluyendo la justificación del CIT.
-     - Si el usuario es `cit` o `admin`, devuelva **todas las propuestas** (permitiendo filtrar en el frontend entre `Pendientes` e `Historial dictaminadas`).
-2. **DEC-02 — Modalidad de carga de archivos en Publicaciones y Avatar**:
-   - *Situación actual*: Tanto `POST /api/publicacion/:publicacionId/archivos` (`archivo_url`) como `PUT /api/profile/:userId` (`avatar_url`) y `POST /api/servicios` (`servicio_img`) reciben URLs en JSON (`string`).
-   - *Propuesta recomendada*: Mantener la carga mediante URL externa con previsualización instantánea en el frontend (sin alterar la base de datos ni requerir almacenamiento S3/disco adicional), o confirmar si se desea además habilitar subida `multipart/form-data` local con `multer` hacia `/uploads`.
-3. **DEC-03 — Longitud de `servicio_nombre` y catálogo oficial (`Servicios.md`)**:
-   - *Situación actual*: `Servicio.servicio_nombre` tiene límite `VARCHAR(30)` en `servicio.model.ts`, lo que trunca nombres del documento `Servicios.md`.
-   - *Propuesta recomendada*: Ampliar `servicio_nombre` a `DataTypes.STRING(120)` en `servicio.model.ts` (y reflejarlo en el formulario de `Servicios.tsx`) para soportar todos los nombres reales de ensayos y análisis del CIT.
+### 8.2 Decisiones Validadas e Implementadas
+1. **DEC-01 — Visibilidad de Propuestas para `user` e historial para `cit`/`admin` (Resuelta)**:
+   - `GET /api/propuestas` permite `requireAuth`: si el rol es `user`, devuelve exclusivamente sus propias propuestas (`solicitante === user.id`) en todos los estados junto con el dictamen y el servicio generado; si es `cit` o `admin`, devuelve todas las propuestas para su revisión en `/solicitudes`.
+2. **DEC-02 — Modalidad de carga de archivos en Publicaciones, Propuestas y Avatar (Resuelta)**:
+   - En **Propuestas** (`POST /api/propuestas` / `POST /api/propuesta/crear`) se implementó carga `multipart/form-data` con `multer` y validación de firma binaria (`file-type`, PDF/PNG/JPG hasta 5 MB), servida bajo control de acceso por propietario o revisor CIT en `GET /api/uploads/:filename`.
+   - En **Publicaciones**, **Servicios** y **Avatar** se mantiene soporte de recursos visuales con previsualización y fallback seguro ante errores de carga.
+3. **DEC-03 — Longitud de `servicio_nombre` y catálogo oficial (`Servicios.md`) (Resuelta)**:
+   - Se amplió `Servicio.servicio_nombre` a `VARCHAR(120)` y `Publicacion.titulo` a `VARCHAR(160)` de forma no destructiva mediante `ensureSchemaExtensions()` en `catalogSeed.service.ts`.
+
+---
+
+## 9. Registro de Implementación y Validación Final (Prompt 8)
+
+### 9.1 Resumen de Funcionalidades Implementadas
+- **Fase A (Identidad Visual y Navegación)**: Sistema de tokens oscuros en `index.css`, kit de 9 componentes UI (`Alert`, `Badge`, `Button`, `Card`, `EmptyState`, `Modal`, `PageHeader`, `SearchFilterBar`, `Skeleton`), `Layout.tsx` con barra superior y barra lateral institucional verde (`#0d2e0f`) ocultable en desktop y drawer en móvil, y preservación del diseño espacial original de `Login.css`/`Register.css`.
+- **Fase B (Home Institucional)**: Portada institucional de CIT Formosa (CONICET - UNaF - Gobierno de Formosa) y explicación de CITio, saludo personalizado por usuario autenticado o bienvenida general para visitantes, ejemplos oficiales de servicios/capacitaciones y sincronización en vivo con el backend.
+- **Fase C (Servicios)**: Catálogo con búsqueda y filtro por área, vista detallada `/servicios/:id`, solicitud/contratación con prevención de duplicados (`409 Conflict`) y sistema de calificaciones (`1..5`) y reseñas verificadas (`ResenaServicio`).
+- **Fase D (Solicitudes CIT)**: Bandeja interna `/solicitudes` exclusiva para `cit` y `admin`, flujo de 4 estados (`PENDIENTE` → `EN_REVISION` → `ACEPTADA`/`APROBADO` o `RECHAZADO`), inspección/descarga protegida de documentación y creación transaccional automática del `Servicio` con trazabilidad (`servicio_generado_id` ↔ `propuesta_id`).
+- **Fase E (Publicaciones)**: Soporte de categorías institucionales (`noticia`, `jornada`, `inscripcion`, `capacitacion`) y técnicas, estado `publicado` (`boolean`) con filtrado automático de borradores para `user`/visitantes, galería multimedia con lightbox y gestión de adjuntos (`imagen`/`video`).
+- **Fase F (Propuestas)**: Presentación institucional para organizaciones productivas (`user`), botón `"Realizar propuesta"`, formulario de 8 campos con adjunto validado, selector de área con respaldo de catálogo oficial (`SECTORES_OFICIALES_CIT`), prevención de duplicados y seguimiento de dictamen.
+- **Fase G (Mi Perfil)**: Edición de datos personales (`first_name`, `last_name`, `bio`, `avatar_url`), bloqueo de atributos administrativos (`email`, `rol`), cambio de contraseña (`PUT /api/change-password`) y secciones **Mis Propuestas**, **Mis Servicios** y **Mis Capacitaciones** (`InscripcionCapacitacion`).
+
+### 9.2 Hallazgos de la Auditoría Independiente (Resueltos) y Limitaciones Conocidas
+Durante la auditoría independiente de código se identificaron y corrigieron 5 hallazgos puntuales (`D-01` a `D-05`):
+
+1. **Hallazgos de coherencia y seguridad corregidos (`D-01` a `D-05`)**:
+   - **D-01 (`POST /api/solicitudes` con `requireUser` en backend — Corregido)**: Se agregó `requireUser` en `backend/src/routes/solicitudes.routes.ts` para alinear el backend con el frontend y la matriz de permisos (`403` si `cit` o `admin` intenta contratar un servicio).
+   - **D-02 (Navegación anónima en `frontend/src/App.tsx` — Corregido)**: Se separaron las rutas públicas de lectura (`/`, `/servicios`, `/servicios/:id`, `/publicaciones`, `/publicaciones/:id`) dentro de `<Layout />`, manteniendo `<ProtectedRoute />` únicamente sobre `/propuestas`, `/perfil` y `/solicitudes` (`roles={["cit", "admin"]}`).
+   - **D-03 (`GET /api/publicacion/:publicacionId/archivos` en borradores y validación de URL — Corregido)**: `archivo.controller.ts` y `archivo.service.ts` verifican ahora que si `publicacion.publicado === false` solo pueda consultarla personal `cit`/`admin` (`404` para el resto), y validan que `archivo_url` comience con `http://`, `https://` o `/` (`400` ante esquemas inválidos).
+   - **D-04 (Validación de `tipo_contenido` en `inscribirCapacitacion` — Corregido)**: `profile.service.ts` valida que la publicación sea de tipo `'capacitacion'`, `'inscripcion'` o `'jornada'` antes de registrar la inscripción (`400` en caso contrario).
+   - **D-05 (Validación simétrica de campos de organismo en `propuesta.service.ts` y `fileFilter` en `upload.ts` — Corregido)**: `propuesta.service.ts` exige en el servidor todos los datos obligatorios del organismo y bienes/recursos, y `backend/src/helpers/upload.ts` filtra extensiones y tipos MIME permitidos (`.pdf`, `.png`, `.jpg`, `.jpeg`).
+
+2. **Estado real del módulo de Capacitaciones (Auditoría Sección 4)**:
+   - No existe una entidad `Capacitacion` independiente con tabla propia de cursos; las capacitaciones se modelan como registros de `Publicacion` con `tipo_contenido` (`'capacitacion'`, `'inscripcion'`, `'jornada'`), y las inscripciones se registran en la tabla `InscripcionesCapacitaciones` (`InscripcionCapacitacion`).
+   - **Implementado**: Prevención de inscripciones duplicadas (`409 Conflict` e índice único `(user_id, publicacion_id)`), estados `INSCRIPTO` / `EN_CURSO` / `FINALIZADO`, y listado en `Perfil.tsx` (**Mis Capacitaciones**).
+   - **No implementado / Limitaciones del modelo actual**:
+     - `inscribirCapacitacion` en `profile.service.ts` verifica que la publicación exista y esté publicada (`publicado !== false`), pero no restringe que `tipo_contenido` sea exclusivamente `'capacitacion' | 'inscripcion' | 'jornada'`.
+     - No existe control de cupos máximos (`cupo`) ni fechas estructuradas de inicio/fin de cursada (`fecha_inicio`, `fecha_fin`) separadas de `createdAt`.
+     - No existe endpoint para cancelar/dar de baja una inscripción (`CANCELADO`) ni interfaz para que el personal CIT cambie el estado de inscripción de un alumno a `EN_CURSO` o `FINALIZADO`.
+
+3. **Limitaciones fuera de alcance de Spec-002**:
+   - Panel de administración de usuarios (`/api/users`, `/api/cit-applications`).
+   - Pasarela de pagos en línea para aranceles de servicios.
+   - Notificaciones en tiempo real por WebSockets.

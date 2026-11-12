@@ -12,5 +12,16 @@ export const getTokenFromRequest = (req: Request): string | null => {
     if (authorization && authorization.startsWith("Bearer ")) {
         return authorization.slice(7);
     }
+
+    const cookieHeader = req.headers.cookie;
+    if (cookieHeader) {
+        for (const pair of cookieHeader.split(";")) {
+            const [rawKey, ...rawVal] = pair.trim().split("=");
+            if (rawKey === "token" && rawVal.length > 0) {
+                return rawVal.join("=").trim() || null;
+            }
+        }
+    }
+
     return null;
 };

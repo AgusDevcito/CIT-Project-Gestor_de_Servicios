@@ -10,6 +10,7 @@ if (!fs.existsSync(uploadDir)) {
 }
 
 const allowedMimeTypes = ["application/pdf", "image/png", "image/jpeg", "image/jpg"];
+const allowedExtensions = new Set([".pdf", ".png", ".jpg", ".jpeg"]);
 
 const storage = multer.diskStorage({
     destination: (_req, _file, cb) => cb(null, uploadDir),
@@ -26,6 +27,21 @@ export const uploadDocument = multer({
     },
     fileFilter: (_req, file, cb) => {
         const ext = path.extname(file.originalname || "").toLowerCase();
+        const mimeOk =
+            !file.mimetype ||
+            file.mimetype === "application/octet-stream" ||
+            allowedMimeTypes.includes(file.mimetype);
+
+        if (!allowedExtensions.has(ext) || !mimeOk) {
+            cb(
+                new AppError(
+                    ERROR_CODES.VALIDATION,
+                    "Formato de archivo no permitido. Solo se aceptan documentos PDF, PNG o JPG.",
+                    400,
+                ),
+            );
+            return;
+        }
         cb(null, true);
     },
 });

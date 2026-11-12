@@ -14,6 +14,8 @@ import type { Publicacion } from "./publicacion.model.js";
 import type { Propuesta } from "./propuesta.model.js";
 import type { Servicio } from "./servicio.model.js";
 import type { Solicitud } from "./solicitud.model.js";
+import type { Notificacion } from "./notificacion.model.js";
+import type { PreferenciaNotificacion } from "./preferenciaNotificacion.model.js";
 
 export class User extends Model<InferAttributes<User>, InferCreationAttributes<User>> {
     declare id: CreationOptional<number>;
@@ -31,6 +33,9 @@ export class User extends Model<InferAttributes<User>, InferCreationAttributes<U
     declare PropuestasSolicitadas?: NonAttribute<Propuesta[]>;
     declare PropuestasRevisadas?: NonAttribute<Propuesta[]>;
     declare Solicitudes?: NonAttribute<Solicitud[]>;
+    declare SolicitudesCanceladas?: NonAttribute<Solicitud[]>;
+    declare Notificaciones?: NonAttribute<Notificacion[]>;
+    declare PreferenciaNotificacion?: NonAttribute<PreferenciaNotificacion>;
 }
 
 User.init(

@@ -1,11 +1,17 @@
 import type { Request, Response } from "express";
+import { ROL } from "../constants/roles.js";
 import * as archivoService from "../services/archivo.service.js";
 import { asyncHandler } from "../utils/asyncHandler.js";
 
+const esPersonalCIT = (role?: string): boolean =>
+    role === ROL.CIT || role === ROL.ADMIN;
+
 export const getArchivosByPublicacion = asyncHandler(
     async (req: Request, res: Response) => {
+        const includeDrafts = esPersonalCIT(req.user?.role);
         const data = await archivoService.listByPublicacion(
             Number(req.params.publicacionId),
+            { includeDrafts },
         );
         res.json({ count: data.length, data });
     },

@@ -5,6 +5,7 @@ export const ESTADO = {
     RECHAZADO: "RECHAZADO",
     ACEPTADA: "ACEPTADA",
     FINALIZADA: "FINALIZADA",
+    CANCELADA: "CANCELADA",
 } as const;
 
 export type EstadoCodigo = (typeof ESTADO)[keyof typeof ESTADO];

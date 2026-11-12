@@ -91,6 +91,13 @@ export const crearServicio = async (input: CrearServicioInput): Promise<Servicio
   return mapearServicio(data.data);
 };
 
+export const eliminarServicio = async (
+  id: number,
+): Promise<{ msg: string }> => {
+  const { data } = await http.delete<{ msg: string }>(`/servicios/${id}`);
+  return data;
+};
+
 export const crearResenaServicio = async (
   servicioId: number,
   input: CrearResenaInput,
