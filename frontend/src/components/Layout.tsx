@@ -3,6 +3,7 @@ import { Link, NavLink, Outlet, useLocation } from "react-router-dom";
 
 import { useAuth } from "../context/useAuth";
 import { esPersonalCIT, labelDeRol, type Rol } from "../domain/roles";
+import { useTheme } from "../hooks/useTheme";
 import {
   obtenerInicialesUsuario,
   obtenerNombreVisible,
@@ -167,6 +168,7 @@ function UserAvatar({
 
 export default function Layout() {
   const { user, logout } = useAuth();
+  const { theme, toggleTheme } = useTheme();
   const location = useLocation();
 
   const [sidebarOpen, setSidebarOpen] = useState(true);
@@ -256,8 +258,44 @@ export default function Layout() {
             </span>
           </div>
 
-          {/* Derecha: información según rol, tuerquita de Ajustes y acceso al perfil */}
+          {/* Derecha: cambio de tema Claro/Oscuro, información según rol, notificaciones, ajustes y perfil */}
           <div className="flex items-center gap-2">
+            <button
+              type="button"
+              onClick={toggleTheme}
+              aria-label={
+                theme === "light"
+                  ? "Cambiar a modo oscuro"
+                  : "Cambiar a modo claro"
+              }
+              title={
+                theme === "light"
+                  ? "Cambiar a modo oscuro"
+                  : "Cambiar a modo claro"
+              }
+              className="inline-flex h-8 w-8 items-center justify-center rounded-md border border-cit-forest-border/50 bg-cit-forest-raised text-slate-200 transition-colors hover:border-cit-accent-emphasis hover:bg-cit-forest-hover hover:text-white"
+            >
+              {theme === "light" ? (
+                <svg
+                  viewBox="0 0 16 16"
+                  fill="currentColor"
+                  className="h-4 w-4"
+                  aria-hidden="true"
+                >
+                  <path d="M9.598 1.591a.749.749 0 0 1 .785-.175 7.001 7.001 0 1 1-8.967 8.967.75.75 0 0 1 .961-.96 5.5 5.5 0 0 0 7.046-7.046.75.75 0 0 1 .175-.786Zm1.616 1.945a7 7 0 0 1-7.678 7.678 5.499 5.499 0 1 0 7.678-7.678Z" />
+                </svg>
+              ) : (
+                <svg
+                  viewBox="0 0 16 16"
+                  fill="currentColor"
+                  className="h-4 w-4 text-amber-300"
+                  aria-hidden="true"
+                >
+                  <path d="M8 12a4 4 0 1 1 0-8 4 4 0 0 1 0 8Zm0-1.5a2.5 2.5 0 1 0 0-5 2.5 2.5 0 0 0 0 5Zm5.657-8.157a.75.75 0 0 1 0 1.061l-1.061 1.06a.749.749 0 0 1-1.275-.326.749.749 0 0 1 .215-.734l1.06-1.06a.75.75 0 0 1 1.06 0Zm-9.193 9.193a.75.75 0 0 1 0 1.06l-1.06 1.061a.75.75 0 1 1-1.061-1.06l1.06-1.061a.75.75 0 0 1 1.061 0ZM8 0a.75.75 0 0 1 .75.75v1.5a.75.75 0 0 1-1.5 0V.75A.75.75 0 0 1 8 0ZM3 8a.75.75 0 0 1-.75.75H.75a.75.75 0 0 1 0-1.5h1.5A.75.75 0 0 1 3 8Zm13 0a.75.75 0 0 1-.75.75h-1.5a.75.75 0 0 1 0-1.5h1.5A.75.75 0 0 1 16 8Zm-8 5a.75.75 0 0 1 .75.75v1.5a.75.75 0 0 1-1.5 0v-1.5A.75.75 0 0 1 8 13Zm3.536-1.464a.75.75 0 0 1 1.06 0l1.061 1.06a.75.75 0 0 1-1.06 1.061l-1.061-1.06a.75.75 0 0 1 0-1.061ZM2.343 2.343a.75.75 0 0 1 1.061 0l1.06 1.061a.751.751 0 0 1-.018 1.042.751.751 0 0 1-1.042.018l-1.06-1.06a.75.75 0 0 1 0-1.06Z" />
+                </svg>
+              )}
+            </button>
+
             {user ? (
               <>
                 <div className="hidden items-center gap-2 lg:flex">
@@ -460,10 +498,83 @@ export default function Layout() {
           </aside>
         )}
 
-        <main className="mx-auto w-full min-w-0 max-w-7xl flex-1 px-4 py-6 sm:px-6 lg:px-8">
+        <main className="mx-auto w-full min-w-0 max-w-7xl flex-1 px-4 pt-6 pb-24 sm:px-6 md:pb-8 lg:px-8">
           <Outlet />
         </main>
       </div>
+
+      {/* Barra de navegación inferior móvil (celular primero) */}
+      <nav
+        aria-label="Navegación rápida móvil"
+        className="fixed inset-x-0 bottom-0 z-30 grid h-16 grid-cols-4 border-t border-cit-forest-border/50 bg-cit-forest/95 backdrop-blur-sm md:hidden"
+      >
+        <NavLink
+          to="/"
+          end
+          aria-label="Ir a Inicio (barra móvil)"
+          className={({ isActive }) =>
+            `flex flex-col items-center justify-center gap-1 text-[11px] font-medium ${
+              isActive ? "text-cit-accent-emphasis" : "text-slate-300"
+            }`
+          }
+        >
+          <span aria-hidden="true" className="text-base leading-none">
+            🏠
+          </span>
+          <span>Inicio</span>
+        </NavLink>
+
+        <NavLink
+          to="/servicios"
+          aria-label="Ir a Servicios (barra móvil)"
+          className={({ isActive }) =>
+            `flex flex-col items-center justify-center gap-1 text-[11px] font-medium ${
+              isActive ? "text-cit-accent-emphasis" : "text-slate-300"
+            }`
+          }
+        >
+          <span aria-hidden="true" className="text-base leading-none">
+            🔬
+          </span>
+          <span>Servicios</span>
+        </NavLink>
+
+        <NavLink
+          to={user ? "/mis-servicios" : "/capacitaciones"}
+          aria-label={
+            user
+              ? "Ir a mis trámites (barra móvil)"
+              : "Ir a Capacitaciones (barra móvil)"
+          }
+          className={({ isActive }) =>
+            `flex flex-col items-center justify-center gap-1 text-[11px] font-medium ${
+              isActive ? "text-cit-accent-emphasis" : "text-slate-300"
+            }`
+          }
+        >
+          <span aria-hidden="true" className="text-base leading-none">
+            📋
+          </span>
+          <span>{user ? "Trámites" : "Cursos"}</span>
+        </NavLink>
+
+        <NavLink
+          to={user ? "/perfil" : "/login"}
+          aria-label={
+            user ? "Ir a Mi Perfil (barra móvil)" : "Ingresar (barra móvil)"
+          }
+          className={({ isActive }) =>
+            `flex flex-col items-center justify-center gap-1 text-[11px] font-medium ${
+              isActive ? "text-cit-accent-emphasis" : "text-slate-300"
+            }`
+          }
+        >
+          <span aria-hidden="true" className="text-base leading-none">
+            👤
+          </span>
+          <span>{user ? "Perfil" : "Ingresar"}</span>
+        </NavLink>
+      </nav>
     </div>
   );
 }

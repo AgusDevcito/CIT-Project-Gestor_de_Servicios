@@ -12,6 +12,7 @@ import {
   Modal,
   PageHeader,
   Skeleton,
+  Toast,
 } from "../components/ui";
 import { LinkButton } from "../components/ui/LinkButton";
 import { useAuth } from "../context/useAuth";
@@ -90,6 +91,15 @@ export default function Perfil() {
     avatar_url: user?.avatarUrl ?? "",
     bio: "",
   });
+  const [metaPerfil, setMetaPerfil] = useState<{
+    localidad: string | null;
+    telefono_whatsapp: string | null;
+    tipo_perfil: string | null;
+  }>({
+    localidad: null,
+    telefono_whatsapp: null,
+    tipo_perfil: null,
+  });
   const [passwordForm, setPasswordForm] = useState<FormularioPassword>(
     INITIAL_PASSWORD_FORM,
   );
@@ -134,6 +144,11 @@ export default function Perfil() {
         last_name: perfilRemoto.last_name ?? user.apellido ?? "",
         avatar_url: perfilRemoto.avatar_url ?? user.avatarUrl ?? "",
         bio: perfilRemoto.bio ?? "",
+      });
+      setMetaPerfil({
+        localidad: perfilRemoto.localidad ?? null,
+        telefono_whatsapp: perfilRemoto.telefono_whatsapp ?? null,
+        tipo_perfil: perfilRemoto.tipo_perfil ?? null,
       });
 
       setPropuestas(actividad.propuestas);
@@ -297,6 +312,18 @@ export default function Perfil() {
     username: user.username,
   });
 
+  const camposCompletitud = [
+    Boolean(form.first_name.trim()),
+    Boolean(form.last_name.trim()),
+    Boolean(form.bio.trim()),
+    Boolean(form.avatar_url.trim()),
+    Boolean(metaPerfil.localidad?.trim()),
+    Boolean(metaPerfil.telefono_whatsapp?.trim()),
+  ];
+  const porcentajeCompletitud = Math.round(
+    (camposCompletitud.filter(Boolean).length / camposCompletitud.length) * 100,
+  );
+
   return (
     <div className="space-y-6">
       <PageHeader
@@ -316,9 +343,11 @@ export default function Perfil() {
       )}
 
       {feedback && (
-        <Alert variant="success" onDismiss={() => setFeedback("")}>
-          {feedback}
-        </Alert>
+        <Toast
+          message={feedback}
+          variant="success"
+          onClose={() => setFeedback("")}
+        />
       )}
 
       <div className="grid gap-6 lg:grid-cols-3">
@@ -361,6 +390,43 @@ export default function Perfil() {
                 {form.bio}
               </p>
             )}
+
+            {/* Barra de completitud del perfil */}
+            <div className="space-y-2 rounded-lg border border-gh-elevated bg-gh-canvas/70 p-3">
+              <div className="flex items-center justify-between text-xs">
+                <span className="font-semibold text-gh-text">
+                  Tu perfil está al {porcentajeCompletitud}%
+                </span>
+                <span className="font-bold text-cit-accent-emphasis">
+                  {porcentajeCompletitud === 100 ? "¡Completo!" : "En progreso"}
+                </span>
+              </div>
+              <div
+                className="h-2 w-full overflow-hidden rounded-full bg-gh-elevated"
+                role="progressbar"
+                aria-valuenow={porcentajeCompletitud}
+                aria-valuemin={0}
+                aria-valuemax={100}
+                aria-label="Porcentaje de completitud del perfil"
+              >
+                <div
+                  className="h-full rounded-full bg-cit-accent transition-all duration-300"
+                  style={{ width: `${porcentajeCompletitud}%` }}
+                />
+              </div>
+              {porcentajeCompletitud < 100 && (
+                <p className="text-[11px] leading-relaxed text-gh-muted">
+                  Completá tu localidad y WhatsApp en{" "}
+                  <Link
+                    to="/ajustes/perfil"
+                    className="font-semibold text-cit-accent-emphasis hover:underline"
+                  >
+                    Completar datos
+                  </Link>{" "}
+                  para recibir avisos rápidos del CIT.
+                </p>
+              )}
+            </div>
 
             <dl className="space-y-2.5 border-t border-gh-elevated pt-4 text-xs">
               <div className="flex items-center justify-between gap-2">

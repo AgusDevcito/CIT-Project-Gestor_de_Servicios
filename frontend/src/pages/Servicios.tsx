@@ -43,6 +43,23 @@ const INITIAL_FORM: FormularioServicio = {
 
 const ESTADOS_ACTIVOS = new Set(["PENDIENTE", "APROBADO", "ACEPTADA"]);
 
+const CIT_WHATSAPP_NUMBER = "5493704000000";
+
+const construirEnlaceWhatsAppServicio = (nombreServicio: string): string =>
+  `https://wa.me/${CIT_WHATSAPP_NUMBER}?text=${encodeURIComponent(
+    `Hola CIT Formosa, quiero consultar sobre el servicio "${nombreServicio}" publicado en CITio.`,
+  )}`;
+
+const iconoPorSector = (codigo?: string): string => {
+  const upper = (codigo ?? "").toUpperCase();
+  if (upper.includes("GANAD")) return "🐄";
+  if (upper.includes("AGRIC")) return "🌾";
+  if (upper.includes("FRUTI") || upper.includes("HORTI")) return "🍊";
+  if (upper.includes("APIC")) return "🐝";
+  if (upper.includes("FOREST")) return "🌳";
+  return "🔬";
+};
+
 export default function Servicios() {
   const { user } = useAuth();
   const isCIT = esPersonalCIT(user?.rol);
@@ -406,6 +423,44 @@ export default function Servicios() {
         </select>
       </SearchFilterBar>
 
+      {/* Chips rápidos por sector productivo */}
+      <div
+        role="group"
+        aria-label="Filtros rápidos por sector"
+        className="flex flex-wrap items-center gap-2"
+      >
+        <button
+          type="button"
+          onClick={() => setSectorFilter("")}
+          className={`inline-flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-xs font-semibold transition-colors ${
+            sectorFilter === ""
+              ? "border-cit-accent bg-cit-accent text-white"
+              : "border-gh-border bg-gh-surface text-gh-muted hover:border-cit-accent-emphasis hover:text-gh-text"
+          }`}
+        >
+          <span aria-hidden="true">✨</span>
+          <span>Todos</span>
+        </button>
+        {sectores.map((sector) => {
+          const activo = sectorFilter === sector.codigo;
+          return (
+            <button
+              key={sector.id}
+              type="button"
+              onClick={() => setSectorFilter(activo ? "" : sector.codigo)}
+              className={`inline-flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-xs font-semibold transition-colors ${
+                activo
+                  ? "border-cit-accent bg-cit-accent text-white"
+                  : "border-gh-border bg-gh-surface text-gh-muted hover:border-cit-accent-emphasis hover:text-gh-text"
+              }`}
+            >
+              <span aria-hidden="true">{iconoPorSector(sector.codigo)}</span>
+              <span>{sector.nombre}</span>
+            </button>
+          );
+        })}
+      </div>
+
       {/* Listado de servicios */}
       {loading ? (
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
@@ -453,6 +508,7 @@ export default function Servicios() {
                     <img
                       src={servicio.servicio_img}
                       alt={servicio.servicio_nombre}
+                      loading="lazy"
                       className="h-40 w-full border-b border-gh-border object-cover"
                     />
                   ) : (
@@ -503,7 +559,7 @@ export default function Servicios() {
                 </div>
 
                 <div className="border-t border-gh-border bg-gh-canvas/50 px-5 py-3.5">
-                  <div className="flex items-center justify-between gap-2">
+                  <div className="flex flex-wrap items-center justify-between gap-2.5">
                     <div>
                       <p className="text-sm font-bold text-cit-accent-emphasis">
                         {formatearPrecio(servicio.servicio_precio)}
@@ -513,7 +569,21 @@ export default function Servicios() {
                       </p>
                     </div>
 
-                    <div className="flex items-center gap-2">
+                    <div className="flex flex-wrap items-center gap-2">
+                      <a
+                        href={construirEnlaceWhatsAppServicio(
+                          servicio.servicio_nombre,
+                        )}
+                        target="_blank"
+                        rel="noreferrer"
+                        aria-label={`Consultar por WhatsApp sobre ${servicio.servicio_nombre}`}
+                        title="Consultar por WhatsApp con el CIT"
+                        className="inline-flex items-center gap-1 rounded-md border border-cit-accent/50 bg-cit-accent/10 px-2.5 py-1.5 text-xs font-medium text-cit-accent-emphasis transition-colors hover:bg-cit-accent hover:text-white"
+                      >
+                        <span aria-hidden="true">💬</span>
+                        <span>WhatsApp</span>
+                      </a>
+
                       <Link
                         to={`/servicios/${servicio.id}`}
                         className="rounded-md border border-gh-border bg-gh-elevated px-2.5 py-1.5 text-xs font-medium text-gh-text transition-colors hover:border-gh-muted hover:bg-gh-border"

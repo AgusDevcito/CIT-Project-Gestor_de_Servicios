@@ -70,7 +70,7 @@ export default function Home() {
       {/* 1. Hero / Bienvenida personalizada o general */}
       <section
         aria-label="Bienvenida institucional"
-        className="overflow-hidden rounded-xl border border-cit-forest-border/50 bg-gradient-to-br from-cit-forest via-cit-forest-raised to-gh-canvas p-6 sm:p-8"
+        className="cit-hero-dark overflow-hidden rounded-xl border border-cit-forest-border/50 bg-gradient-to-br from-cit-forest via-cit-forest-raised to-gh-canvas p-6 sm:p-8"
       >
         <div className="flex flex-col justify-between gap-6 lg:flex-row lg:items-center">
           <div className="flex flex-col gap-4 sm:flex-row sm:items-center">
@@ -128,6 +128,70 @@ export default function Home() {
               </>
             )}
           </div>
+        </div>
+      </section>
+
+      {/* 1.5 Cómo funciona CITio en 3 pasos */}
+      <section aria-labelledby="heading-como-funciona" className="space-y-3">
+        <div className="flex flex-wrap items-center justify-between gap-2">
+          <div>
+            <h2
+              id="heading-como-funciona"
+              className="text-lg font-semibold text-white"
+            >
+              ¿Cómo funciona CITio?
+            </h2>
+            <p className="text-xs text-gh-muted">
+              Tres pasos simples para conectar tu campo con los laboratorios del CIT Formosa.
+            </p>
+          </div>
+          <Badge variant="success">100% digital y trazable</Badge>
+        </div>
+
+        <div className="grid gap-4 md:grid-cols-3">
+          <Card className="space-y-2.5 border-gh-border">
+            <div className="flex items-center gap-2.5">
+              <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-cit-accent text-sm font-bold text-white">
+                1
+              </span>
+              <h3 className="text-sm font-semibold text-white">
+                Elegí un servicio o proponé tu caso
+              </h3>
+            </div>
+            <p className="text-xs leading-relaxed text-gh-muted">
+              Consultá el catálogo de análisis del CIT o cargá una problemática nueva desde{" "}
+              <strong className="text-gh-text">Proponer</strong> con fotos o documentos.
+            </p>
+          </Card>
+
+          <Card className="space-y-2.5 border-gh-border">
+            <div className="flex items-center gap-2.5">
+              <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-cit-accent text-sm font-bold text-white">
+                2
+              </span>
+              <h3 className="text-sm font-semibold text-white">
+                Seguí el avance en tiempo real
+              </h3>
+            </div>
+            <p className="text-xs leading-relaxed text-gh-muted">
+              Coordiná el envío de muestras y revisá cada etapa en{" "}
+              <strong className="text-gh-text">Mis Servicios</strong> con avisos en la plataforma y WhatsApp.
+            </p>
+          </Card>
+
+          <Card className="space-y-2.5 border-gh-border">
+            <div className="flex items-center gap-2.5">
+              <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-cit-accent text-sm font-bold text-white">
+                3
+              </span>
+              <h3 className="text-sm font-semibold text-white">
+                Descargá tu informe oficial PDF
+              </h3>
+            </div>
+            <p className="text-xs leading-relaxed text-gh-muted">
+              Obtené los resultados de laboratorio y dictámenes técnicos directo en tu celular, sin viajes innecesarios.
+            </p>
+          </Card>
         </div>
       </section>
 

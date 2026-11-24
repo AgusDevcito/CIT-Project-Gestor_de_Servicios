@@ -456,6 +456,18 @@ export default function ServicioDetalle() {
                   </Button>
                 </div>
               )}
+
+              <a
+                href={`https://wa.me/5493704000000?text=${encodeURIComponent(
+                  `Hola CIT Formosa, quiero consultar sobre el servicio "${servicio.servicio_nombre}" publicado en CITio.`,
+                )}`}
+                target="_blank"
+                rel="noreferrer"
+                className="flex w-full items-center justify-center gap-2 rounded-md border border-cit-accent/50 bg-cit-accent/10 px-4 py-2 text-xs font-semibold text-cit-accent-emphasis transition-colors hover:bg-cit-accent hover:text-white"
+              >
+                <span aria-hidden="true">💬</span>
+                <span>Consultar por WhatsApp con el CIT</span>
+              </a>
             </div>
           </Card>
         </div>

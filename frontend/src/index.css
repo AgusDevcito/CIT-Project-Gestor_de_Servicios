@@ -1,7 +1,7 @@
 @import "tailwindcss";
 
 @theme {
-  /* Tokens principales inspirados en GitHub Dark */
+  /* Tokens principales (Tema Oscuro por defecto en :root) */
   --color-gh-canvas: #0d1117;
   --color-gh-surface: #161b22;
   --color-gh-elevated: #21262d;
@@ -12,7 +12,7 @@
   --color-gh-muted: #8b949e;
   --color-gh-subtle: #6e7681;
 
-  /* Acento institucional CIT (Verde sobrio estilo GitHub Primary) */
+  /* Acento institucional CIT */
   --color-cit-accent: #238636;
   --color-cit-accent-hover: #2ea043;
   --color-cit-accent-emphasis: #3fb950;
@@ -35,13 +35,43 @@
   --color-status-info-emphasis: #1f6feb;
   --color-status-purple-emphasis: #8957e5;
 
-  /* Alias retrocompatibles con páginas existentes */
+  /* Alias retrocompatibles */
   --color-cit-900: #0d1117;
   --color-cit-800: #161b22;
   --color-cit-700: #21262d;
   --color-cit-600: #238636;
   --color-cit-500: #2ea043;
   --color-cit-neon: #3fb950;
+}
+
+/* Tema Claro Institucional CIT (legible al sol y en dispositivos móviles rurales) */
+:root[data-theme="light"] {
+  color-scheme: light;
+  --color-gh-canvas: #f3f7f4;
+  --color-gh-surface: #ffffff;
+  --color-gh-elevated: #e8f0eb;
+  --color-gh-overlay: #eef5f0;
+  --color-gh-border: #cddbd2;
+  --color-gh-border-muted: #e1ebe4;
+  --color-gh-text: #14221a;
+  --color-gh-muted: #4b6154;
+  --color-gh-subtle: #647b6e;
+
+  --color-cit-accent: #1f7a31;
+  --color-cit-accent-hover: #196428;
+  --color-cit-accent-emphasis: #1a7f37;
+
+  --color-cit-forest: #124219;
+  --color-cit-forest-raised: #1a5422;
+  --color-cit-forest-hover: #23682d;
+  --color-cit-forest-deep: #0e3313;
+  --color-cit-forest-border: #3d7a47;
+
+  --color-status-success: #1a7f37;
+  --color-status-warning: #9a6700;
+  --color-status-danger: #cf222e;
+  --color-status-info: #0969da;
+  --color-status-purple: #8250df;
 }
 
 @layer base {
@@ -52,12 +82,12 @@
   body {
     background-color: var(--color-gh-canvas);
     color: var(--color-gh-text);
-    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Noto Sans", Helvetica, Arial, sans-serif;
+    font-family: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", "Noto Sans", Helvetica, Arial, sans-serif;
     line-height: 1.5;
     -webkit-font-smoothing: antialiased;
+    transition: background-color 0.2s ease, color 0.2s ease;
   }
 
-  /* Anillo de foco visible y consistente para teclado */
   :where(a, button, select, input, textarea, summary, [tabindex]):focus-visible {
     outline: 2px solid var(--color-cit-accent-emphasis);
     outline-offset: 2px;
@@ -75,13 +105,90 @@
   }
 }
 
-/* Campo de formulario compartido estilo GitHub Dark */
+/* Superficies institucionales oscuras (header, sidebar, barra móvil y Hero)
+   mantienen tokens de alto contraste en modo claro */
+:root[data-theme="light"] header,
+:root[data-theme="light"] aside,
+:root[data-theme="light"] nav[aria-label="Navegación rápida móvil"],
+:root[data-theme="light"] .cit-hero-dark {
+  color-scheme: dark;
+  --color-gh-canvas: #0d1117;
+  --color-gh-surface: #161b22;
+  --color-gh-elevated: #1e4b25;
+  --color-gh-overlay: #14351a;
+  --color-gh-border: #3d7a47;
+  --color-gh-border-muted: #23572b;
+  --color-gh-text: #f0f6fc;
+  --color-gh-muted: #c2dbc7;
+  --color-gh-subtle: #9ec4a6;
+  --color-cit-accent-emphasis: #4ade80;
+}
+
+/* Adaptación automática de utilidades dark heredadas cuando el tema activo es Claro */
+:root[data-theme="light"] main .text-white:not(
+    [class*="bg-cit-"],
+    [class*="bg-emerald-"],
+    [class*="bg-green-"],
+    [class*="bg-blue-"],
+    [class*="bg-red-"],
+    [class*="bg-status-"],
+    [class*="bg-[#238636]"],
+    [class*="bg-[#258f2a]"],
+    [class*="bg-[#1f6feb]"],
+    [class*="bg-[#da3633]"]
+  ) {
+  color: var(--color-gh-text);
+}
+
+:root[data-theme="light"] main .cit-hero-dark,
+:root[data-theme="light"] main .cit-hero-dark .text-white,
+:root[data-theme="light"] main .cit-hero-dark h1,
+:root[data-theme="light"] main .cit-hero-dark h2 {
+  color: #ffffff !important;
+}
+
+:root[data-theme="light"] main .text-slate-200,
+:root[data-theme="light"] main .text-slate-300 {
+  color: var(--color-gh-muted);
+}
+
+:root[data-theme="light"] main .bg-\[\#161b22\],
+:root[data-theme="light"] main .bg-\[\#161b22\]\/60 {
+  background-color: var(--color-gh-surface);
+}
+
+:root[data-theme="light"] main .bg-\[\#0d1117\],
+:root[data-theme="light"] main .bg-\[\#0d1117\]\/50,
+:root[data-theme="light"] main .bg-\[\#0d1117\]\/60,
+:root[data-theme="light"] main .bg-\[\#0d1117\]\/70,
+:root[data-theme="light"] main .bg-\[\#0d1117\]\/80 {
+  background-color: var(--color-gh-canvas);
+}
+
+:root[data-theme="light"] main .bg-\[\#21262d\] {
+  background-color: var(--color-gh-elevated);
+}
+
+:root[data-theme="light"] main .border-\[\#30363d\],
+:root[data-theme="light"] main .border-\[\#21262d\] {
+  border-color: var(--color-gh-border);
+}
+
+:root[data-theme="light"] main .text-\[\#e6edf3\] {
+  color: var(--color-gh-text);
+}
+
+:root[data-theme="light"] main .text-\[\#8b949e\] {
+  color: var(--color-gh-muted);
+}
+
+/* Campo de formulario compartido */
 @utility input-base {
   width: 100%;
-  border-radius: 0.375rem;
+  border-radius: 0.5rem;
   border: 1px solid var(--color-gh-border);
   background-color: var(--color-gh-canvas);
-  padding: 0.5rem 0.75rem;
+  padding: 0.55rem 0.8rem;
   font-size: 0.875rem;
   color: var(--color-gh-text);
   outline: none;
