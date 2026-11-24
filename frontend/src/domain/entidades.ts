@@ -68,6 +68,7 @@ export type {
   SolicitudDTO,
   SolicitudItemResponseDTO,
   SolicitudesListResponseDTO,
+  SubirResultadoSolicitudInput,
 } from "./solicitudes";
 
 export type {
@@ -100,10 +101,27 @@ export type {
   ActividadPerfilResponseDTO,
   ActualizarPerfilInput,
   CambiarPasswordInput,
+  EliminarCuentaInput,
   EstadoInscripcionCapacitacion,
   InscripcionCapacitacion,
   InscripcionCapacitacionDTO,
   PerfilDTO,
   PerfilResponseDTO,
+  TipoPerfil,
   UsuarioDTO,
 } from "./perfil";
+
+export type {
+  DistribucionSolicitudesMetricas,
+  ResumenMetricas,
+  ResumenMetricasResponseDTO,
+} from "./metricas";
+
+export type {
+  CrearAnuncioInput,
+  NotificacionItem,
+  NotificacionesListResponseDTO,
+  PreferenciasNotificacion,
+  PreferenciasNotificacionResponseDTO,
+  TipoNotificacion,
+} from "./notificaciones";

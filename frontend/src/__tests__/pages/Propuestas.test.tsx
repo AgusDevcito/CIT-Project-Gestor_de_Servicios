@@ -79,7 +79,7 @@ const propuestaExistenteMock: Propuesta = {
   },
 };
 
-describe("pages/Propuestas (Spec-002 Fase F)", () => {
+describe("pages/Propuestas -> Proponer (Spec-003 Nivel 1)", () => {
   beforeEach(() => {
     vi.clearAllMocks();
     vi.mocked(catalogosService.getSectores).mockResolvedValue([
@@ -100,10 +100,10 @@ describe("pages/Propuestas (Spec-002 Fase F)", () => {
   it("impide el acceso a usuarios anónimos redirigiéndolos al inicio de sesión", () => {
     render(
       <AuthContext.Provider value={crearContexto(null)}>
-        <MemoryRouter initialEntries={["/propuestas"]}>
+        <MemoryRouter initialEntries={["/proponer"]}>
           <Routes>
             <Route element={<ProtectedRoute />}>
-              <Route path="/propuestas" element={<Propuestas />} />
+              <Route path="/proponer" element={<Propuestas />} />
             </Route>
             <Route path="/login" element={<div>Pantalla de Login</div>} />
           </Routes>
@@ -117,9 +117,9 @@ describe("pages/Propuestas (Spec-002 Fase F)", () => {
   it("no muestra el formulario externo a roles cit/admin y los dirige a la bandeja interna de Solicitudes", async () => {
     render(
       <AuthContext.Provider value={crearContexto(personalCIT)}>
-        <MemoryRouter initialEntries={["/propuestas"]}>
+        <MemoryRouter initialEntries={["/proponer"]}>
           <Routes>
-            <Route path="/propuestas" element={<Propuestas />} />
+            <Route path="/proponer" element={<Propuestas />} />
           </Routes>
         </MemoryRouter>
       </AuthContext.Provider>,
@@ -131,14 +131,16 @@ describe("pages/Propuestas (Spec-002 Fase F)", () => {
       ),
     ).toBeInTheDocument();
     expect(
-      screen.queryByRole("button", { name: /Realizar propuesta/i }),
+      screen.queryByRole("heading", {
+        name: /Formulario de presentación de propuesta/i,
+      }),
     ).not.toBeInTheDocument();
     expect(
       screen.getByRole("link", { name: /Ir a Solicitudes \(Evaluación CIT\)/i }),
     ).toHaveAttribute("href", "/solicitudes");
   });
 
-  it("permite al usuario normal abrir el formulario con 'Realizar propuesta', validar archivos y enviar la propuesta completa con adjunto", async () => {
+  it("presenta el formulario en Proponer sin listar las propuestas enviadas debajo y ofrece el enlace 'Ver tus propuestas' hacia Ajustes/Propuestas", async () => {
     const nuevaPropuestaCreada: Propuesta = {
       id: 26,
       titulo: "Monitoreo Agroecológico de Plagas en Algodón",
@@ -169,36 +171,33 @@ describe("pages/Propuestas (Spec-002 Fase F)", () => {
 
     render(
       <AuthContext.Provider value={crearContexto(usuarioNormal)}>
-        <MemoryRouter initialEntries={["/propuestas"]}>
+        <MemoryRouter initialEntries={["/proponer"]}>
           <Routes>
-            <Route path="/propuestas" element={<Propuestas />} />
+            <Route path="/proponer" element={<Propuestas />} />
           </Routes>
         </MemoryRouter>
       </AuthContext.Provider>,
     );
 
-    // Texto institucional y seguimiento de propuesta previa aceptada con link al servicio
     expect(
-      await screen.findByText(/especialmente las organizaciones agricultoras/i),
-    ).toBeInTheDocument();
-    expect(
-      screen.getByText("Laboratorio Móvil de Semillas Hortícolas"),
-    ).toBeInTheDocument();
-    expect(
-      screen.getByRole("link", { name: /Ver servicio publicado/i }),
-    ).toHaveAttribute("href", "/servicios/90");
-
-    // Abrir formulario con "Realizar propuesta"
-    const botonesRealizar = screen.getAllByRole("button", {
-      name: /Realizar propuesta/i,
-    });
-    fireEvent.click(botonesRealizar[0]!);
-
-    expect(
-      screen.getByRole("heading", {
-        name: /Formulario de presentación de propuesta/i,
+      await screen.findByRole("heading", {
+        name: /Proponer Iniciativa o Servicio al CIT/i,
       }),
     ).toBeInTheDocument();
+
+    // Verifica que no exista la sección "Mis propuestas presentadas" en esta vista y sí el enlace a /ajustes/propuestas
+    expect(
+      screen.queryByText(/Mis propuestas presentadas/i),
+    ).not.toBeInTheDocument();
+
+    const enlacesVerPropuestas = screen.getAllByRole("link", {
+      name: /Ver tus propuestas/i,
+    });
+    expect(enlacesVerPropuestas.length).toBeGreaterThanOrEqual(1);
+    expect(enlacesVerPropuestas[0]).toHaveAttribute(
+      "href",
+      "/ajustes/propuestas",
+    );
 
     // Validar rechazo de archivo inválido (.exe)
     const inputArchivo = screen.getByLabelText(
@@ -288,46 +287,8 @@ describe("pages/Propuestas (Spec-002 Fase F)", () => {
       );
     });
 
-    // Confirmación y aparición en el listado con estado Pendiente
     expect(
       await screen.findByText(/Propuesta recibida exitosamente/i),
     ).toBeInTheDocument();
-    expect(
-      screen.getByText("Monitoreo Agroecológico de Plagas en Algodón"),
-    ).toBeInTheDocument();
-    expect(screen.getByText("Pendiente")).toBeInTheDocument();
-  });
-
-  it("permite eliminar una propuesta registrada con confirmación", async () => {
-    vi.spyOn(window, "confirm").mockReturnValue(true);
-    vi.mocked(propuestasService.getPropuestas).mockResolvedValue([
-      propuestaExistenteMock,
-    ]);
-    vi.mocked(propuestasService.deletePropuesta).mockResolvedValue();
-
-    render(
-      <AuthContext.Provider value={crearContexto(usuarioNormal)}>
-        <MemoryRouter initialEntries={["/propuestas"]}>
-          <Propuestas />
-        </MemoryRouter>
-      </AuthContext.Provider>,
-    );
-
-    const btnEliminar = await screen.findByRole("button", {
-      name: `Eliminar propuesta ${propuestaExistenteMock.titulo}`,
-    });
-    expect(btnEliminar).toBeInTheDocument();
-
-    fireEvent.click(btnEliminar);
-
-    await waitFor(() => {
-      expect(propuestasService.deletePropuesta).toHaveBeenCalledWith(25);
-    });
-
-    await waitFor(() => {
-      expect(
-        screen.getByText(/fue eliminada exitosamente/i),
-      ).toBeInTheDocument();
-    });
   });
 });

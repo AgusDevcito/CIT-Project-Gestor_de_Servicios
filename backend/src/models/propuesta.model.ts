@@ -29,6 +29,9 @@ export class Propuesta extends Model<InferAttributes<Propuesta>, InferCreationAt
     declare cirRevisorId: CreationOptional<number | null>;
     declare citJustificacion: CreationOptional<string | null>;
     declare citFechaRevision: CreationOptional<Date | null>;
+    declare beneficiario_nombre: CreationOptional<string | null>;
+    declare beneficiario_dni_cuit: CreationOptional<string | null>;
+    declare beneficiario_localidad: CreationOptional<string | null>;
 
     declare Solicitante?: NonAttribute<User>;
     declare Revisor?: NonAttribute<User>;
@@ -59,6 +62,9 @@ Propuesta.init(
         cirRevisorId: { type: DataTypes.INTEGER, defaultValue: null },
         citJustificacion: { type: DataTypes.TEXT, defaultValue: null },
         citFechaRevision: { type: DataTypes.DATE, defaultValue: null },
+        beneficiario_nombre: { type: DataTypes.STRING(150), defaultValue: null },
+        beneficiario_dni_cuit: { type: DataTypes.STRING(40), defaultValue: null },
+        beneficiario_localidad: { type: DataTypes.STRING(120), defaultValue: null },
     },
     {
         sequelize,

@@ -7,6 +7,8 @@ import { publicacionesRouter } from "./publicaciones.routes.js";
 import { serviciosRouter } from "./servicios.routes.js";
 import { citApplicationsRouter } from "./citApplications.routes.js";
 import { citActivationRoutes } from "./citActivation.routes.js";
+import { metricasRouter } from "./metricas.routes.js";
+import { notificacionesRouter } from "./notificaciones.routes.js";
 import { solicitudesRouter } from "./solicitudes.routes.js";
 import { userRouter } from "./user.routes.js";
 
@@ -22,3 +24,5 @@ routes.use("/", serviciosRouter);
 routes.use("/", citApplicationsRouter);
 routes.use("/", citActivationRoutes);
 routes.use("/", solicitudesRouter);
+routes.use("/", metricasRouter);
+routes.use("/", notificacionesRouter);

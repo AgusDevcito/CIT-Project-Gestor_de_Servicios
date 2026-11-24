@@ -15,6 +15,8 @@ import {
 import { Servicio } from "../models/index.js";
 import * as catalogRepository from "../repositories/catalog.repository.js";
 import * as propuestaRepository from "../repositories/propuesta.repository.js";
+import * as solicitudRepository from "../repositories/solicitud.repository.js";
+import * as notificacionService from "./notificacion.service.js";
 
 export interface CreatePropuestaInput {
     titulo?: string;
@@ -27,6 +29,9 @@ export interface CreatePropuestaInput {
     bienes_recursos?: string | null;
     documento_url?: string | null;
     documento_nombre?: string | null;
+    beneficiario_nombre?: string | null;
+    beneficiario_dni_cuit?: string | null;
+    beneficiario_localidad?: string | null;
 }
 
 export interface OpcionesServicioGenerado {
@@ -122,6 +127,9 @@ export const create = async (
         bienes_recursos,
         documento_url,
         documento_nombre,
+        beneficiario_nombre,
+        beneficiario_dni_cuit,
+        beneficiario_localidad,
     } = input;
 
     const tituloLimpio = titulo?.trim() ?? "";
@@ -130,6 +138,10 @@ export const create = async (
     const emailLimpio = email_contacto?.trim() || null;
     const telefonoLimpio = telefono_contacto?.trim() || null;
     const bienesLimpios = bienes_recursos?.trim() || null;
+    const beneficiarioNombreLimpio = beneficiario_nombre?.trim().slice(0, 150) || null;
+    const beneficiarioDniLimpio = beneficiario_dni_cuit?.trim().slice(0, 40) || null;
+    const beneficiarioLocalidadLimpia =
+        beneficiario_localidad?.trim().slice(0, 120) || null;
 
     const sectorItem = await catalogRepository.findSector(requestedSector ?? sector);
     const pendingState = await ensureEstado(ESTADO.PENDIENTE, "Pendiente");
@@ -207,6 +219,9 @@ export const create = async (
         bienes_recursos: bienesLimpios,
         documento_url: resolvedDocUrl,
         documento_nombre: resolvedDocNombre,
+        beneficiario_nombre: beneficiarioNombreLimpio,
+        beneficiario_dni_cuit: beneficiarioDniLimpio,
+        beneficiario_localidad: beneficiarioLocalidadLimpia,
     });
 
     return (await propuestaRepository.findByIdWithIncludes(creada.id)) ?? creada;
@@ -262,10 +277,13 @@ export const canAccessDocumento = async (
     if (user.role === "admin" || user.role === "cit") {
         return true;
     }
-    const propuesta = await propuestaRepository.findByDocumentoUrl(
-        `/api/uploads/${safeFilename}`,
-    );
-    return Boolean(propuesta && propuesta.solicitante === user.id);
+    const urlPath = `/api/uploads/${safeFilename}`;
+    const propuesta = await propuestaRepository.findByDocumentoUrl(urlPath);
+    if (propuesta && propuesta.solicitante === user.id) {
+        return true;
+    }
+    const solicitud = await solicitudRepository.findByResultadoUrl(urlPath);
+    return Boolean(solicitud && solicitud.user_id === user.id);
 };
 
 export const tomarEnRevision = async (id: number, revisorId: number) => {
@@ -301,6 +319,19 @@ export const tomarEnRevision = async (id: number, revisorId: number) => {
     propuesta.citFechaRevision = new Date();
 
     await propuestaRepository.save(propuesta);
+    void notificacionService
+        .crearNotificacionParaUsuario({
+            userId: propuesta.solicitante,
+            tipo: "CAMBIO_ESTADO_PROPUESTA",
+            titulo: `Tu propuesta "${propuesta.titulo}" está en revisión`,
+            mensaje:
+                "El equipo técnico del CIT Formosa tomó tu propuesta para evaluación.",
+            enlace: "/ajustes/propuestas",
+            referencia_tipo: "propuesta",
+            referencia_id: propuesta.id,
+        })
+        .catch(() => {});
+
     return propuestaRepository.findByIdWithIncludes(id);
 };
 
@@ -353,6 +384,17 @@ export const dictate = async (
         propuesta.citFechaRevision = new Date();
 
         await propuestaRepository.save(propuesta);
+        void notificacionService
+            .crearNotificacionParaUsuario({
+                userId: propuesta.solicitante,
+                tipo: "CAMBIO_ESTADO_PROPUESTA",
+                titulo: `Dictamen sobre propuesta "${propuesta.titulo}"`,
+                mensaje: `Tu propuesta fue rechazada. Motivo técnico: ${propuesta.citJustificacion}`,
+                enlace: "/ajustes/propuestas",
+                referencia_tipo: "propuesta",
+                referencia_id: propuesta.id,
+            })
+            .catch(() => {});
         return propuestaRepository.findByIdWithIncludes(id);
     }
 
@@ -440,6 +482,71 @@ export const dictate = async (
         await propuestaRepository.save(propuesta, transaction);
     });
 
+    void notificacionService
+        .crearNotificacionParaUsuario({
+            userId: propuesta.solicitante,
+            tipo: "CAMBIO_ESTADO_PROPUESTA",
+            titulo: `¡Tu propuesta "${propuesta.titulo}" fue aprobada!`,
+            mensaje: `Dictamen CIT: ${justificacion.trim()}. Ya fue incorporada al catálogo oficial de Servicios.`,
+            enlace: "/ajustes/propuestas",
+            referencia_tipo: "propuesta",
+            referencia_id: propuesta.id,
+        })
+        .catch(() => {});
+
+    if (propuesta.servicio_generado_id) {
+        void notificacionService
+            .notificarATodosLosUsuarios({
+                tipo: "NUEVO_SERVICIO",
+                titulo: `Nuevo servicio en catálogo: ${nombreServicio}`,
+                mensaje: descripcionServicio,
+                enlace: `/servicios/${propuesta.servicio_generado_id}`,
+                referencia_tipo: "servicio",
+                referencia_id: propuesta.servicio_generado_id,
+            })
+            .catch(() => {});
+    }
+
+    return propuestaRepository.findByIdWithIncludes(id);
+};
+
+export const cancelar = async (id: number, user: { id: number; role: Rol }) => {
+    if (!Number.isFinite(id) || id <= 0) {
+        throw validationError("El identificador de la propuesta no es válido.");
+    }
+    const propuesta = await propuestaRepository.findByIdWithIncludes(id);
+    if (!propuesta) {
+        throw notFoundError("Propuesta no encontrada.");
+    }
+
+    if (
+        user.role !== "cit" &&
+        user.role !== "admin" &&
+        propuesta.solicitante !== user.id
+    ) {
+        throw forbiddenError("No tienes permisos para cancelar esta propuesta.");
+    }
+
+    const codigoActual = (propuesta.Estado?.codigo ?? "").toUpperCase();
+    if (!ESTADOS_REVISABLES.includes(codigoActual)) {
+        throw conflictError(
+            `Solo se pueden cancelar propuestas que aún estén pendientes o en revisión (estado actual: ${
+                propuesta.Estado?.nombre ?? codigoActual
+            }).`,
+        );
+    }
+
+    const estadoCancelada = await ensureEstado(ESTADO.CANCELADA, "Cancelada");
+    if (!estadoCancelada) {
+        throw new AppError(
+            ERROR_CODES.CATALOG_NOT_SEEDED,
+            "El estado Cancelada no está configurado.",
+            500,
+        );
+    }
+
+    propuesta.estado_id = estadoCancelada.id;
+    await propuestaRepository.save(propuesta);
     return propuestaRepository.findByIdWithIncludes(id);
 };
 

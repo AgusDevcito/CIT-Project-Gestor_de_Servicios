@@ -1,4 +1,5 @@
 import { Profile, User } from "../models/index.js";
+import type { TipoPerfil } from "../models/profile.model.js";
 
 const userInclude = {
     model: User,
@@ -11,6 +12,11 @@ export interface UpdateProfileData {
     last_name?: string;
     avatar_url?: string | null;
     bio?: string | null;
+    tipo_perfil?: TipoPerfil;
+    razon_social?: string | null;
+    cuit?: string | null;
+    localidad?: string | null;
+    telefono_whatsapp?: string | null;
 }
 
 export const findAllWithUser = () => Profile.findAll({ include: userInclude });
@@ -30,6 +36,7 @@ export const ensureForUser = async (userId: number, fallbackName: string) => {
         last_name: "",
         avatar_url: null,
         bio: null,
+        tipo_perfil: "PRODUCTOR",
     });
 };
 

@@ -21,6 +21,13 @@ export class Solicitud extends Model<InferAttributes<Solicitud>, InferCreationAt
     declare observaciones_internas: CreationOptional<string | null>;
     declare fecha_cancelacion: CreationOptional<Date | null>;
     declare cancelado_por_id: CreationOptional<number | null>;
+    declare resultado_archivo_url: CreationOptional<string | null>;
+    declare resultado_nombre: CreationOptional<string | null>;
+    declare resultado_observaciones: CreationOptional<string | null>;
+    declare fecha_entrega_resultado: CreationOptional<Date | null>;
+    declare beneficiario_nombre: CreationOptional<string | null>;
+    declare beneficiario_dni_cuit: CreationOptional<string | null>;
+    declare beneficiario_localidad: CreationOptional<string | null>;
 
     declare Solicitante?: NonAttribute<User>;
     declare Servicio?: NonAttribute<Servicio>;
@@ -56,6 +63,41 @@ Solicitud.init(
         },
         cancelado_por_id: {
             type: DataTypes.INTEGER,
+            allowNull: true,
+            defaultValue: null,
+        },
+        resultado_archivo_url: {
+            type: DataTypes.STRING(255),
+            allowNull: true,
+            defaultValue: null,
+        },
+        resultado_nombre: {
+            type: DataTypes.STRING(255),
+            allowNull: true,
+            defaultValue: null,
+        },
+        resultado_observaciones: {
+            type: DataTypes.TEXT,
+            allowNull: true,
+            defaultValue: null,
+        },
+        fecha_entrega_resultado: {
+            type: DataTypes.DATE,
+            allowNull: true,
+            defaultValue: null,
+        },
+        beneficiario_nombre: {
+            type: DataTypes.STRING(150),
+            allowNull: true,
+            defaultValue: null,
+        },
+        beneficiario_dni_cuit: {
+            type: DataTypes.STRING(40),
+            allowNull: true,
+            defaultValue: null,
+        },
+        beneficiario_localidad: {
+            type: DataTypes.STRING(120),
             allowNull: true,
             defaultValue: null,
         },

@@ -7,10 +7,14 @@ import { Register } from "./pages/auth/Register";
 import Home from "./pages/Home";
 import Servicios from "./pages/Servicios";
 import ServicioDetalle from "./pages/ServicioDetalle";
+import Capacitaciones from "./pages/Capacitaciones";
+import MisServicios from "./pages/MisServicios";
 import Solicitudes from "./pages/Solicitudes";
 import Publicaciones from "./pages/Publicaciones";
 import PublicacionDetalle from "./pages/PublicacionDetalle";
 import Propuestas from "./pages/Propuestas";
+import Ajustes from "./pages/Ajustes";
+import Notificaciones from "./pages/Notificaciones";
 import Perfil from "./pages/Perfil";
 
 function App() {
@@ -22,17 +26,23 @@ function App() {
         <Route path="/register" element={<Register />} />
       </Route>
 
-      {/* Árbol principal con Layout: permite navegación pública en Home, Servicios y Publicaciones */}
+      {/* Árbol principal con Layout: permite navegación pública en Home, Servicios, Capacitaciones y Publicaciones */}
       <Route element={<Layout />}>
         <Route index element={<Home />} />
         <Route path="servicios" element={<Servicios />} />
         <Route path="servicios/:id" element={<ServicioDetalle />} />
+        <Route path="capacitaciones" element={<Capacitaciones />} />
         <Route path="publicaciones" element={<Publicaciones />} />
         <Route path="publicaciones/:id" element={<PublicacionDetalle />} />
 
         {/* Rutas que exigen sesión iniciada */}
         <Route element={<ProtectedRoute />}>
-          <Route path="propuestas" element={<Propuestas />} />
+          <Route path="mis-servicios" element={<MisServicios />} />
+          <Route path="proponer" element={<Propuestas />} />
+          <Route path="propuestas" element={<Navigate to="/proponer" replace />} />
+          <Route path="notificaciones" element={<Notificaciones />} />
+          <Route path="ajustes" element={<Ajustes />} />
+          <Route path="ajustes/:seccion" element={<Ajustes />} />
           <Route path="perfil" element={<Perfil />} />
         </Route>
 

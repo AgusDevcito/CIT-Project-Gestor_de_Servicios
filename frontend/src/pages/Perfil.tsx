@@ -301,6 +301,14 @@ export default function Perfil() {
       <PageHeader
         title="Mi Perfil"
         subtitle="Consultá y editá tu información personal, y revisá el estado de tus propuestas, servicios contratados y capacitaciones en CITio."
+        actions={
+          <Link
+            to="/ajustes/perfil"
+            className="inline-flex items-center rounded-md bg-[#238636] px-3.5 py-2 text-xs font-semibold text-white transition-colors hover:bg-[#2ea043]"
+          >
+            Editar perfil
+          </Link>
+        }
       />
 
       {error && (

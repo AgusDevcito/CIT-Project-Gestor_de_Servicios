@@ -33,9 +33,12 @@ const renderLayout = (user: UsuarioAutenticado | null, initialPath = "/") => {
           <Route element={<Layout />}>
             <Route index element={<div>Vista Inicio</div>} />
             <Route path="servicios" element={<div>Vista Servicios</div>} />
+            <Route path="capacitaciones" element={<div>Vista Capacitaciones</div>} />
+            <Route path="mis-servicios" element={<div>Vista Mis Servicios</div>} />
             <Route path="solicitudes" element={<div>Vista Solicitudes</div>} />
             <Route path="publicaciones" element={<div>Vista Publicaciones</div>} />
-            <Route path="propuestas" element={<div>Vista Propuestas</div>} />
+            <Route path="proponer" element={<div>Vista Proponer</div>} />
+            <Route path="ajustes/*" element={<div>Vista Ajustes</div>} />
             <Route path="perfil" element={<div>Vista Perfil</div>} />
           </Route>
         </Routes>
@@ -45,7 +48,7 @@ const renderLayout = (user: UsuarioAutenticado | null, initialPath = "/") => {
   return { logoutMock };
 };
 
-describe("components/Layout (Spec-002 Fase A)", () => {
+describe("components/Layout (Spec-002 & Spec-003 Nivel 1)", () => {
   it("muestra opciones de Iniciar sesión y Registrarse cuando el usuario es anónimo", () => {
     renderLayout(null);
 
@@ -57,7 +60,7 @@ describe("components/Layout (Spec-002 Fase A)", () => {
     expect(screen.queryByRole("button", { name: "Cerrar sesión" })).not.toBeInTheDocument();
   });
 
-  it("muestra la información básica y etiquetas del rol user, ocultando Solicitudes", () => {
+  it("muestra la información básica, tuerquita de Ajustes y secciones del rol user, ocultando Solicitudes", () => {
     renderLayout({
       id: 10,
       username: "productor_agro",
@@ -75,7 +78,13 @@ describe("components/Layout (Spec-002 Fase A)", () => {
       "href",
       "/perfil",
     );
+    expect(screen.getByRole("link", { name: "Ir a Ajustes" })).toHaveAttribute(
+      "href",
+      "/ajustes/propuestas",
+    );
     expect(screen.getByText("Solicitar")).toBeInTheDocument();
+    expect(screen.getByText("Capacitaciones")).toBeInTheDocument();
+    expect(screen.getByText("Mis Servicios")).toBeInTheDocument();
     expect(screen.getByText("Proponer")).toBeInTheDocument();
     expect(screen.queryByRole("link", { name: /Solicitudes/i })).not.toBeInTheDocument();
   });
@@ -160,8 +169,14 @@ describe("components/Layout (Spec-002 Fase A)", () => {
 
     expect(screen.getByText("Vista Inicio")).toBeInTheDocument();
 
-    fireEvent.click(screen.getByRole("link", { name: /Servicios/i }));
+    fireEvent.click(screen.getByRole("link", { name: /^Servicios/i }));
     expect(screen.getByText("Vista Servicios")).toBeInTheDocument();
+
+    fireEvent.click(screen.getByRole("link", { name: /Capacitaciones/i }));
+    expect(screen.getByText("Vista Capacitaciones")).toBeInTheDocument();
+
+    fireEvent.click(screen.getByRole("link", { name: /Mis Servicios/i }));
+    expect(screen.getByText("Vista Mis Servicios")).toBeInTheDocument();
 
     fireEvent.click(screen.getByRole("link", { name: /Solicitudes/i }));
     expect(screen.getByText("Vista Solicitudes")).toBeInTheDocument();
@@ -169,7 +184,7 @@ describe("components/Layout (Spec-002 Fase A)", () => {
     fireEvent.click(screen.getByRole("link", { name: /Publicaciones/i }));
     expect(screen.getByText("Vista Publicaciones")).toBeInTheDocument();
 
-    fireEvent.click(screen.getByRole("link", { name: /Propuestas/i }));
-    expect(screen.getByText("Vista Propuestas")).toBeInTheDocument();
+    fireEvent.click(screen.getByRole("link", { name: /Proponer/i }));
+    expect(screen.getByText("Vista Proponer")).toBeInTheDocument();
   });
 });

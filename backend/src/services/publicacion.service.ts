@@ -4,6 +4,7 @@ import { TIPOS_CONTENIDO, type TipoContenido } from "../models/publicacion.model
 import * as archivoRepository from "../repositories/archivo.repository.js";
 import * as catalogRepository from "../repositories/catalog.repository.js";
 import * as publicacionRepository from "../repositories/publicacion.repository.js";
+import * as notificacionService from "./notificacion.service.js";
 
 export interface CreatePublicacionInput {
     titulo?: string;
@@ -92,6 +93,19 @@ export const create = async (input: CreatePublicacionInput, authorId: number) =>
             archivo_nombre: archivo_nombre?.trim() || tituloLimpio,
             orden: 0,
         });
+    }
+
+    if (created.publicado) {
+        void notificacionService
+            .notificarATodosLosUsuarios({
+                tipo: "NUEVA_PUBLICACION",
+                titulo: `Nueva publicación: ${tituloLimpio}`,
+                mensaje: contenidoLimpio.slice(0, 220),
+                enlace: `/publicaciones/${created.id}`,
+                referencia_tipo: "publicacion",
+                referencia_id: created.id,
+            })
+            .catch(() => {});
     }
 
     return (await publicacionRepository.findByIdWithIncludes(created.id)) ?? created;

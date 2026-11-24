@@ -37,6 +37,9 @@ export interface CreatePropuestaData {
     bienes_recursos?: string | null;
     documento_url?: string | null;
     documento_nombre?: string | null;
+    beneficiario_nombre?: string | null;
+    beneficiario_dni_cuit?: string | null;
+    beneficiario_localidad?: string | null;
 }
 
 export const create = (data: CreatePropuestaData) => Propuesta.create(data);

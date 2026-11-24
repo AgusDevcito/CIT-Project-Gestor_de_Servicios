@@ -1,14 +1,16 @@
 /**
- * Contratos de dominio y DTOs para el módulo de Mi Perfil, Seguridad de Cuenta
- * y Actividad Personal (Mis Propuestas, Mis Servicios y Mis Capacitaciones).
+ * Contratos de dominio y DTOs para el módulo de Mi Perfil, Seguridad de Cuenta,
+ * Perfil de Entidad / Cooperativa (Nivel 4) y Actividad Personal.
  */
 
 import type { Propuesta, PropuestaDTO } from "./propuestas";
 import type { Publicacion, PublicacionDTO } from "./publicaciones";
 import type { Rol } from "./roles";
+import type { Usuario, UsuarioResumenDTO } from "./servicios";
 import type { Solicitud, SolicitudDTO } from "./solicitudes";
 
 export type EstadoInscripcionCapacitacion = "INSCRIPTO" | "EN_CURSO" | "FINALIZADO";
+export type TipoPerfil = "PRODUCTOR" | "ENTIDAD_COOPERATIVA";
 
 export interface UsuarioDTO {
   id: number;
@@ -24,6 +26,11 @@ export interface PerfilDTO {
   last_name: string;
   avatar_url: string | null;
   bio?: string | null;
+  tipo_perfil?: TipoPerfil;
+  razon_social?: string | null;
+  cuit?: string | null;
+  localidad?: string | null;
+  telefono_whatsapp?: string | null;
   User: UsuarioDTO;
 }
 
@@ -37,11 +44,21 @@ export interface ActualizarPerfilInput {
   last_name: string;
   avatar_url: string;
   bio?: string;
+  tipo_perfil?: TipoPerfil;
+  razon_social?: string | null;
+  cuit?: string | null;
+  localidad?: string | null;
+  telefono_whatsapp?: string | null;
 }
 
 export interface CambiarPasswordInput {
   currentPassword: string;
   newPassword: string;
+}
+
+export interface EliminarCuentaInput {
+  password: string;
+  confirmacion: string;
 }
 
 export interface InscripcionCapacitacionDTO {
@@ -52,6 +69,7 @@ export interface InscripcionCapacitacionDTO {
   observaciones?: string | null;
   createdAt: string;
   Publicacion?: PublicacionDTO;
+  Participante?: UsuarioResumenDTO;
 }
 
 export interface InscripcionCapacitacion {
@@ -62,6 +80,7 @@ export interface InscripcionCapacitacion {
   observaciones: string | null;
   createdAt: string;
   Publicacion?: Publicacion;
+  Participante?: Usuario;
 }
 
 export interface ActividadPerfilDTO {

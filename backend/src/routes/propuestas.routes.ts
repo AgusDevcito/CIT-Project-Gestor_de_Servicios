@@ -1,5 +1,6 @@
 import { Router } from "express";
 import {
+    cancelarPropuesta,
     crearPropuesta,
     descargarDocumentoPropuesta,
     dictaminarPropuestaCIT,
@@ -16,6 +17,7 @@ export const propuestasRouter = Router();
 
 propuestasRouter.get("/propuestas", requireAuth, obtenerPropuestas);
 propuestasRouter.get("/propuestas/:id", requireAuth, requireCIT, obtenerPropuestaPorId);
+propuestasRouter.patch("/propuestas/:id/cancelar", requireAuth, cancelarPropuesta);
 propuestasRouter.delete("/propuestas/:id", requireAuth, eliminarPropuesta);
 propuestasRouter.get("/uploads/:filename", requireAuth, descargarDocumentoPropuesta);
 

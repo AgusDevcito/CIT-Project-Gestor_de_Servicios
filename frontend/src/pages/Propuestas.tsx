@@ -4,25 +4,20 @@ import { Link } from "react-router-dom";
 import {
   Alert,
   Badge,
-   badgeVariantPorEstado,
   Button,
   Card,
-  EmptyState,
   PageHeader,
-  Skeleton,
 } from "../components/ui";
 import { useAuth } from "../context/useAuth";
 import { getApiError } from "../domain/errors";
 import type { Propuesta, Sector } from "../domain/entidades";
 import { esPersonalCIT, ROL } from "../domain/roles";
-import { formatearFecha, obtenerNombreVisible } from "../lib/formatters";
 import {
   getSectores,
   SECTORES_OFICIALES_CIT,
 } from "../services/catalogosService";
 import {
   crearPropuesta,
-  deletePropuesta,
   getPropuestas,
 } from "../services/propuestasService";
 
@@ -34,22 +29,22 @@ interface FormularioPropuesta {
   sector: string;
   problematica: string;
   bienes_recursos: string;
+  en_representacion: boolean;
+  beneficiario_nombre: string;
+  beneficiario_dni_cuit: string;
+  beneficiario_localidad: string;
 }
 
 const MAX_FILE_SIZE_BYTES = 5 * 1024 * 1024;
 const EXTENSIONES_PERMITIDAS = [".pdf", ".png", ".jpg", ".jpeg"];
-const MIMES_PERMITIDOS = ["application/pdf", "image/png", "image/jpeg", "image/jpg"];
+const MIMES_PERMITIDOS = [
+  "application/pdf",
+  "image/png",
+  "image/jpeg",
+  "image/jpg",
+];
 const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 const TELEFONO_REGEX = /^[0-9+\-\s()]{6,30}$/;
-
-const etiquetaEstadoPropuesta = (propuesta: Propuesta): string => {
-  const codigo = (propuesta.Estado?.codigo ?? "PENDIENTE").toUpperCase();
-  if (codigo === "PENDIENTE") return "Pendiente";
-  if (codigo === "EN_REVISION") return "En revisión";
-  if (codigo === "ACEPTADA" || codigo === "APROBADO") return "Aceptada";
-  if (codigo === "RECHAZADO") return "Rechazada";
-  return propuesta.Estado?.nombre ?? codigo;
-};
 
 export default function Propuestas() {
   const { user } = useAuth();
@@ -58,33 +53,29 @@ export default function Propuestas() {
 
   const [sectores, setSectores] = useState<Sector[]>(SECTORES_OFICIALES_CIT);
   const [misPropuestas, setMisPropuestas] = useState<Propuesta[]>([]);
-  const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [feedback, setFeedback] = useState("");
 
-  // Control de apertura del formulario ("Realizar propuesta")
-  const [mostrarFormulario, setMostrarFormulario] = useState(false);
+  // En el nuevo apartado "Proponer", el formulario está visible directamente para el productor/organización
+  const [mostrarFormulario, setMostrarFormulario] = useState(true);
   const [form, setForm] = useState<FormularioPropuesta>({
     nombre_organismo: "",
     email_contacto: user?.email ?? "",
     telefono_contacto: "",
     titulo: "",
-    sector: "",
+    sector: SECTORES_OFICIALES_CIT[0]?.codigo ?? "",
     problematica: "",
     bienes_recursos: "",
+    en_representacion: false,
+    beneficiario_nombre: "",
+    beneficiario_dni_cuit: "",
+    beneficiario_localidad: "",
   });
   const [archivoAdjunto, setArchivoAdjunto] = useState<File | null>(null);
   const [saving, setSaving] = useState(false);
-  const [deletingId, setDeletingId] = useState<number | null>(null);
 
   const cargarDatos = useCallback(async () => {
-    if (!user) {
-      setLoading(false);
-      return;
-    }
-
-    setLoading(true);
-    setError("");
+    if (!user) return;
 
     const sectoresPromise = getSectores().catch(() => SECTORES_OFICIALES_CIT);
 
@@ -93,18 +84,21 @@ export default function Propuestas() {
         sectoresPromise,
         getPropuestas(),
       ]);
-      setSectores(
-        sectoresData.length > 0 ? sectoresData : SECTORES_OFICIALES_CIT,
-      );
+      const listaSectores =
+        sectoresData.length > 0 ? sectoresData : SECTORES_OFICIALES_CIT;
+      setSectores(listaSectores);
       setMisPropuestas(propuestasData);
+      setForm((prev) => ({
+        ...prev,
+        email_contacto: prev.email_contacto || user.email || "",
+        sector: prev.sector || listaSectores[0]?.codigo || "",
+      }));
     } catch (err) {
       const sectoresFallback = await sectoresPromise;
       setSectores(
         sectoresFallback.length > 0 ? sectoresFallback : SECTORES_OFICIALES_CIT,
       );
-      setError(getApiError(err, "No se pudieron cargar las propuestas."));
-    } finally {
-      setLoading(false);
+      setError(getApiError(err, "No se pudieron cargar los datos iniciales."));
     }
   }, [user]);
 
@@ -141,7 +135,9 @@ export default function Propuestas() {
     }
 
     if (files.length > 1) {
-      setError("Solo se permite adjuntar un archivo de documentación por propuesta.");
+      setError(
+        "Solo se permite adjuntar un archivo de documentación por propuesta.",
+      );
       e.target.value = "";
       setArchivoAdjunto(null);
       return;
@@ -224,9 +220,9 @@ export default function Propuestas() {
       return;
     }
 
-    // Evitar envíos duplicados accidentales en cliente
     const duplicadaEnCurso = misPropuestas.some((prop) => {
-      const mismoTitulo = prop.titulo.trim().toLowerCase() === titulo.toLowerCase();
+      const mismoTitulo =
+        prop.titulo.trim().toLowerCase() === titulo.toLowerCase();
       const codigoEstado = (prop.Estado?.codigo ?? "PENDIENTE").toUpperCase();
       return (
         mismoTitulo &&
@@ -252,6 +248,13 @@ export default function Propuestas() {
         problematica,
         bienes_recursos: bienesRecursos,
         documentoFile: archivoAdjunto,
+        ...(form.en_representacion && form.beneficiario_nombre.trim()
+          ? {
+              beneficiario_nombre: form.beneficiario_nombre.trim(),
+              beneficiario_dni_cuit: form.beneficiario_dni_cuit.trim(),
+              beneficiario_localidad: form.beneficiario_localidad.trim(),
+            }
+          : {}),
       });
 
       setForm({
@@ -262,9 +265,12 @@ export default function Propuestas() {
         sector: sectores[0]?.codigo ?? "",
         problematica: "",
         bienes_recursos: "",
+        en_representacion: false,
+        beneficiario_nombre: "",
+        beneficiario_dni_cuit: "",
+        beneficiario_localidad: "",
       });
       setArchivoAdjunto(null);
-      setMostrarFormulario(false);
       setFeedback(
         respuesta.msg ||
           "Tu propuesta fue recibida correctamente y quedó registrada en estado Pendiente para evaluación del CIT.",
@@ -285,30 +291,6 @@ export default function Propuestas() {
     }
   };
 
-  const handleDeletePropuesta = async (propuesta: Propuesta) => {
-    if (
-      !window.confirm(
-        `¿Estás seguro de que deseás eliminar la propuesta "${propuesta.titulo}"? Esta acción no se puede deshacer.`,
-      )
-    ) {
-      return;
-    }
-
-    setError("");
-    setFeedback("");
-    setDeletingId(propuesta.id);
-    try {
-      await deletePropuesta(propuesta.id);
-      setMisPropuestas((prev) => prev.filter((p) => p.id !== propuesta.id));
-      setFeedback(`La propuesta "${propuesta.titulo}" fue eliminada exitosamente.`);
-    } catch (err) {
-      setError(getApiError(err, "No se pudo eliminar la propuesta."));
-    } finally {
-      setDeletingId(null);
-    }
-  };
-
-  // Protección adicional si no hay sesión iniciada
   if (!user) {
     return (
       <Card className="space-y-4">
@@ -333,28 +315,33 @@ export default function Propuestas() {
   return (
     <div className="space-y-6">
       <PageHeader
-        title="Propuestas de Organizaciones y Vinculación"
-        subtitle="Espacio para que organizaciones productivas, especialmente organizaciones agricultoras, presenten iniciativas o servicios para evaluación del CIT."
+        title="Proponer Iniciativa o Servicio al CIT"
+        subtitle="Espacio para que productores y organizaciones productivas presenten problemáticas, ensayos o iniciativas para evaluación técnica del CIT Formosa."
         actions={
-          esUsuarioExterno ? (
-            <Button
-              variant={mostrarFormulario ? "secondary" : "primary"}
-              onClick={() =>
-                mostrarFormulario
-                  ? setMostrarFormulario(false)
-                  : abrirFormularioPropuesta()
-              }
-            >
-              {mostrarFormulario ? "Cerrar formulario" : "Realizar propuesta"}
-            </Button>
-          ) : isCIT ? (
-            <Link
-              to="/solicitudes"
-              className="inline-flex items-center rounded-md bg-[#238636] px-3.5 py-2 text-sm font-medium text-white transition-colors hover:bg-[#2ea043]"
-            >
-              Ir a Solicitudes (Evaluación CIT)
-            </Link>
-          ) : undefined
+          <div className="flex flex-wrap items-center gap-2">
+            {esUsuarioExterno ? (
+              <>
+                <Link
+                  to="/ajustes/propuestas"
+                  className="inline-flex items-center rounded-md border border-[#30363d] bg-[#21262d] px-3.5 py-2 text-xs font-semibold text-[#e6edf3] transition-colors hover:border-[#3fb950] hover:bg-[#30363d]"
+                >
+                  Ver tus propuestas ({misPropuestas.length})
+                </Link>
+                {!mostrarFormulario && (
+                  <Button variant="primary" onClick={abrirFormularioPropuesta}>
+                    Realizar propuesta
+                  </Button>
+                )}
+              </>
+            ) : isCIT ? (
+              <Link
+                to="/solicitudes"
+                className="inline-flex items-center rounded-md bg-[#238636] px-3.5 py-2 text-sm font-medium text-white transition-colors hover:bg-[#2ea043]"
+              >
+                Ir a Solicitudes (Evaluación CIT)
+              </Link>
+            ) : undefined}
+          </div>
         }
       />
 
@@ -366,7 +353,15 @@ export default function Propuestas() {
 
       {feedback && (
         <Alert variant="success" onDismiss={() => setFeedback("")}>
-          {feedback}
+          <div className="flex flex-wrap items-center justify-between gap-2">
+            <span>{feedback}</span>
+            <Link
+              to="/ajustes/propuestas"
+              className="font-semibold underline hover:text-white"
+            >
+              Ver tus propuestas en Ajustes →
+            </Link>
+          </div>
         </Alert>
       )}
 
@@ -404,15 +399,14 @@ export default function Propuestas() {
               </ol>
             </div>
 
-            {esUsuarioExterno && !mostrarFormulario && (
-              <div className="mt-4 pt-2">
-                <Button
-                  type="button"
-                  className="w-full"
-                  onClick={abrirFormularioPropuesta}
+            {esUsuarioExterno && (
+              <div className="mt-4 space-y-2 pt-2">
+                <Link
+                  to="/ajustes/propuestas"
+                  className="inline-flex w-full items-center justify-center rounded-md border border-[#447232]/60 bg-[#14351a] px-3 py-2 text-xs font-semibold text-[#3fb950] transition-colors hover:bg-[#1e4b25] hover:text-white"
                 >
-                  Realizar propuesta
-                </Button>
+                  Ver tus propuestas ({misPropuestas.length})
+                </Link>
               </div>
             )}
           </div>
@@ -434,17 +428,24 @@ export default function Propuestas() {
       {esUsuarioExterno && mostrarFormulario && (
         <Card className="border-[#2ea043]/60">
           <form onSubmit={handleSubmit} className="space-y-5" noValidate>
-            <div className="border-b border-[#30363d] pb-3">
-              <h2 className="text-lg font-semibold text-[#e6edf3]">
-                Formulario de presentación de propuesta
-              </h2>
-              <p className="text-xs text-[#8b949e]">
-                Completá los datos de tu organización, el detalle técnico de la iniciativa y adjuntá la documentación respaldatoria.
-              </p>
+            <div className="flex flex-wrap items-center justify-between gap-2 border-b border-[#30363d] pb-3">
+              <div>
+                <h2 className="text-lg font-semibold text-[#e6edf3]">
+                  Formulario de presentación de propuesta
+                </h2>
+                <p className="text-xs text-[#8b949e]">
+                  Completá los datos de tu organización, el detalle técnico de la iniciativa y adjuntá la documentación respaldatoria.
+                </p>
+              </div>
+              <Link
+                to="/ajustes/propuestas"
+                className="text-xs font-semibold text-[#58a6ff] hover:underline"
+              >
+                Ver tus propuestas enviadas →
+              </Link>
             </div>
 
             <div className="grid gap-4 sm:grid-cols-2">
-              {/* 1. Nombre del organismo */}
               <div className="sm:col-span-2">
                 <label
                   htmlFor="prop-organismo"
@@ -464,7 +465,6 @@ export default function Propuestas() {
                 />
               </div>
 
-              {/* 2. Correo electrónico */}
               <div>
                 <label
                   htmlFor="prop-email"
@@ -485,7 +485,6 @@ export default function Propuestas() {
                 />
               </div>
 
-              {/* 3. Número de teléfono */}
               <div>
                 <label
                   htmlFor="prop-telefono"
@@ -506,7 +505,6 @@ export default function Propuestas() {
                 />
               </div>
 
-              {/* 4. Nombre de la propuesta */}
               <div>
                 <label
                   htmlFor="prop-titulo"
@@ -526,7 +524,6 @@ export default function Propuestas() {
                 />
               </div>
 
-              {/* 5. Área a la que está orientada */}
               <div>
                 <label
                   htmlFor="prop-sector"
@@ -551,7 +548,6 @@ export default function Propuestas() {
                 </select>
               </div>
 
-              {/* 6. Información detallada sobre utilidad y funciones */}
               <div className="sm:col-span-2">
                 <label
                   htmlFor="prop-problematica"
@@ -572,7 +568,6 @@ export default function Propuestas() {
                 />
               </div>
 
-              {/* 7. Bienes o recursos que propone */}
               <div className="sm:col-span-2">
                 <label
                   htmlFor="prop-bienes"
@@ -592,7 +587,6 @@ export default function Propuestas() {
                 />
               </div>
 
-              {/* 8. Archivos adjuntos para documentación */}
               <div className="sm:col-span-2 rounded-xl border border-[#30363d] bg-[#0d1117] p-4">
                 <label
                   htmlFor="prop-documento"
@@ -616,217 +610,97 @@ export default function Propuestas() {
                     : "Podés adjuntar avales institucionales, memoria técnica o especificaciones del equipamiento (máximo 1 archivo de hasta 5 MB)."}
                 </p>
               </div>
+
+              {/* 9. Intermediación de Entidad / Cooperativa (Nivel 4) */}
+              <div className="sm:col-span-2 rounded-xl border border-[#30363d] bg-[#0d1117]/80 p-4 space-y-3">
+                <label className="flex cursor-pointer items-center gap-2.5 text-xs font-semibold text-[#e6edf3]">
+                  <input
+                    type="checkbox"
+                    checked={form.en_representacion}
+                    onChange={(e) =>
+                      setForm((prev) => ({
+                        ...prev,
+                        en_representacion: e.target.checked,
+                      }))
+                    }
+                    className="h-4 w-4 rounded border-[#30363d] bg-[#161b22] text-[#238636]"
+                  />
+                  <span>
+                    Presentar esta propuesta en representación de un productor asociado (Entidad / Cooperativa)
+                  </span>
+                </label>
+
+                {form.en_representacion && (
+                  <div className="grid gap-3 pt-1 sm:grid-cols-3">
+                    <div>
+                      <label
+                        htmlFor="prop-beneficiario-nombre"
+                        className="mb-1 block text-xs text-[#8b949e]"
+                      >
+                        Nombre del productor representado *
+                      </label>
+                      <input
+                        id="prop-beneficiario-nombre"
+                        name="beneficiario_nombre"
+                        placeholder="Ej.: Juan Carlos Medina"
+                        value={form.beneficiario_nombre}
+                        onChange={handleChange}
+                        className="input-base"
+                      />
+                    </div>
+                    <div>
+                      <label
+                        htmlFor="prop-beneficiario-dni"
+                        className="mb-1 block text-xs text-[#8b949e]"
+                      >
+                        DNI o CUIT del productor
+                      </label>
+                      <input
+                        id="prop-beneficiario-dni"
+                        name="beneficiario_dni_cuit"
+                        placeholder="20-18234567-3"
+                        value={form.beneficiario_dni_cuit}
+                        onChange={handleChange}
+                        className="input-base"
+                      />
+                    </div>
+                    <div>
+                      <label
+                        htmlFor="prop-beneficiario-localidad"
+                        className="mb-1 block text-xs text-[#8b949e]"
+                      >
+                        Localidad / Paraje del productor
+                      </label>
+                      <input
+                        id="prop-beneficiario-localidad"
+                        name="beneficiario_localidad"
+                        placeholder="Ej.: Ingeniero Juárez"
+                        value={form.beneficiario_localidad}
+                        onChange={handleChange}
+                        className="input-base"
+                      />
+                    </div>
+                  </div>
+                )}
+              </div>
             </div>
 
-            <div className="flex justify-end gap-2 pt-2">
-              <Button
-                type="button"
-                variant="secondary"
-                onClick={() => setMostrarFormulario(false)}
+            <div className="flex flex-wrap items-center justify-between gap-2 pt-2">
+              <Link
+                to="/ajustes/propuestas"
+                className="inline-flex items-center rounded-md border border-[#30363d] bg-[#21262d] px-3.5 py-2 text-xs font-medium text-[#e6edf3] hover:bg-[#30363d]"
               >
-                Cancelar
-              </Button>
-              <Button type="submit" loading={saving}>
-                Enviar propuesta
-              </Button>
+                Ver tus propuestas
+              </Link>
+              <div className="flex items-center gap-2">
+                <Button type="submit" loading={saving}>
+                  Enviar propuesta
+                </Button>
+              </div>
             </div>
           </form>
         </Card>
       )}
-
-      {/* Listado de seguimiento de propuestas enviadas */}
-      <section className="space-y-4">
-        <div className="flex items-center justify-between">
-          <div>
-            <h2 className="text-lg font-semibold text-[#e6edf3]">
-              {esUsuarioExterno
-                ? "Mis propuestas presentadas"
-                : "Propuestas registradas por organizaciones"}
-            </h2>
-            <p className="text-xs text-[#8b949e]">
-              {esUsuarioExterno
-                ? "Seguimiento en tiempo real del estado de evaluación y dictamen del CIT."
-                : "Vista general de propuestas registradas en el sistema."}
-            </p>
-          </div>
-          <Badge variant="neutral">{misPropuestas.length} registradas</Badge>
-        </div>
-
-        {loading ? (
-          <div className="space-y-3" aria-busy="true">
-            <Skeleton className="h-32 w-full rounded-xl" />
-            <Skeleton className="h-32 w-full rounded-xl" />
-          </div>
-        ) : misPropuestas.length === 0 ? (
-          <EmptyState
-            title="Aún no registraste propuestas"
-            description="Seleccioná el botón Realizar propuesta para presentar una iniciativa de tu organismo ante el CIT Formosa."
-            action={
-              esUsuarioExterno ? (
-                <Button
-                  variant="primary"
-                  size="sm"
-                  onClick={abrirFormularioPropuesta}
-                >
-                  Realizar propuesta
-                </Button>
-              ) : undefined
-            }
-          />
-        ) : (
-          <div className="grid gap-4">
-            {misPropuestas.map((propuesta) => {
-              const codigoEstado = (
-                propuesta.Estado?.codigo ?? "PENDIENTE"
-              ).toUpperCase();
-              const revisorNombre = propuesta.Revisor
-                ? obtenerNombreVisible({
-                    nombre: propuesta.Revisor.Profile?.first_name,
-                    apellido: propuesta.Revisor.Profile?.last_name,
-                    username: propuesta.Revisor.username,
-                  })
-                : null;
-
-              return (
-                <Card key={propuesta.id} className="space-y-4">
-                  <div className="flex flex-wrap items-start justify-between gap-3">
-                    <div className="space-y-1">
-                      <div className="flex flex-wrap items-center gap-2">
-                        <Badge variant="info">
-                          {propuesta.Sector?.nombre || "Sin área"}
-                        </Badge>
-                        {propuesta.nombre_organismo && (
-                          <span className="text-xs font-medium text-[#e6edf3]">
-                            {propuesta.nombre_organismo}
-                          </span>
-                        )}
-                        <span className="text-xs text-[#8b949e]">
-                          · Presentada el {formatearFecha(propuesta.createdAt)}
-                        </span>
-                      </div>
-                      <h3 className="text-lg font-semibold text-[#e6edf3]">
-                        {propuesta.titulo}
-                      </h3>
-                    </div>
-
-                    <Badge variant={badgeVariantPorEstado(codigoEstado)}>
-                      {etiquetaEstadoPropuesta(propuesta)}
-                    </Badge>
-                  </div>
-
-                  <p className="whitespace-pre-line text-sm leading-relaxed text-[#8b949e]">
-                    {propuesta.problematica}
-                  </p>
-
-                  {(propuesta.bienes_recursos ||
-                    propuesta.email_contacto ||
-                    propuesta.telefono_contacto ||
-                    propuesta.documento_url) && (
-                    <div className="grid gap-3 rounded-lg border border-[#21262d] bg-[#0d1117]/70 p-3 text-xs text-[#8b949e] sm:grid-cols-2">
-                      {propuesta.bienes_recursos && (
-                        <div className="sm:col-span-2">
-                          <span className="font-semibold text-[#e6edf3]">
-                            Bienes o recursos propuestos:{" "}
-                          </span>
-                          {propuesta.bienes_recursos}
-                        </div>
-                      )}
-                      {propuesta.email_contacto && (
-                        <div>
-                          <span className="font-semibold text-[#e6edf3]">
-                            Correo:{" "}
-                          </span>
-                          {propuesta.email_contacto}
-                        </div>
-                      )}
-                      {propuesta.telefono_contacto && (
-                        <div>
-                          <span className="font-semibold text-[#e6edf3]">
-                            Teléfono:{" "}
-                          </span>
-                          {propuesta.telefono_contacto}
-                        </div>
-                      )}
-                      {propuesta.documento_url && (
-                        <div className="sm:col-span-2">
-                          <span className="font-semibold text-[#e6edf3]">
-                            Documentación adjunta:{" "}
-                          </span>
-                          <a
-                            href={propuesta.documento_url}
-                            target="_blank"
-                            rel="noreferrer"
-                            className="text-[#58a6ff] hover:underline"
-                          >
-                            {propuesta.documento_nombre || "Ver documento adjunto"}
-                          </a>
-                        </div>
-                      )}
-                    </div>
-                  )}
-
-                  {/* Dictamen y trazabilidad con el Servicio generado (Fase D <-> Fase F) */}
-                  {(propuesta.citJustificacion ||
-                    propuesta.servicio_generado_id ||
-                    codigoEstado === "EN_REVISION") && (
-                    <div className="rounded-lg border border-[#30363d] bg-[#161b22] p-3.5 text-xs">
-                      <div className="flex flex-wrap items-center justify-between gap-2">
-                        <p className="font-semibold text-[#e6edf3]">
-                          {codigoEstado === "EN_REVISION"
-                            ? "Estado de revisión CIT"
-                            : "Dictamen técnico del CIT"}
-                        </p>
-                        {propuesta.citFechaRevision && (
-                          <span className="text-[#8b949e]">
-                            {formatearFecha(propuesta.citFechaRevision)}
-                            {revisorNombre ? ` · Evaluador: ${revisorNombre}` : ""}
-                          </span>
-                        )}
-                      </div>
-
-                      {propuesta.citJustificacion ? (
-                        <p className="mt-1.5 text-[#8b949e]">
-                          {propuesta.citJustificacion}
-                        </p>
-                      ) : (
-                        <p className="mt-1.5 text-[#8b949e]">
-                          Tu propuesta fue tomada para evaluación por el equipo técnico del CIT.
-                        </p>
-                      )}
-
-                      {propuesta.servicio_generado_id && (
-                        <div className="mt-3 flex items-center justify-between rounded-md border border-[#238636]/50 bg-[#238636]/15 px-3 py-2 text-[#3fb950]">
-                          <span>
-                            Esta propuesta fue aceptada e incorporada al catálogo de Servicios.
-                          </span>
-                          <Link
-                            to={`/servicios/${propuesta.servicio_generado_id}`}
-                            className="font-semibold underline hover:text-white"
-                          >
-                            Ver servicio publicado →
-                          </Link>
-                        </div>
-                      )}
-                    </div>
-                  )}
-
-                  <div className="flex justify-end border-t border-[#30363d] pt-2">
-                    <Button
-                      variant="danger"
-                      size="sm"
-                      loading={deletingId === propuesta.id}
-                      onClick={() => void handleDeletePropuesta(propuesta)}
-                      aria-label={`Eliminar propuesta ${propuesta.titulo}`}
-                    >
-                      Eliminar propuesta
-                    </Button>
-                  </div>
-                </Card>
-              );
-            })}
-          </div>
-        )}
-      </section>
     </div>
   );
 }

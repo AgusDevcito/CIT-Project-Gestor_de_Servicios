@@ -9,6 +9,7 @@ import type { Rol } from "../constants/roles.js";
 import * as catalogRepository from "../repositories/catalog.repository.js";
 import * as servicioRepository from "../repositories/servicio.repository.js";
 import * as solicitudRepository from "../repositories/solicitud.repository.js";
+import * as notificacionService from "./notificacion.service.js";
 
 export interface CreateServicioInput {
     servicio_nombre?: string;
@@ -65,7 +66,7 @@ export const create = async (input: CreateServicioInput, proveedorId: number) =>
         throw validationError("El precio del servicio debe ser mayor o igual a 0.");
     }
 
-    return servicioRepository.create({
+    const creado = await servicioRepository.create({
         servicio_nombre: servicio_nombre.trim(),
         servicio_description: servicio_description.trim(),
         servicio_img: servicio_img?.trim() || null,
@@ -73,6 +74,19 @@ export const create = async (input: CreateServicioInput, proveedorId: number) =>
         sector_id: sectorItem.id,
         proveedor_id: proveedorId,
     });
+
+    void notificacionService
+        .notificarATodosLosUsuarios({
+            tipo: "NUEVO_SERVICIO",
+            titulo: `Nuevo servicio disponible: ${creado.servicio_nombre}`,
+            mensaje: creado.servicio_description,
+            enlace: `/servicios/${creado.id}`,
+            referencia_tipo: "servicio",
+            referencia_id: creado.id,
+        })
+        .catch(() => {});
+
+    return creado;
 };
 
 export const createResena = async (

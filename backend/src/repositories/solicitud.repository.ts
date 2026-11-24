@@ -22,12 +22,22 @@ export interface CreateSolicitudData {
     user_id: number;
     servicio_id: number;
     estado_id: number;
+    beneficiario_nombre?: string | null;
+    beneficiario_dni_cuit?: string | null;
+    beneficiario_localidad?: string | null;
 }
 
 export const findAll = (where: WhereOptions) =>
     Solicitud.findAll({ where, include: includes, order: createdAtDesc });
 
-export const findById = (id: number) => Solicitud.findByPk(id);
+export const findById = (id: number) =>
+    Solicitud.findByPk(id, { include: includes });
+
+export const findByResultadoUrl = (resultadoArchivoUrl: string) =>
+    Solicitud.findOne({
+        where: { resultado_archivo_url: resultadoArchivoUrl },
+        include: includes,
+    });
 
 export const create = (data: CreateSolicitudData) => Solicitud.create(data);
 

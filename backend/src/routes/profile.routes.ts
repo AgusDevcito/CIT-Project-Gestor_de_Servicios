@@ -42,7 +42,7 @@ profileRouter.get(
 );
 
 // Update own profile — authentication, self-only and validation
-// Exclusivamente modifica first_name, last_name, avatar_url y bio (ignora rol, permisos, email y estado CIT)
+// Exclusivamente modifica datos personales, de entidad/cooperativa y contacto (ignora rol, permisos, email y estado CIT)
 profileRouter.put(
   "/profile/:userId",
   requireAuth,
@@ -54,9 +54,31 @@ profileRouter.put(
       last_name: req.body?.last_name,
       avatar_url: req.body?.avatar_url,
       bio: req.body?.bio,
+      tipo_perfil: req.body?.tipo_perfil,
+      razon_social: req.body?.razon_social,
+      cuit: req.body?.cuit,
+      localidad: req.body?.localidad,
+      telefono_whatsapp: req.body?.telefono_whatsapp,
     };
     const data = await profileService.update(Number(req.params.userId), allowed);
     res.json({ msg: "Perfil actualizado", data });
+  }),
+);
+
+// Eliminación / Baja controlada de la cuenta propia (Nivel 4 — Ajustes / Mi Cuenta)
+profileRouter.post(
+  "/profile/eliminar-cuenta",
+  requireAuth,
+  asyncHandler(async (req: Request, res: Response) => {
+    const user = getAuthUser(req);
+    await profileService.eliminarCuenta(user.id, {
+      password: req.body?.password,
+      confirmacion: req.body?.confirmacion,
+    });
+    res.clearCookie("token");
+    res.json({
+      msg: "Tu cuenta ha sido dada de baja y tus datos personales fueron anonimizados.",
+    });
   }),
 );
 
@@ -94,6 +116,36 @@ profileRouter.post(
     );
     res.status(201).json({
       msg: "Inscripción registrada exitosamente en la capacitación.",
+      data,
+    });
+  }),
+);
+
+// Gestión CIT/Admin de inscriptos en capacitaciones
+profileRouter.get(
+  "/capacitaciones/:publicacionId/inscriptos",
+  requireAuth,
+  requireRole(ROL.CIT, ROL.ADMIN),
+  asyncHandler(async (req: Request, res: Response) => {
+    const data = await profileService.listInscriptosCapacitacion(
+      Number(req.params.publicacionId),
+    );
+    res.json({ count: data.length, data });
+  }),
+);
+
+profileRouter.patch(
+  "/capacitaciones/inscripciones/:id/estado",
+  requireAuth,
+  requireRole(ROL.CIT, ROL.ADMIN),
+  asyncHandler(async (req: Request, res: Response) => {
+    const data = await profileService.updateEstadoInscripcionCapacitacion(
+      Number(req.params.id),
+      req.body?.estado,
+      req.body?.observaciones,
+    );
+    res.json({
+      msg: "Estado de la inscripción actualizado correctamente.",
       data,
     });
   }),

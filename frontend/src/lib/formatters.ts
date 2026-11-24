@@ -53,3 +53,12 @@ export const obtenerNombreVisible = (params: {
   if (completo) return completo;
   return params.username?.trim() || "Usuario";
 };
+
+export const recortarTexto = (
+  texto: string | null | undefined,
+  maxLen = 180,
+): string => {
+  const limpio = (texto ?? "").trim();
+  if (limpio.length <= maxLen) return limpio;
+  return `${limpio.slice(0, maxLen).trimEnd()}…`;
+};

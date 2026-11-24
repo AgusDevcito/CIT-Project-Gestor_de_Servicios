@@ -9,6 +9,8 @@ import type {
   ActividadPerfilResponseDTO,
   ActualizarPerfilInput,
   CambiarPasswordInput,
+  EliminarCuentaInput,
+  EstadoInscripcionCapacitacion,
   InscripcionCapacitacion,
   InscripcionCapacitacionDTO,
   PerfilDTO,
@@ -16,6 +18,7 @@ import type {
 } from "../domain/perfil";
 import { mapearPropuesta } from "./propuestas.repository";
 import { mapearPublicacion } from "./publicaciones.repository";
+import { mapearUsuarioResumen } from "./servicios.repository";
 import { mapearSolicitud } from "./solicitudes.repository";
 
 export const mapearInscripcionCapacitacion = (
@@ -28,6 +31,9 @@ export const mapearInscripcionCapacitacion = (
   observaciones: dto.observaciones ?? null,
   createdAt: dto.createdAt,
   Publicacion: dto.Publicacion ? mapearPublicacion(dto.Publicacion) : undefined,
+  Participante: dto.Participante
+    ? mapearUsuarioResumen(dto.Participante)
+    : undefined,
 });
 
 export const obtenerPerfilPorUsuarioId = async (
@@ -47,12 +53,35 @@ export const actualizarPerfil = async (
     last_name: input.last_name.trim(),
     avatar_url: input.avatar_url.trim(),
     bio: input.bio?.trim() ?? "",
+    ...(input.tipo_perfil !== undefined
+      ? { tipo_perfil: input.tipo_perfil }
+      : {}),
+    ...(input.razon_social !== undefined
+      ? { razon_social: input.razon_social?.trim() || null }
+      : {}),
+    ...(input.cuit !== undefined ? { cuit: input.cuit?.trim() || null } : {}),
+    ...(input.localidad !== undefined
+      ? { localidad: input.localidad?.trim() || null }
+      : {}),
+    ...(input.telefono_whatsapp !== undefined
+      ? { telefono_whatsapp: input.telefono_whatsapp?.trim() || null }
+      : {}),
   };
   const { data } = await http.put<PerfilResponseDTO>(
     `/profile/${userId}`,
     payloadSeguro,
   );
   return data.data;
+};
+
+export const eliminarCuentaPropia = async (
+  input: EliminarCuentaInput,
+): Promise<{ msg: string }> => {
+  const { data } = await http.post<{ msg: string }>("/profile/eliminar-cuenta", {
+    password: input.password,
+    confirmacion: input.confirmacion,
+  });
+  return data;
 };
 
 export const cambiarPassword = async (
@@ -94,6 +123,34 @@ export const inscribirEnCapacitacion = async (
     msg: string;
     data: InscripcionCapacitacionDTO;
   }>(`/capacitaciones/${publicacionId}/inscribirse`);
+  return {
+    msg: data.msg,
+    data: mapearInscripcionCapacitacion(data.data),
+  };
+};
+
+export const listarInscriptosCapacitacion = async (
+  publicacionId: number,
+): Promise<InscripcionCapacitacion[]> => {
+  const { data } = await http.get<{
+    count?: number;
+    data: InscripcionCapacitacionDTO[];
+  }>(`/capacitaciones/${publicacionId}/inscriptos`);
+  return (data.data ?? []).map(mapearInscripcionCapacitacion);
+};
+
+export const actualizarEstadoInscripcionCapacitacion = async (
+  inscripcionId: number,
+  estado: EstadoInscripcionCapacitacion,
+  observaciones?: string | null,
+): Promise<{ msg: string; data: InscripcionCapacitacion }> => {
+  const { data } = await http.patch<{
+    msg: string;
+    data: InscripcionCapacitacionDTO;
+  }>(`/capacitaciones/inscripciones/${inscripcionId}/estado`, {
+    estado,
+    observaciones: observaciones ?? null,
+  });
   return {
     msg: data.msg,
     data: mapearInscripcionCapacitacion(data.data),

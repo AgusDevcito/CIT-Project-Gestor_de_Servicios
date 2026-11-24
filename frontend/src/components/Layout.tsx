@@ -8,6 +8,7 @@ import {
   obtenerNombreVisible,
 } from "../lib/formatters";
 import logoCitio from "../assets/logo-CITio.png";
+import { NotificationBell } from "./NotificationBell";
 import { Badge, badgeVariantPorRol } from "./ui/Badge";
 
 interface NavItemConfig {
@@ -16,6 +17,7 @@ interface NavItemConfig {
   end: boolean;
   icon: ReactNode;
   onlyCIT?: boolean;
+  requireAuth?: boolean;
   roleTag?: (rol?: Rol) => string | null;
 }
 
@@ -43,6 +45,29 @@ const NAV_LINKS: readonly NavItemConfig[] = [
     roleTag: (rol) => (esPersonalCIT(rol) ? "Catálogo / Alta" : "Solicitar"),
   },
   {
+    to: "/capacitaciones",
+    label: "Capacitaciones",
+    end: false,
+    icon: (
+      <svg viewBox="0 0 16 16" fill="currentColor" className="h-4 w-4 shrink-0" aria-hidden="true">
+        <path d="M7.691 1.066a.75.75 0 0 1 .618 0l7.25 3.25a.75.75 0 0 1 0 1.368L13 6.831v2.794c0 1.024-.81 1.749-1.66 2.173-.893.447-2.075.702-3.34.702-.278 0-.55-.012-.816-.036a.75.75 0 0 1 .133-1.494c.22.02.45.03.683.03 1.082 0 2.025-.221 2.67-.543.69-.345.83-.682.83-.832V7.503L8.309 8.934a.75.75 0 0 1-.618 0L4 7.28v1.663c.296.105.575.275.812.512.438.438.688 1.059.688 1.795v3a.75.75 0 0 1-1.5 0v-3c0-.368-.125-.617-.25-.742a.87.87 0 0 0-.75-.258.87.87 0 0 0-.75.258c-.125.125-.25.374-.25.742v3a.75.75 0 0 1-1.5 0v-3c0-.736.25-1.357.688-1.795.237-.237.516-.407.812-.512V6.606L.441 5.684a.75.75 0 0 1 0-1.368ZM2.583 5 8 7.428 13.417 5 8 2.572Z" />
+      </svg>
+    ),
+    roleTag: (rol) => (esPersonalCIT(rol) ? "Cursadas" : "Inscripción"),
+  },
+  {
+    to: "/mis-servicios",
+    label: "Mis Servicios",
+    end: false,
+    requireAuth: true,
+    icon: (
+      <svg viewBox="0 0 16 16" fill="currentColor" className="h-4 w-4 shrink-0" aria-hidden="true">
+        <path d="M1.75 2.5a.25.25 0 0 0-.25.25v10.5c0 .138.112.25.25.25h12.5a.25.25 0 0 0 .25-.25v-8.5a.25.25 0 0 0-.25-.25H7.5c-.55 0-1.07-.26-1.4-.7l-.9-1.2a.25.25 0 0 0-.2-.1Zm-.25-1.5h3.7c.55 0 1.07.26 1.4.7l.9 1.2a.25.25 0 0 0 .2.1h6.55c.966 0 1.75.784 1.75 1.75v8.5A1.75 1.75 0 0 1 14.25 15H1.75A1.75 1.75 0 0 1 0 13.25V2.75C0 1.784.784 1 1.75 1Z" />
+      </svg>
+    ),
+    roleTag: () => "Seguimiento",
+  },
+  {
     to: "/solicitudes",
     label: "Solicitudes",
     end: false,
@@ -67,15 +92,15 @@ const NAV_LINKS: readonly NavItemConfig[] = [
     roleTag: (rol) => (esPersonalCIT(rol) ? "ABM" : "Lectura"),
   },
   {
-    to: "/propuestas",
-    label: "Propuestas",
+    to: "/proponer",
+    label: "Proponer",
     end: false,
     icon: (
       <svg viewBox="0 0 16 16" fill="currentColor" className="h-4 w-4 shrink-0" aria-hidden="true">
         <path d="M1.5 3.25a2.25 2.25 0 1 1 3 2.122v5.256a2.251 2.251 0 1 1-1.5 0V5.372A2.25 2.25 0 0 1 1.5 3.25Zm5.677-.177L9.573.677A.25.25 0 0 1 10 .854V2.5h1A2.5 2.5 0 0 1 13.5 5v5.628a2.251 2.251 0 1 1-1.5 0V5a1 1 0 0 0-1-1h-1v1.646a.25.25 0 0 1-.427.177L7.177 3.427a.25.25 0 0 1 0-.354ZM3.75 2.5a.75.75 0 1 0 0 1.5.75.75 0 0 0 0-1.5Zm0 9.5a.75.75 0 1 0 0 1.5.75.75 0 0 0 0-1.5Zm8.25.75a.75.75 0 1 0 1.5 0 .75.75 0 0 0-1.5 0Z" />
       </svg>
     ),
-    roleTag: (rol) => (esPersonalCIT(rol) ? "Dictamen" : "Proponer"),
+    roleTag: (rol) => (esPersonalCIT(rol) ? "Dictamen" : "Formulario"),
   },
   {
     to: "/perfil",
@@ -99,9 +124,15 @@ const descripcionModoPorRol = (rol?: Rol): string => {
 const obtenerTituloSeccion = (pathname: string): string => {
   if (pathname === "/") return "Inicio";
   if (pathname.startsWith("/servicios")) return "Servicios";
+  if (pathname.startsWith("/capacitaciones")) return "Capacitaciones";
+  if (pathname.startsWith("/mis-servicios")) return "Mis Servicios";
   if (pathname.startsWith("/solicitudes")) return "Solicitudes";
   if (pathname.startsWith("/publicaciones")) return "Publicaciones";
-  if (pathname.startsWith("/propuestas")) return "Propuestas";
+  if (pathname.startsWith("/proponer") || pathname.startsWith("/propuestas")) {
+    return "Proponer";
+  }
+  if (pathname.startsWith("/notificaciones")) return "Notificaciones";
+  if (pathname.startsWith("/ajustes")) return "Ajustes";
   if (pathname.startsWith("/perfil")) return "Mi Perfil";
   return "Panel";
 };
@@ -165,7 +196,6 @@ export default function Layout() {
         <div className="mx-auto flex max-w-[1440px] items-center justify-between gap-3">
           {/* Izquierda: botón móvil, toggle para ocultar/mostrar barra lateral, logo y sección activa */}
           <div className="flex items-center gap-2.5">
-            {/* Botón hamburguesa para pantallas móviles */}
             <button
               type="button"
               onClick={() => setMobileMenuOpen((prev) => !prev)}
@@ -182,7 +212,6 @@ export default function Layout() {
               </svg>
             </button>
 
-            {/* Botón para ocultar / volver a mostrar la barra lateral */}
             <button
               type="button"
               onClick={() => setSidebarOpen((prev) => !prev)}
@@ -226,8 +255,8 @@ export default function Layout() {
             </span>
           </div>
 
-          {/* Derecha: información según rol y acceso al perfil en la esquina superior */}
-          <div className="flex items-center gap-2.5">
+          {/* Derecha: información según rol, tuerquita de Ajustes y acceso al perfil */}
+          <div className="flex items-center gap-2">
             {user ? (
               <>
                 <div className="hidden items-center gap-2 lg:flex">
@@ -238,6 +267,26 @@ export default function Layout() {
                     {labelDeRol(user.rol)}
                   </Badge>
                 </div>
+
+                {/* Campanilla de Notificaciones 🔔 (Nivel 5) */}
+                <NotificationBell />
+
+                {/* Acceso a Ajustes (tuerquita ⚙️) */}
+                <Link
+                  to="/ajustes/propuestas"
+                  aria-label="Ir a Ajustes"
+                  title="Ajustes y mis propuestas"
+                  className="inline-flex h-8 w-8 items-center justify-center rounded-md border border-[#447232]/50 bg-[#14351a] text-slate-200 transition-colors hover:border-[#3fb950] hover:bg-[#1e4b25] hover:text-white"
+                >
+                  <svg
+                    viewBox="0 0 16 16"
+                    fill="currentColor"
+                    className="h-4 w-4"
+                    aria-hidden="true"
+                  >
+                    <path d="M8 0a8.2 8.2 0 0 1 .701.031C9.444.095 9.99.645 10.16 1.29l.288 1.107c.018.066.079.158.212.224.231.114.454.243.668.386.123.082.233.09.299.071l1.103-.303c.644-.176 1.392.021 1.82.63.27.385.506.792.704 1.218.315.675.111 1.422-.364 1.891l-.814.806c-.049.048-.098.147-.088.294.016.257.016.515 0 .772-.01.147.038.246.088.294l.814.806c.475.469.679 1.216.364 1.891a7.977 7.977 0 0 1-.704 1.217c-.428.61-1.176.807-1.82.63l-1.102-.302c-.067-.019-.177-.011-.3.071a5.909 5.909 0 0 1-.668.386c-.133.066-.194.158-.211.224l-.29 1.106c-.168.646-.715 1.196-1.458 1.26a8.006 8.006 0 0 1-1.402 0c-.743-.064-1.289-.614-1.458-1.26l-.289-1.106c-.018-.066-.079-.158-.212-.224a5.738 5.738 0 0 1-.668-.386c-.123-.082-.233-.09-.299-.071l-1.103.303c-.644.176-1.392-.021-1.82-.63a8.12 8.12 0 0 1-.704-1.218c-.315-.675-.111-1.422.363-1.891l.815-.806c.05-.048.098-.147.088-.294a6.214 6.214 0 0 1 0-.772c.01-.147-.038-.246-.088-.294l-.815-.806C.635 6.045.431 5.298.746 4.623a7.92 7.92 0 0 1 .704-1.217c.428-.61 1.176-.807 1.82-.63l1.102.302c.067.019.177.011.3-.071.214-.143.437-.272.668-.386.133-.066.194-.158.211-.224l.29-1.106C6.009.645 6.556.095 7.299.03 7.53.01 7.764 0 8 0Zm-.571 1.525c-.036.003-.108.036-.137.146l-.289 1.105c-.147.561-.549.967-.998 1.189-.173.086-.34.183-.5.29-.417.278-.97.423-1.529.27l-1.103-.303c-.109-.03-.175.016-.195.045-.219.31-.412.641-.573.99-.014.031-.021.11.059.19l.815.806c.411.406.562.957.53 1.456a4.709 4.709 0 0 0 0 .582c.032.499-.119 1.05-.53 1.456l-.815.806c-.081.08-.073.159-.059.19.162.349.354.68.573.989.02.03.085.076.195.046l1.102-.303c.56-.153 1.113-.008 1.53.27.161.107.328.204.501.29.447.222.85.629.997 1.189l.289 1.105c.029.109.101.143.137.146a6.6 6.6 0 0 0 1.142 0c.036-.003.108-.036.137-.146l.289-1.105c.147-.561.549-.967.998-1.189.173-.086.34-.183.5-.29.417-.278.97-.423 1.529-.27l1.103.303c.109.029.175-.016.195-.045.219-.31.411-.641.573-.99.014-.031.021-.11-.059-.19l-.815-.806c-.411-.406-.562-.957-.53-1.456a4.709 4.709 0 0 0 0-.582c-.032-.499.119-1.05.53-1.456l.815-.806c.081-.08.073-.159.059-.19a6.464 6.464 0 0 0-.573-.989c-.02-.03-.085-.076-.195-.046l-1.102.303c-.56.153-1.113.008-1.53-.27a4.44 4.44 0 0 0-.501-.29c-.447-.222-.85-.629-.997-1.189l-.289-1.105c-.029-.11-.101-.143-.137-.146a6.6 6.6 0 0 0-1.142 0ZM11 8a3 3 0 1 1-6 0 3 3 0 0 1 6 0ZM9.5 8a1.5 1.5 0 1 0-3.001.001A1.5 1.5 0 0 0 9.5 8Z" />
+                  </svg>
+                </Link>
 
                 {/* Acceso al perfil en la esquina superior */}
                 <Link
@@ -285,7 +334,6 @@ export default function Layout() {
 
       {/* Cuerpo principal: Barra lateral verde (ocultable) + Área de contenido */}
       <div className="relative flex flex-1">
-        {/* Backdrop móvil */}
         {mobileMenuOpen && (
           <div
             onClick={closeMobileMenu}
@@ -294,7 +342,6 @@ export default function Layout() {
           />
         )}
 
-        {/* Barra lateral verde institucional (oculta en desktop si sidebarOpen === false) */}
         {sidebarOpen && (
           <aside
             aria-label="Navegación principal"
@@ -302,7 +349,6 @@ export default function Layout() {
               mobileMenuOpen ? "translate-x-0" : "-translate-x-full"
             }`}
           >
-            {/* Cabecera del sidebar */}
             <div className="flex items-center justify-between border-b border-[#447232]/40 px-4 py-3.5">
               <div className="flex items-center gap-2.5">
                 <img
@@ -329,14 +375,15 @@ export default function Layout() {
               </button>
             </div>
 
-            {/* Enlaces de secciones */}
             <nav className="flex flex-1 flex-col gap-1 p-3">
               <p className="px-2.5 pb-1.5 text-[11px] font-semibold uppercase tracking-wider text-slate-300/80">
                 Secciones
               </p>
-              {NAV_LINKS.filter(
-                (item) => !item.onlyCIT || esPersonalCIT(user?.rol),
-              ).map(({ to, label, end, icon, roleTag }) => {
+              {NAV_LINKS.filter((item) => {
+                if (item.onlyCIT && !esPersonalCIT(user?.rol)) return false;
+                if (item.requireAuth && !user) return false;
+                return true;
+              }).map(({ to, label, end, icon, roleTag }) => {
                 const tag = user ? roleTag?.(user.rol) : null;
                 return (
                   <NavLink
@@ -366,7 +413,6 @@ export default function Layout() {
               })}
             </nav>
 
-            {/* Pie del sidebar: resumen de sesión o acciones anónimas */}
             <div className="mt-auto flex flex-col gap-3 border-t border-[#447232]/40 bg-[#091f0b]/70 p-3.5">
               {user ? (
                 <>
@@ -419,7 +465,6 @@ export default function Layout() {
           </aside>
         )}
 
-        {/* Contenedor principal de la vista actual */}
         <main className="mx-auto w-full max-w-6xl flex-1 px-4 py-6 sm:px-6 lg:px-8">
           <Outlet />
         </main>

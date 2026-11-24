@@ -1,10 +1,13 @@
 import { render, screen } from "@testing-library/react";
 import { MemoryRouter } from "react-router-dom";
-import { describe, expect, it } from "vitest";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import { AuthContext, type AuthContextValue } from "../../context/auth-context";
-import type { UsuarioAutenticado } from "../../domain/entidades";
+import type { ResumenMetricas, UsuarioAutenticado } from "../../domain/entidades";
 import Home from "../../pages/Home";
+import * as metricasService from "../../services/metricasService";
+
+vi.mock("../../services/metricasService");
 
 const crearContexto = (user: UsuarioAutenticado | null): AuthContextValue => ({
   user,
@@ -17,8 +20,34 @@ const crearContexto = (user: UsuarioAutenticado | null): AuthContextValue => ({
   refresh: async () => {},
 });
 
-describe("pages/Home (Spec-003 Fase A)", () => {
-  it("muestra bienvenida general y accesos de autenticación cuando no hay sesión iniciada", () => {
+const metricasRealesMock: ResumenMetricas = {
+  servicios_activos: 14,
+  solicitudes_totales: 28,
+  solicitudes_finalizadas: 19,
+  resultados_entregados: 17,
+  propuestas_recibidas: 9,
+  propuestas_convertidas: 4,
+  capacitaciones_activas: 5,
+  inscripciones_capacitaciones: 42,
+  calificacion_promedio: 4.8,
+  total_resenas: 15,
+  distribucion_solicitudes: {
+    pendientes: 3,
+    en_curso: 6,
+    finalizadas: 19,
+    canceladas: 0,
+  },
+};
+
+describe("pages/Home (Spec-003 Nivel 3 — Limpieza de Inicio + Panel Visual de Métricas)", () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+    vi.mocked(metricasService.getResumenMetricas).mockResolvedValue(
+      metricasRealesMock,
+    );
+  });
+
+  it("muestra bienvenida general y accesos de autenticación cuando no hay sesión iniciada", async () => {
     render(
       <AuthContext.Provider value={crearContexto(null)}>
         <MemoryRouter>
@@ -38,12 +67,12 @@ describe("pages/Home (Spec-003 Fase A)", () => {
       "href",
       "/register",
     );
-    expect(screen.getByText(/Sobre el CIT Formosa/i)).toBeInTheDocument();
+    expect(await screen.findByText(/Sobre el CIT Formosa/i)).toBeInTheDocument();
     expect(screen.getByText(/Sobre la Plataforma CITio/i)).toBeInTheDocument();
   });
 
-  it("muestra bienvenida personalizada con el nombre del usuario autenticado sin contadores numéricos ni KPIs ficticios", () => {
-    const { container } = render(
+  it("muestra bienvenida personalizada y verifica que las secciones eliminadas de servicios destacados y capacitaciones/actividades ya no estén en Inicio", async () => {
+    render(
       <AuthContext.Provider
         value={crearContexto({
           id: 7,
@@ -62,25 +91,22 @@ describe("pages/Home (Spec-003 Fase A)", () => {
     );
 
     expect(
-      screen.getByRole("heading", { name: /Hola, Martín Rodríguez/i }),
+      await screen.findByRole("heading", { name: /Hola, Martín Rodríguez/i }),
     ).toBeInTheDocument();
 
-    // Verificación de T006/T007 y RF-A03: no deben existir contadores numéricos estáticos ni porcentaje
-    expect(screen.queryByText(/\+35/i)).not.toBeInTheDocument();
-    expect(screen.queryByText(/100%/i)).not.toBeInTheDocument();
-    expect(screen.queryByText(/4 Áreas Estratégicas/i)).not.toBeInTheDocument();
-    expect(container.querySelector(".statsStrip")).toBeNull();
-
-    // No deben renderizarse bloques dinámicos no solicitados
+    // Secciones eliminadas por pedido expreso del Nivel 3
     expect(
-      screen.queryByText(/Servicios destacados disponibles/i),
+      screen.queryByText(/Servicios Tecnológicos y Diagnósticos del CIT/i),
     ).not.toBeInTheDocument();
     expect(
-      screen.queryByText(/Últimas publicaciones técnicas/i),
+      screen.queryByText(/Capacitaciones, Formación y Actividades/i),
+    ).not.toBeInTheDocument();
+    expect(
+      screen.queryByText(/Formación de Recursos Humanos Científicos/i),
     ).not.toBeInTheDocument();
   });
 
-  it("presenta las secciones institucionales de servicios, capacitaciones y accesos rápidos", () => {
+  it("renderiza el Panel Visual de Métricas con indicadores reales del CIT y los accesos rápidos actualizados", async () => {
     render(
       <AuthContext.Provider value={crearContexto(null)}>
         <MemoryRouter>
@@ -89,37 +115,36 @@ describe("pages/Home (Spec-003 Fase A)", () => {
       </AuthContext.Provider>,
     );
 
-    // Áreas representativas de Servicios.md
-    expect(screen.getByText("Bioquímica Clínica")).toBeInTheDocument();
-    expect(screen.getByText("Parasitología y Ectoparásitos")).toBeInTheDocument();
-    expect(screen.getByText("Salud Equina")).toBeInTheDocument();
-    expect(screen.getByText("Enfermedades Venéreas y Serología")).toBeInTheDocument();
-
-    // Capacitaciones y actividades institucionales
     expect(
-      screen.getByText("Formación de Recursos Humanos Científicos"),
-    ).toBeInTheDocument();
-    expect(
-      screen.getByText("Jornadas de Vinculación y Transferencia Tecnológica"),
+      await screen.findByRole("heading", {
+        name: /Panel Visual de Métricas e Impacto/i,
+      }),
     ).toBeInTheDocument();
 
-    // Accesos directos a las secciones públicas/generales (Solicitudes es exclusivo CIT/Admin)
+    expect(screen.getByTestId("kpi-servicios-activos")).toHaveTextContent("14");
+    expect(screen.getByTestId("kpi-propuestas-convertidas")).toHaveTextContent(
+      "4",
+    );
+    expect(screen.getByTestId("kpi-resultados-entregados")).toHaveTextContent(
+      "17",
+    );
+    expect(
+      screen.getByTestId("kpi-inscripciones-capacitaciones"),
+    ).toHaveTextContent("42");
+    expect(screen.getByText("4.8 ★")).toBeInTheDocument();
+
+    // Accesos rápidos actualizados a Capacitaciones y Proponer
     expect(
       screen.getByRole("link", { name: /Catálogo de análisis clínicos/i }),
     ).toHaveAttribute("href", "/servicios");
     expect(
-      screen.queryByRole("link", { name: /Solicitudes/i }),
-    ).not.toBeInTheDocument();
+      screen.getByRole("link", { name: /Talleres técnicos, jornadas de campo/i }),
+    ).toHaveAttribute("href", "/capacitaciones");
     expect(
       screen.getByRole("link", { name: /Artículos técnicos sobre patologías/i }),
     ).toHaveAttribute("href", "/publicaciones");
-    expect(screen.getByRole("link", { name: /Propuestas/i })).toHaveAttribute(
-      "href",
-      "/propuestas",
-    );
-    expect(screen.getByRole("link", { name: /Mi Perfil/i })).toHaveAttribute(
-      "href",
-      "/perfil",
-    );
+    expect(
+      screen.getByRole("link", { name: /Proponer/i }),
+    ).toHaveAttribute("href", "/proponer");
   });
 });

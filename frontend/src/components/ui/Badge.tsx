@@ -35,7 +35,14 @@ export const badgeVariantPorEstado = (codigo?: string | null): BadgeVariant => {
   if (upper === "APROBADO" || upper === "ACEPTADA" || upper === "FINALIZADA") {
     return "success";
   }
-  if (upper === "RECHAZADO" || upper === "CANCELADO") return "danger";
+  if (
+    upper === "RECHAZADO" ||
+    upper === "RECHAZADA" ||
+    upper === "CANCELADO" ||
+    upper === "CANCELADA"
+  ) {
+    return "danger";
+  }
   return "neutral";
 };
 

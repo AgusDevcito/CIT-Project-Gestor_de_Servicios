@@ -24,6 +24,9 @@ export interface PropuestaDTO {
   cirRevisorId: number | null;
   citJustificacion: string | null;
   citFechaRevision: string | null;
+  beneficiario_nombre?: string | null;
+  beneficiario_dni_cuit?: string | null;
+  beneficiario_localidad?: string | null;
   createdAt: string;
   Solicitante?: UsuarioResumenDTO;
   Revisor?: UsuarioResumenDTO;
@@ -66,6 +69,9 @@ export interface Propuesta {
   cirRevisorId: number | null;
   citJustificacion: string | null;
   citFechaRevision: string | null;
+  beneficiario_nombre?: string | null;
+  beneficiario_dni_cuit?: string | null;
+  beneficiario_localidad?: string | null;
   createdAt: string;
   Solicitante?: Usuario;
   Revisor?: Usuario;
@@ -85,6 +91,9 @@ export interface CrearPropuestaInput {
   documento_url?: string;
   documento_nombre?: string;
   documentoFile?: File | null;
+  beneficiario_nombre?: string;
+  beneficiario_dni_cuit?: string;
+  beneficiario_localidad?: string;
 }
 
 export interface OpcionesServicioPropuestaInput {

@@ -15,6 +15,7 @@ export const DEFAULT_PREFERENCIAS_NOTIFICACION = {
     nuevos_servicios: true,
     actualizaciones_plataforma: true,
     actividad_usuario: true,
+    canal_whatsapp: true,
 } as const;
 
 export class PreferenciaNotificacion extends Model<
@@ -28,6 +29,7 @@ export class PreferenciaNotificacion extends Model<
     declare nuevos_servicios: CreationOptional<boolean>;
     declare actualizaciones_plataforma: CreationOptional<boolean>;
     declare actividad_usuario: CreationOptional<boolean>;
+    declare canal_whatsapp: CreationOptional<boolean>;
     declare createdAt: CreationOptional<Date>;
     declare updatedAt: CreationOptional<Date>;
 
@@ -65,6 +67,11 @@ PreferenciaNotificacion.init(
             type: DataTypes.BOOLEAN,
             allowNull: false,
             defaultValue: DEFAULT_PREFERENCIAS_NOTIFICACION.actividad_usuario,
+        },
+        canal_whatsapp: {
+            type: DataTypes.BOOLEAN,
+            allowNull: false,
+            defaultValue: DEFAULT_PREFERENCIAS_NOTIFICACION.canal_whatsapp,
         },
         createdAt: {
             type: DataTypes.DATE,

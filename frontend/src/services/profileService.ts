@@ -8,6 +8,8 @@ import type {
   ActividadPerfil,
   ActualizarPerfilInput,
   CambiarPasswordInput,
+  EliminarCuentaInput,
+  EstadoInscripcionCapacitacion,
   InscripcionCapacitacion,
   PerfilDTO,
 } from "../domain/perfil";
@@ -24,6 +26,10 @@ export const changePassword = async (
   payload: CambiarPasswordInput,
 ): Promise<{ msg: string }> => perfilRepository.cambiarPassword(payload);
 
+export const deleteOwnAccount = async (
+  payload: EliminarCuentaInput,
+): Promise<{ msg: string }> => perfilRepository.eliminarCuentaPropia(payload);
+
 export const getActividadPerfil = async (
   userId: number,
 ): Promise<ActividadPerfil> =>
@@ -37,3 +43,19 @@ export const enrollInCapacitacion = async (
   publicacionId: number,
 ): Promise<{ msg: string; data: InscripcionCapacitacion }> =>
   perfilRepository.inscribirEnCapacitacion(publicacionId);
+
+export const getInscriptosCapacitacion = async (
+  publicacionId: number,
+): Promise<InscripcionCapacitacion[]> =>
+  perfilRepository.listarInscriptosCapacitacion(publicacionId);
+
+export const updateEstadoInscripcionCapacitacion = async (
+  inscripcionId: number,
+  estado: EstadoInscripcionCapacitacion,
+  observaciones?: string | null,
+): Promise<{ msg: string; data: InscripcionCapacitacion }> =>
+  perfilRepository.actualizarEstadoInscripcionCapacitacion(
+    inscripcionId,
+    estado,
+    observaciones,
+  );

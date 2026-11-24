@@ -7,3 +7,4 @@ export * from "./Modal";
 export * from "./PageHeader";
 export * from "./SearchFilterBar";
 export * from "./Skeleton";
+export * from "./StatusTimeline";

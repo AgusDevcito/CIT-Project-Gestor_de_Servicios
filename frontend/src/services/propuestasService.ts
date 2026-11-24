@@ -56,6 +56,12 @@ export const dictaminarPropuesta = async (
     opcionesServicio,
   );
 
+/** Permite al autor (o personal CIT) cancelar una propuesta pendiente o en revisión. */
+export const cancelarPropuesta = async (
+  id: number,
+): Promise<{ msg: string; data?: Propuesta }> =>
+  propuestasRepository.cancelarPropuesta(id);
+
 /** Permite a personal CIT o al autor eliminar una propuesta. */
 export const deletePropuesta = async (id: number): Promise<void> => {
   await propuestasRepository.eliminarPropuesta(id);

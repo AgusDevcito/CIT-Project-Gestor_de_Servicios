@@ -36,6 +36,9 @@ export const mapearPropuesta = (dto: PropuestaDTO): Propuesta => ({
   cirRevisorId: dto.cirRevisorId ?? null,
   citJustificacion: dto.citJustificacion ?? null,
   citFechaRevision: dto.citFechaRevision ?? null,
+  beneficiario_nombre: dto.beneficiario_nombre ?? null,
+  beneficiario_dni_cuit: dto.beneficiario_dni_cuit ?? null,
+  beneficiario_localidad: dto.beneficiario_localidad ?? null,
   createdAt: dto.createdAt,
   Solicitante: dto.Solicitante ? mapearUsuarioResumen(dto.Solicitante) : undefined,
   Revisor: dto.Revisor ? mapearUsuarioResumen(dto.Revisor) : undefined,
@@ -76,6 +79,15 @@ export const crearPropuesta = async (
     }
     if (input.bienes_recursos) {
       formData.append("bienes_recursos", input.bienes_recursos);
+    }
+    if (input.beneficiario_nombre) {
+      formData.append("beneficiario_nombre", input.beneficiario_nombre);
+    }
+    if (input.beneficiario_dni_cuit) {
+      formData.append("beneficiario_dni_cuit", input.beneficiario_dni_cuit);
+    }
+    if (input.beneficiario_localidad) {
+      formData.append("beneficiario_localidad", input.beneficiario_localidad);
     }
     formData.append("documento", input.documentoFile);
 
@@ -125,6 +137,18 @@ export const dictaminarPropuesta = async (
       justificacion,
       ...opcionesServicio,
     },
+  );
+  return {
+    msg: data.msg,
+    data: data.data ? mapearPropuesta(data.data) : undefined,
+  };
+};
+
+export const cancelarPropuesta = async (
+  id: number,
+): Promise<{ msg: string; data?: Propuesta }> => {
+  const { data } = await http.patch<PropuestaMutationResponseDTO>(
+    `/propuestas/${id}/cancelar`,
   );
   return {
     msg: data.msg,

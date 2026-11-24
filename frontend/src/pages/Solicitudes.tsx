@@ -6,14 +6,24 @@ import { Badge, badgeVariantPorEstado } from "../components/ui/Badge";
 import { Button } from "../components/ui/Button";
 import { Card } from "../components/ui/Card";
 import { EmptyState } from "../components/ui/EmptyState";
+import { Modal } from "../components/ui/Modal";
 import { PageHeader } from "../components/ui/PageHeader";
 import { SearchFilterBar } from "../components/ui/SearchFilterBar";
 import { Skeleton } from "../components/ui/Skeleton";
+import {
+  StatusTimeline,
+  buildPropuestaTimelineSteps,
+  buildSolicitudTimelineSteps,
+} from "../components/ui/StatusTimeline";
 import { useAuth } from "../context/useAuth";
-import type { Propuesta, Sector } from "../domain/entidades";
+import type { Propuesta, Sector, Solicitud } from "../domain/entidades";
 import { getApiError } from "../domain/errors";
 import { esPersonalCIT } from "../domain/roles";
-import { formatearFecha, obtenerNombreVisible } from "../lib/formatters";
+import {
+  formatearFecha,
+  formatearPrecio,
+  obtenerNombreVisible,
+} from "../lib/formatters";
 import { getSectores } from "../services/catalogosService";
 import {
   deletePropuesta,
@@ -21,11 +31,20 @@ import {
   getPropuestas,
   tomarPropuestaEnRevision,
 } from "../services/propuestasService";
+import {
+  deleteSolicitud,
+  getSolicitudes,
+  subirResultadoSolicitud,
+  updateSolicitudEstado,
+} from "../services/solicitudesService";
 
+type TabBandejaCIT = "propuestas" | "servicios";
 type OrdenListado = "recientes" | "antiguas" | "titulo";
 type DecisionRevision = "ACEPTADA" | "RECHAZADO";
 
 const MINIMO_JUSTIFICACION = 15;
+const MAX_RESULTADO_BYTES = 5 * 1024 * 1024;
+const EXTENSIONES_RESULTADO = [".pdf", ".png", ".jpg", ".jpeg"];
 
 const obtenerNombreOrganismo = (propuesta: Propuesta): string => {
   if (propuesta.nombre_organismo?.trim()) {
@@ -64,7 +83,11 @@ export default function Solicitudes() {
   const { user } = useAuth();
   const isCIT = esPersonalCIT(user?.rol);
 
+  const [tabActiva, setTabActiva] = useState<TabBandejaCIT>("propuestas");
   const [propuestas, setPropuestas] = useState<Propuesta[]>([]);
+  const [solicitudesServicio, setSolicitudesServicio] = useState<Solicitud[]>(
+    [],
+  );
   const [sectores, setSectores] = useState<Sector[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
@@ -89,6 +112,19 @@ export default function Solicitudes() {
   const [procesandoDictamen, setProcesandoDictamen] = useState(false);
   const [deletingId, setDeletingId] = useState<number | null>(null);
 
+  // Gestión de Solicitudes de Servicios y Entrega Digital de Resultados (Nivel 2)
+  const [updatingSolicitudId, setUpdatingSolicitudId] = useState<number | null>(
+    null,
+  );
+  const [deletingSolicitudId, setDeletingSolicitudId] = useState<number | null>(
+    null,
+  );
+  const [solicitudResultadoModal, setSolicitudResultadoModal] =
+    useState<Solicitud | null>(null);
+  const [archivoResultado, setArchivoResultado] = useState<File | null>(null);
+  const [observacionesResultado, setObservacionesResultado] = useState("");
+  const [subiendoResultado, setSubiendoResultado] = useState(false);
+
   const loadData = useCallback(async () => {
     if (!isCIT) {
       setLoading(false);
@@ -98,12 +134,14 @@ export default function Solicitudes() {
     setLoading(true);
     setError("");
     try {
-      const [propuestasData, sectoresData] = await Promise.all([
+      const [propuestasData, sectoresData, solicitudesData] = await Promise.all([
         getPropuestas(),
         getSectores(),
+        getSolicitudes().catch(() => [] as Solicitud[]),
       ]);
       setPropuestas(propuestasData);
       setSectores(sectoresData);
+      setSolicitudesServicio(solicitudesData);
     } catch (err) {
       setError(
         getApiError(err, "No se pudieron cargar las propuestas recibidas."),
@@ -292,6 +330,145 @@ export default function Solicitudes() {
     }
   };
 
+  const handleCambiarEstadoSolicitud = async (
+    solicitud: Solicitud,
+    nuevoEstado: string,
+  ) => {
+    setError("");
+    setFeedback("");
+    setUpdatingSolicitudId(solicitud.id);
+    try {
+      const actualizada = await updateSolicitudEstado(
+        solicitud.id,
+        nuevoEstado,
+      );
+      setSolicitudesServicio((prev) =>
+        prev.map((item) => (item.id === solicitud.id ? actualizada : item)),
+      );
+      setFeedback(
+        `Estado de la solicitud #${solicitud.id} actualizado a ${
+          actualizada.Estado?.nombre || nuevoEstado
+        }.`,
+      );
+    } catch (err) {
+      setError(
+        getApiError(err, "No se pudo actualizar el estado de la solicitud."),
+      );
+    } finally {
+      setUpdatingSolicitudId(null);
+    }
+  };
+
+  const abrirModalResultado = (solicitud: Solicitud) => {
+    setError("");
+    setFeedback("");
+    setArchivoResultado(null);
+    setObservacionesResultado(
+      solicitud.resultado_observaciones || solicitud.observaciones_cit || "",
+    );
+    setSolicitudResultadoModal(solicitud);
+  };
+
+  const handleArchivoResultadoChange = (
+    e: React.ChangeEvent<HTMLInputElement>,
+  ) => {
+    setError("");
+    const file = e.target.files?.[0] ?? null;
+    if (!file) {
+      setArchivoResultado(null);
+      return;
+    }
+
+    const lower = file.name.toLowerCase();
+    const extOk = EXTENSIONES_RESULTADO.some((ext) => lower.endsWith(ext));
+    if (!extOk) {
+      setError(
+        "Formato no válido. Solo se permiten informes en PDF o imágenes PNG/JPG.",
+      );
+      e.target.value = "";
+      setArchivoResultado(null);
+      return;
+    }
+
+    if (file.size <= 0 || file.size > MAX_RESULTADO_BYTES) {
+      setError("El archivo de resultado no puede superar los 5 MB.");
+      e.target.value = "";
+      setArchivoResultado(null);
+      return;
+    }
+
+    setArchivoResultado(file);
+  };
+
+  const handleSubirResultado = async (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    if (!solicitudResultadoModal) return;
+
+    if (!archivoResultado) {
+      setError(
+        "Seleccioná un archivo PDF o imagen con el informe de resultados.",
+      );
+      return;
+    }
+
+    setError("");
+    setFeedback("");
+    setSubiendoResultado(true);
+    try {
+      const res = await subirResultadoSolicitud(solicitudResultadoModal.id, {
+        archivo: archivoResultado,
+        observaciones: observacionesResultado.trim(),
+        finalizar: true,
+      });
+
+      setSolicitudesServicio((prev) =>
+        prev.map((item) =>
+          item.id === solicitudResultadoModal.id ? res.data : item,
+        ),
+      );
+      setSolicitudResultadoModal(null);
+      setArchivoResultado(null);
+      setObservacionesResultado("");
+      setFeedback(
+        res.msg ||
+          "Resultado técnico adjuntado y entregado digitalmente al productor.",
+      );
+    } catch (err) {
+      setError(
+        getApiError(err, "No se pudo adjuntar el resultado a la solicitud."),
+      );
+    } finally {
+      setSubiendoResultado(false);
+    }
+  };
+
+  const handleEliminarSolicitudCIT = async (solicitud: Solicitud) => {
+    const nombre =
+      solicitud.Servicio?.servicio_nombre || `Solicitud #${solicitud.id}`;
+    if (
+      !window.confirm(
+        `¿Estás seguro de que deseás eliminar la solicitud "${nombre}"?`,
+      )
+    ) {
+      return;
+    }
+
+    setError("");
+    setFeedback("");
+    setDeletingSolicitudId(solicitud.id);
+    try {
+      await deleteSolicitud(solicitud.id);
+      setSolicitudesServicio((prev) =>
+        prev.filter((item) => item.id !== solicitud.id),
+      );
+      setFeedback(`La solicitud "${nombre}" fue eliminada.`);
+    } catch (err) {
+      setError(getApiError(err, "No se pudo eliminar la solicitud."));
+    } finally {
+      setDeletingSolicitudId(null);
+    }
+  };
+
   if (!isCIT) {
     return (
       <Alert variant="error" title="Acceso restringido">
@@ -321,6 +498,42 @@ export default function Solicitudes() {
         </Alert>
       )}
 
+      {/* Pestañas de bandeja CIT: Propuestas de Organizaciones vs. Solicitudes de Servicios */}
+      <div
+        role="tablist"
+        aria-label="Secciones de bandeja CIT"
+        className="flex flex-wrap gap-2 border-b border-[#21262d] pb-3"
+      >
+        <button
+          type="button"
+          role="tab"
+          aria-selected={tabActiva === "propuestas"}
+          onClick={() => setTabActiva("propuestas")}
+          className={`rounded-lg px-3.5 py-1.5 text-xs font-semibold transition-colors ${
+            tabActiva === "propuestas"
+              ? "bg-[#238636] text-white"
+              : "border border-[#30363d] bg-[#161b22] text-[#8b949e] hover:text-white"
+          }`}
+        >
+          Propuestas de Organizaciones ({propuestas.length})
+        </button>
+        <button
+          type="button"
+          role="tab"
+          aria-selected={tabActiva === "servicios"}
+          onClick={() => setTabActiva("servicios")}
+          className={`rounded-lg px-3.5 py-1.5 text-xs font-semibold transition-colors ${
+            tabActiva === "servicios"
+              ? "bg-[#238636] text-white"
+              : "border border-[#30363d] bg-[#161b22] text-[#8b949e] hover:text-white"
+          }`}
+        >
+          Solicitudes de Servicios y Resultados ({solicitudesServicio.length})
+        </button>
+      </div>
+
+      {tabActiva === "propuestas" ? (
+        <>
       {/* Barra de búsqueda, filtros por estado/área y ordenamiento */}
       <SearchFilterBar
         searchValue={searchQuery}
@@ -506,6 +719,11 @@ export default function Solicitudes() {
                       {formatearFecha(propuestaSeleccionada.createdAt, "long")}
                     </p>
                   </div>
+
+                  <StatusTimeline
+                    ariaLabel={`Línea de seguimiento de ${propuestaSeleccionada.titulo}`}
+                    steps={buildPropuestaTimelineSteps(propuestaSeleccionada)}
+                  />
 
                   <div className="grid gap-3 rounded-lg border border-[#30363d] bg-[#0d1117] p-3.5 sm:grid-cols-2">
                     <div>
@@ -844,6 +1062,232 @@ export default function Solicitudes() {
           )}
         </div>
       )}
+        </>
+      ) : (
+        <section
+          className="space-y-4"
+          aria-label="Gestión de Solicitudes de Servicios y Entrega de Resultados"
+        >
+          {loading ? (
+            <Card>
+              <Skeleton lines={4} />
+            </Card>
+          ) : solicitudesServicio.length === 0 ? (
+            <EmptyState
+              title="No hay solicitudes de servicios registradas"
+              description="Las contrataciones de ensayos, diagnósticos y servicios solicitadas por productores aparecerán aquí para su seguimiento y entrega de informes."
+            />
+          ) : (
+            <div className="grid gap-4">
+              {solicitudesServicio.map((sol) => {
+                const codigoEstado = (
+                  sol.Estado?.codigo ?? "PENDIENTE"
+                ).toUpperCase();
+                const nombreServicio =
+                  sol.Servicio?.servicio_nombre ||
+                  `Servicio #${sol.servicio_id}`;
+                const nombreSolicitante = sol.Solicitante
+                  ? obtenerNombreVisible({
+                      nombre: sol.Solicitante.Profile?.first_name,
+                      apellido: sol.Solicitante.Profile?.last_name,
+                      username: sol.Solicitante.username,
+                    })
+                  : `Usuario #${sol.user_id}`;
+
+                return (
+                  <Card key={sol.id} className="space-y-4">
+                    <div className="flex flex-wrap items-start justify-between gap-3">
+                      <div className="space-y-1">
+                        <div className="flex flex-wrap items-center gap-2">
+                          <Badge variant="info">
+                            {sol.Servicio?.Sector?.nombre || "General"}
+                          </Badge>
+                          <span className="text-xs font-medium text-[#e6edf3]">
+                            Solicitante: {nombreSolicitante}
+                            {sol.Solicitante?.email
+                              ? ` (${sol.Solicitante.email})`
+                              : ""}
+                          </span>
+                          <span className="text-xs text-[#8b949e]">
+                            · Solicitud #{sol.id} ·{" "}
+                            {formatearFecha(
+                              sol.fecha_solicitud || sol.createdAt,
+                            )}
+                          </span>
+                          {sol.Servicio?.servicio_precio !== undefined && (
+                            <span className="text-xs font-medium text-[#3fb950]">
+                              · {formatearPrecio(sol.Servicio.servicio_precio)}
+                            </span>
+                          )}
+                        </div>
+                        <h3 className="text-lg font-bold text-[#e6edf3]">
+                          {nombreServicio}
+                        </h3>
+                      </div>
+
+                      <div className="flex flex-wrap items-center gap-2">
+                        <Badge variant={badgeVariantPorEstado(codigoEstado)}>
+                          {sol.Estado?.nombre ?? codigoEstado}
+                        </Badge>
+
+                        <select
+                          aria-label={`Cambiar estado de solicitud #${sol.id}`}
+                          value={codigoEstado}
+                          disabled={updatingSolicitudId === sol.id}
+                          onChange={(e) =>
+                            void handleCambiarEstadoSolicitud(
+                              sol,
+                              e.target.value,
+                            )
+                          }
+                          className="input-base py-1 text-xs"
+                        >
+                          <option value="PENDIENTE">Pendiente</option>
+                          <option value="EN_REVISION">En revisión</option>
+                          <option value="ACEPTADA">Aceptada</option>
+                          <option value="FINALIZADA">Finalizada</option>
+                          <option value="RECHAZADO">Rechazada</option>
+                        </select>
+
+                        <Button
+                          type="button"
+                          size="sm"
+                          variant="primary"
+                          onClick={() => abrirModalResultado(sol)}
+                        >
+                          {sol.resultado_archivo_url
+                            ? "Actualizar Resultado (PDF)"
+                            : "Entregar Resultado (PDF)"}
+                        </Button>
+
+                        <Button
+                          type="button"
+                          size="sm"
+                          variant="danger"
+                          loading={deletingSolicitudId === sol.id}
+                          onClick={() => void handleEliminarSolicitudCIT(sol)}
+                          aria-label={`Eliminar solicitud ${nombreServicio}`}
+                        >
+                          Eliminar
+                        </Button>
+                      </div>
+                    </div>
+
+                    <StatusTimeline
+                      ariaLabel={`Progreso de solicitud #${sol.id}`}
+                      steps={buildSolicitudTimelineSteps(sol)}
+                    />
+
+                    {sol.resultado_archivo_url && (
+                      <div className="flex flex-wrap items-center justify-between gap-2 rounded-lg border border-[#238636]/50 bg-[#0d2e0f]/35 p-3 text-xs">
+                        <div>
+                          <p className="font-semibold text-[#3fb950]">
+                            ✓ Informe técnico entregado:{" "}
+                            {sol.resultado_nombre || "Resultado.pdf"}
+                          </p>
+                          {(sol.resultado_observaciones ||
+                            sol.observaciones_cit) && (
+                            <p className="mt-0.5 text-[#8b949e]">
+                              {sol.resultado_observaciones ||
+                                sol.observaciones_cit}
+                            </p>
+                          )}
+                        </div>
+                        <a
+                          href={sol.resultado_archivo_url}
+                          target="_blank"
+                          rel="noreferrer"
+                          className="font-semibold text-[#58a6ff] hover:underline"
+                        >
+                          Ver informe entregado ↗
+                        </a>
+                      </div>
+                    )}
+                  </Card>
+                );
+              })}
+            </div>
+          )}
+        </section>
+      )}
+
+      {/* Modal para entregar o actualizar el Resultado Oficial (PDF/imagen) */}
+      <Modal
+        open={Boolean(solicitudResultadoModal)}
+        onClose={() => setSolicitudResultadoModal(null)}
+        title={
+          solicitudResultadoModal
+            ? `Entregar Resultado Oficial — Solicitud #${solicitudResultadoModal.id}`
+            : "Entregar Resultado Oficial"
+        }
+      >
+        {solicitudResultadoModal && (
+          <form onSubmit={handleSubirResultado} className="space-y-4">
+            <div className="rounded-lg border border-[#21262d] bg-[#0d1117] p-3 text-xs">
+              <p className="font-semibold text-[#e6edf3]">
+                {solicitudResultadoModal.Servicio?.servicio_nombre ||
+                  `Servicio #${solicitudResultadoModal.servicio_id}`}
+              </p>
+              <p className="mt-0.5 text-[#8b949e]">
+                Al adjuntar el informe técnico, la solicitud pasará a estado{" "}
+                <strong className="text-[#3fb950]">Finalizada</strong> y el productor podrá descargarlo desde{" "}
+                <strong>Mis Servicios</strong>.
+              </p>
+            </div>
+
+            <div>
+              <label
+                htmlFor="input-archivo-resultado"
+                className="mb-1.5 block text-xs font-medium text-[#e6edf3]"
+              >
+                Informe o certificado oficial (PDF, PNG o JPG — máx. 5 MB) *
+              </label>
+              <input
+                id="input-archivo-resultado"
+                type="file"
+                accept=".pdf,.png,.jpg,.jpeg,application/pdf,image/png,image/jpeg"
+                onChange={handleArchivoResultadoChange}
+                className="block w-full text-xs text-[#8b949e] file:mr-4 file:rounded-md file:border-0 file:bg-[#21262d] file:px-3 file:py-1.5 file:text-xs file:font-medium file:text-[#e6edf3] hover:file:bg-[#30363d]"
+              />
+              {archivoResultado && (
+                <p className="mt-1 text-xs text-[#3fb950]">
+                  Archivo seleccionado: {archivoResultado.name}
+                </p>
+              )}
+            </div>
+
+            <div>
+              <label
+                htmlFor="input-observaciones-resultado"
+                className="mb-1.5 block text-xs font-medium text-[#e6edf3]"
+              >
+                Conclusiones u observaciones técnicas para el productor
+              </label>
+              <textarea
+                id="input-observaciones-resultado"
+                rows={3}
+                placeholder="Ej.: Análisis NIRS finalizado. Se adjunta certificado con valores de proteína bruta y digestibilidad…"
+                value={observacionesResultado}
+                onChange={(e) => setObservacionesResultado(e.target.value)}
+                className="input-base"
+              />
+            </div>
+
+            <div className="flex justify-end gap-2 pt-2">
+              <Button
+                type="button"
+                variant="secondary"
+                onClick={() => setSolicitudResultadoModal(null)}
+              >
+                Cancelar
+              </Button>
+              <Button type="submit" loading={subiendoResultado}>
+                Confirmar y entregar resultado
+              </Button>
+            </div>
+          </form>
+        )}
+      </Modal>
     </div>
   );
 }
