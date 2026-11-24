@@ -12,6 +12,7 @@ import {
   PageHeader,
   Skeleton,
 } from "../components/ui";
+import { LinkButton } from "../components/ui/LinkButton";
 import { useAuth } from "../context/useAuth";
 import { getApiError } from "../domain/errors";
 import type { NotificacionItem, TipoNotificacion } from "../domain/entidades";
@@ -194,6 +195,7 @@ export default function Notificaciones() {
         title="Centro de Notificaciones"
         subtitle="Avisos sobre noticias y publicaciones técnicas, estado de tus propuestas, nuevos servicios del catálogo, resultados digitales y novedades de CITio."
         count={!loading ? unreadCount : undefined}
+        countLabel="No leídas"
         actions={
           <div className="flex flex-wrap items-center gap-2">
             {unreadCount > 0 && (
@@ -207,12 +209,9 @@ export default function Notificaciones() {
                 Marcar todas como leídas
               </Button>
             )}
-            <Link
-              to="/ajustes/notificaciones"
-              className="inline-flex items-center rounded-md border border-[#30363d] bg-[#21262d] px-3 py-1.5 text-xs font-medium text-[#e6edf3] transition-colors hover:bg-[#30363d]"
-            >
+            <LinkButton to="/ajustes/notificaciones" variant="secondary" size="sm">
               Configurar avisos y WhatsApp
-            </Link>
+            </LinkButton>
             {isCIT && (
               <Button
                 type="button"
@@ -240,15 +239,16 @@ export default function Notificaciones() {
       )}
 
       {/* Barra de filtros */}
-      <div className="flex flex-wrap items-center justify-between gap-3 border-b border-[#21262d] pb-3">
+      <div className="flex flex-wrap items-center justify-between gap-3 border-b border-gh-elevated pb-3">
         <div className="flex items-center gap-2">
           <button
             type="button"
             onClick={() => setSoloNoLeidas(false)}
+            aria-pressed={!soloNoLeidas}
             className={`rounded-lg px-3 py-1.5 text-xs font-semibold transition-colors ${
               !soloNoLeidas
-                ? "bg-[#238636] text-white"
-                : "border border-[#30363d] bg-[#161b22] text-[#8b949e] hover:text-white"
+                ? "bg-cit-accent text-white"
+                : "border border-gh-border bg-gh-surface text-gh-muted hover:text-white"
             }`}
           >
             Todas ({notificaciones.length})
@@ -256,10 +256,11 @@ export default function Notificaciones() {
           <button
             type="button"
             onClick={() => setSoloNoLeidas(true)}
+            aria-pressed={soloNoLeidas}
             className={`rounded-lg px-3 py-1.5 text-xs font-semibold transition-colors ${
               soloNoLeidas
-                ? "bg-[#238636] text-white"
-                : "border border-[#30363d] bg-[#161b22] text-[#8b949e] hover:text-white"
+                ? "bg-cit-accent text-white"
+                : "border border-gh-border bg-gh-surface text-gh-muted hover:text-white"
             }`}
           >
             No leídas ({unreadCount})
@@ -299,12 +300,9 @@ export default function Notificaciones() {
           }
           description="Te avisaremos aquí (y por WhatsApp o correo según tus preferencias) cuando haya novedades en tus propuestas, servicios o publicaciones del CIT."
           action={
-            <Link
-              to="/ajustes/notificaciones"
-              className="inline-flex items-center rounded-md bg-[#238636] px-3.5 py-2 text-xs font-semibold text-white hover:bg-[#2ea043]"
-            >
+            <LinkButton to="/ajustes/notificaciones">
               Revisar preferencias de avisos
-            </Link>
+            </LinkButton>
           }
         />
       ) : (
@@ -320,20 +318,21 @@ export default function Notificaciones() {
                 key={item.id}
                 className={`space-y-2.5 transition-colors ${
                   item.leida
-                    ? "border-[#21262d] opacity-85"
-                    : "border-[#238636]/60 bg-[#0d2e0f]/20"
+                    ? "border-gh-elevated opacity-85"
+                    : "border-cit-accent/60 bg-cit-forest/20"
                 }`}
               >
                 <div className="flex flex-wrap items-start justify-between gap-2">
                   <div className="flex flex-wrap items-center gap-2">
                     {!item.leida && (
                       <span
+                        role="img"
                         aria-label="No leída"
-                        className="h-2.5 w-2.5 rounded-full bg-[#3fb950]"
+                        className="h-2.5 w-2.5 rounded-full bg-cit-accent-emphasis"
                       />
                     )}
                     <Badge variant={meta.variant}>{meta.etiqueta}</Badge>
-                    <span className="text-xs text-[#8b949e]">
+                    <span className="text-xs text-gh-muted">
                       {formatearFecha(item.createdAt)}
                     </span>
                   </div>
@@ -345,7 +344,7 @@ export default function Notificaciones() {
                         onClick={() => {
                           if (!item.leida) void handleMarcarLeida(item);
                         }}
-                        className="text-xs font-semibold text-[#58a6ff] hover:underline"
+                        className="text-xs font-semibold text-status-info hover:underline"
                       >
                         Ver detalle →
                       </Link>
@@ -364,10 +363,10 @@ export default function Notificaciones() {
                   </div>
                 </div>
 
-                <h3 className="text-base font-semibold text-[#e6edf3]">
+                <h2 className="text-base font-semibold text-gh-text">
                   {item.titulo}
-                </h3>
-                <p className="text-sm leading-relaxed text-[#8b949e]">
+                </h2>
+                <p className="text-sm leading-relaxed text-gh-muted">
                   {item.mensaje}
                 </p>
               </Card>
@@ -386,7 +385,7 @@ export default function Notificaciones() {
           <div>
             <label
               htmlFor="anuncio-titulo"
-              className="mb-1.5 block text-xs font-medium text-[#e6edf3]"
+              className="mb-1.5 block text-xs font-medium text-gh-text"
             >
               Título del anuncio o update *
             </label>
@@ -404,7 +403,7 @@ export default function Notificaciones() {
           <div>
             <label
               htmlFor="anuncio-mensaje"
-              className="mb-1.5 block text-xs font-medium text-[#e6edf3]"
+              className="mb-1.5 block text-xs font-medium text-gh-text"
             >
               Mensaje para productores y usuarios *
             </label>
@@ -422,7 +421,7 @@ export default function Notificaciones() {
           <div>
             <label
               htmlFor="anuncio-enlace"
-              className="mb-1.5 block text-xs font-medium text-[#e6edf3]"
+              className="mb-1.5 block text-xs font-medium text-gh-text"
             >
               Enlace interno opcional
             </label>

@@ -17,17 +17,17 @@ export function Card({
 }: CardProps) {
   return (
     <div
-      className={`overflow-hidden rounded-lg border border-[#30363d] bg-[#161b22] text-[#e6edf3] ${className}`}
+      className={`overflow-hidden rounded-lg border border-gh-border bg-gh-surface text-gh-text ${className}`}
       {...rest}
     >
       {header && (
-        <div className="border-b border-[#30363d] bg-[#161b22] px-4 py-3">
+        <div className="border-b border-gh-border bg-gh-surface px-4 py-3">
           {header}
         </div>
       )}
       <div className={noPadding ? "" : "p-5"}>{children}</div>
       {footer && (
-        <div className="border-t border-[#30363d] bg-[#0d1117]/40 px-4 py-3">
+        <div className="border-t border-gh-border bg-gh-canvas/40 px-4 py-3">
           {footer}
         </div>
       )}

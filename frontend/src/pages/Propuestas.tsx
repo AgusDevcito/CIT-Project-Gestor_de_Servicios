@@ -8,6 +8,7 @@ import {
   Card,
   PageHeader,
 } from "../components/ui";
+import { LinkButton } from "../components/ui/LinkButton";
 import { useAuth } from "../context/useAuth";
 import { getApiError } from "../domain/errors";
 import type { Propuesta, Sector } from "../domain/entidades";
@@ -294,19 +295,16 @@ export default function Propuestas() {
   if (!user) {
     return (
       <Card className="space-y-4">
-        <h1 className="text-xl font-bold text-[#e6edf3]">
+        <h1 className="text-xl font-bold text-gh-text">
           Acceso exclusivo para usuarios registrados
         </h1>
-        <p className="text-sm text-[#8b949e]">
+        <p className="text-sm text-gh-muted">
           Para presentar propuestas de servicios o iniciativas en nombre de tu organización, debés iniciar sesión en CITio.
         </p>
         <div>
-          <Link
-            to="/login"
-            className="inline-flex items-center rounded-md bg-[#238636] px-4 py-2 text-sm font-medium text-white hover:bg-[#2ea043]"
-          >
+          <LinkButton to="/login">
             Iniciar sesión
-          </Link>
+          </LinkButton>
         </div>
       </Card>
     );
@@ -321,12 +319,9 @@ export default function Propuestas() {
           <div className="flex flex-wrap items-center gap-2">
             {esUsuarioExterno ? (
               <>
-                <Link
-                  to="/ajustes/propuestas"
-                  className="inline-flex items-center rounded-md border border-[#30363d] bg-[#21262d] px-3.5 py-2 text-xs font-semibold text-[#e6edf3] transition-colors hover:border-[#3fb950] hover:bg-[#30363d]"
-                >
+                <LinkButton to="/ajustes/propuestas" variant="secondary">
                   Ver tus propuestas ({misPropuestas.length})
-                </Link>
+                </LinkButton>
                 {!mostrarFormulario && (
                   <Button variant="primary" onClick={abrirFormularioPropuesta}>
                     Realizar propuesta
@@ -334,12 +329,9 @@ export default function Propuestas() {
                 )}
               </>
             ) : isCIT ? (
-              <Link
-                to="/solicitudes"
-                className="inline-flex items-center rounded-md bg-[#238636] px-3.5 py-2 text-sm font-medium text-white transition-colors hover:bg-[#2ea043]"
-              >
+              <LinkButton to="/solicitudes">
                 Ir a Solicitudes (Evaluación CIT)
-              </Link>
+              </LinkButton>
             ) : undefined}
           </div>
         }
@@ -366,35 +358,35 @@ export default function Propuestas() {
       )}
 
       {/* Bloque institucional explicativo */}
-      <Card className="border-[#238636]/40 bg-gradient-to-br from-[#161b22] to-[#0d2e0f]/25">
+      <Card className="border-cit-accent/40 bg-gradient-to-br from-gh-surface to-cit-forest/25">
         <div className="grid gap-6 lg:grid-cols-3">
           <div className="space-y-3 lg:col-span-2">
             <Badge variant="success">Convocatoria Permanente · Vinculación CIT</Badge>
-            <h2 className="text-xl font-semibold text-[#e6edf3]">
+            <h2 className="text-xl font-semibold text-gh-text">
               Convocatoria para organizaciones agricultoras, cooperativas e instituciones
             </h2>
-            <p className="text-sm leading-relaxed text-[#e6edf3]/90">
+            <p className="text-sm leading-relaxed text-gh-text/90">
               Las organizaciones productivas de la región —<strong>especialmente las organizaciones agricultoras, asociaciones de productores, cooperativas agropecuarias y organismos técnicos</strong>— pueden presentar propuestas para ofrecer sus servicios, ensayos colaborativos o iniciativas tecnológicas a través de CITio.
             </p>
-            <p className="text-xs leading-relaxed text-[#8b949e]">
+            <p className="text-xs leading-relaxed text-gh-muted">
               Cada propuesta recibida ingresa a la bandeja interna de <strong>Solicitudes</strong> del personal del CIT Formosa, donde se analiza su viabilidad técnica, equipamiento disponible y aporte al sector productivo. Si la propuesta es aceptada, se incorpora de manera directa al catálogo oficial de <strong>Servicios</strong>.
             </p>
           </div>
 
-          <div className="flex flex-col justify-between rounded-xl border border-[#30363d] bg-[#0d1117]/80 p-4">
+          <div className="flex flex-col justify-between rounded-xl border border-gh-border bg-gh-canvas/80 p-4">
             <div className="space-y-2">
-              <p className="text-xs font-semibold uppercase tracking-wider text-[#3fb950]">
+              <p className="text-xs font-semibold uppercase tracking-wider text-cit-accent-emphasis">
                 Etapas del proceso
               </p>
-              <ol className="space-y-1.5 text-xs text-[#8b949e]">
+              <ol className="space-y-1.5 text-xs text-gh-muted">
                 <li>
-                  <strong className="text-[#e6edf3]">1. Presentación:</strong> Carga de datos del organismo, recursos y documentación.
+                  <strong className="text-gh-text">1. Presentación:</strong> Carga de datos del organismo, recursos y documentación.
                 </li>
                 <li>
-                  <strong className="text-[#e6edf3]">2. En revisión:</strong> Evaluación técnica por especialistas del CIT.
+                  <strong className="text-gh-text">2. En revisión:</strong> Evaluación técnica por especialistas del CIT.
                 </li>
                 <li>
-                  <strong className="text-[#e6edf3]">3. Dictamen y Alta:</strong> Aceptación e incorporación automática al catálogo de Servicios.
+                  <strong className="text-gh-text">3. Dictamen y Alta:</strong> Aceptación e incorporación automática al catálogo de Servicios.
                 </li>
               </ol>
             </div>
@@ -403,7 +395,7 @@ export default function Propuestas() {
               <div className="mt-4 space-y-2 pt-2">
                 <Link
                   to="/ajustes/propuestas"
-                  className="inline-flex w-full items-center justify-center rounded-md border border-[#447232]/60 bg-[#14351a] px-3 py-2 text-xs font-semibold text-[#3fb950] transition-colors hover:bg-[#1e4b25] hover:text-white"
+                  className="inline-flex w-full items-center justify-center rounded-md border border-cit-forest-border/60 bg-cit-forest-raised px-3 py-2 text-xs font-semibold text-cit-accent-emphasis transition-colors hover:bg-cit-forest-hover hover:text-white"
                 >
                   Ver tus propuestas ({misPropuestas.length})
                 </Link>
@@ -426,20 +418,20 @@ export default function Propuestas() {
 
       {/* Formulario de presentación de propuesta (exclusivo rol user) */}
       {esUsuarioExterno && mostrarFormulario && (
-        <Card className="border-[#2ea043]/60">
+        <Card className="border-cit-accent-hover/60">
           <form onSubmit={handleSubmit} className="space-y-5" noValidate>
-            <div className="flex flex-wrap items-center justify-between gap-2 border-b border-[#30363d] pb-3">
+            <div className="flex flex-wrap items-center justify-between gap-2 border-b border-gh-border pb-3">
               <div>
-                <h2 className="text-lg font-semibold text-[#e6edf3]">
+                <h2 className="text-lg font-semibold text-gh-text">
                   Formulario de presentación de propuesta
                 </h2>
-                <p className="text-xs text-[#8b949e]">
+                <p className="text-xs text-gh-muted">
                   Completá los datos de tu organización, el detalle técnico de la iniciativa y adjuntá la documentación respaldatoria.
                 </p>
               </div>
               <Link
                 to="/ajustes/propuestas"
-                className="text-xs font-semibold text-[#58a6ff] hover:underline"
+                className="text-xs font-semibold text-status-info hover:underline"
               >
                 Ver tus propuestas enviadas →
               </Link>
@@ -449,7 +441,7 @@ export default function Propuestas() {
               <div className="sm:col-span-2">
                 <label
                   htmlFor="prop-organismo"
-                  className="mb-1.5 block text-xs font-medium text-[#e6edf3]"
+                  className="mb-1.5 block text-xs font-medium text-gh-text"
                 >
                   1. Nombre del organismo u organización *
                 </label>
@@ -468,7 +460,7 @@ export default function Propuestas() {
               <div>
                 <label
                   htmlFor="prop-email"
-                  className="mb-1.5 block text-xs font-medium text-[#e6edf3]"
+                  className="mb-1.5 block text-xs font-medium text-gh-text"
                 >
                   2. Correo electrónico de contacto *
                 </label>
@@ -488,7 +480,7 @@ export default function Propuestas() {
               <div>
                 <label
                   htmlFor="prop-telefono"
-                  className="mb-1.5 block text-xs font-medium text-[#e6edf3]"
+                  className="mb-1.5 block text-xs font-medium text-gh-text"
                 >
                   3. Número de teléfono o WhatsApp *
                 </label>
@@ -508,7 +500,7 @@ export default function Propuestas() {
               <div>
                 <label
                   htmlFor="prop-titulo"
-                  className="mb-1.5 block text-xs font-medium text-[#e6edf3]"
+                  className="mb-1.5 block text-xs font-medium text-gh-text"
                 >
                   4. Nombre de la propuesta *
                 </label>
@@ -527,7 +519,7 @@ export default function Propuestas() {
               <div>
                 <label
                   htmlFor="prop-sector"
-                  className="mb-1.5 block text-xs font-medium text-[#e6edf3]"
+                  className="mb-1.5 block text-xs font-medium text-gh-text"
                 >
                   5. Área a la que está orientada *
                 </label>
@@ -551,7 +543,7 @@ export default function Propuestas() {
               <div className="sm:col-span-2">
                 <label
                   htmlFor="prop-problematica"
-                  className="mb-1.5 block text-xs font-medium text-[#e6edf3]"
+                  className="mb-1.5 block text-xs font-medium text-gh-text"
                 >
                   6. Información detallada sobre su utilidad y funciones * (mín. 20 caracteres)
                 </label>
@@ -571,7 +563,7 @@ export default function Propuestas() {
               <div className="sm:col-span-2">
                 <label
                   htmlFor="prop-bienes"
-                  className="mb-1.5 block text-xs font-medium text-[#e6edf3]"
+                  className="mb-1.5 block text-xs font-medium text-gh-text"
                 >
                   7. Bienes, equipamiento o recursos que propone *
                 </label>
@@ -587,10 +579,10 @@ export default function Propuestas() {
                 />
               </div>
 
-              <div className="sm:col-span-2 rounded-xl border border-[#30363d] bg-[#0d1117] p-4">
+              <div className="sm:col-span-2 rounded-xl border border-gh-border bg-gh-canvas p-4">
                 <label
                   htmlFor="prop-documento"
-                  className="mb-1.5 block text-xs font-medium text-[#e6edf3]"
+                  className="mb-1.5 block text-xs font-medium text-gh-text"
                 >
                   8. Archivos adjuntos para documentación (PDF, PNG o JPG — máx. 5 MB)
                 </label>
@@ -600,9 +592,9 @@ export default function Propuestas() {
                   type="file"
                   accept=".pdf,.png,.jpg,.jpeg,application/pdf,image/png,image/jpeg"
                   onChange={handleArchivoChange}
-                  className="block w-full text-xs text-[#8b949e] file:mr-4 file:rounded-md file:border-0 file:bg-[#21262d] file:px-3 file:py-1.5 file:text-xs file:font-medium file:text-[#e6edf3] hover:file:bg-[#30363d]"
+                  className="block w-full text-xs text-gh-muted file:mr-4 file:rounded-md file:border-0 file:bg-gh-elevated file:px-3 file:py-1.5 file:text-xs file:font-medium file:text-gh-text hover:file:bg-gh-border"
                 />
-                <p className="mt-1.5 text-xs text-[#8b949e]">
+                <p className="mt-1.5 text-xs text-gh-muted">
                   {archivoAdjunto
                     ? `Archivo seleccionado: ${archivoAdjunto.name} (${(
                         archivoAdjunto.size / 1024
@@ -612,8 +604,8 @@ export default function Propuestas() {
               </div>
 
               {/* 9. Intermediación de Entidad / Cooperativa (Nivel 4) */}
-              <div className="sm:col-span-2 rounded-xl border border-[#30363d] bg-[#0d1117]/80 p-4 space-y-3">
-                <label className="flex cursor-pointer items-center gap-2.5 text-xs font-semibold text-[#e6edf3]">
+              <div className="sm:col-span-2 rounded-xl border border-gh-border bg-gh-canvas/80 p-4 space-y-3">
+                <label className="flex cursor-pointer items-center gap-2.5 text-xs font-semibold text-gh-text">
                   <input
                     type="checkbox"
                     checked={form.en_representacion}
@@ -623,7 +615,7 @@ export default function Propuestas() {
                         en_representacion: e.target.checked,
                       }))
                     }
-                    className="h-4 w-4 rounded border-[#30363d] bg-[#161b22] text-[#238636]"
+                    className="h-4 w-4 rounded border-gh-border bg-gh-surface text-cit-accent"
                   />
                   <span>
                     Presentar esta propuesta en representación de un productor asociado (Entidad / Cooperativa)
@@ -635,7 +627,7 @@ export default function Propuestas() {
                     <div>
                       <label
                         htmlFor="prop-beneficiario-nombre"
-                        className="mb-1 block text-xs text-[#8b949e]"
+                        className="mb-1 block text-xs text-gh-muted"
                       >
                         Nombre del productor representado *
                       </label>
@@ -651,7 +643,7 @@ export default function Propuestas() {
                     <div>
                       <label
                         htmlFor="prop-beneficiario-dni"
-                        className="mb-1 block text-xs text-[#8b949e]"
+                        className="mb-1 block text-xs text-gh-muted"
                       >
                         DNI o CUIT del productor
                       </label>
@@ -667,7 +659,7 @@ export default function Propuestas() {
                     <div>
                       <label
                         htmlFor="prop-beneficiario-localidad"
-                        className="mb-1 block text-xs text-[#8b949e]"
+                        className="mb-1 block text-xs text-gh-muted"
                       >
                         Localidad / Paraje del productor
                       </label>
@@ -686,12 +678,9 @@ export default function Propuestas() {
             </div>
 
             <div className="flex flex-wrap items-center justify-between gap-2 pt-2">
-              <Link
-                to="/ajustes/propuestas"
-                className="inline-flex items-center rounded-md border border-[#30363d] bg-[#21262d] px-3.5 py-2 text-xs font-medium text-[#e6edf3] hover:bg-[#30363d]"
-              >
+              <LinkButton to="/ajustes/propuestas" variant="secondary">
                 Ver tus propuestas
-              </Link>
+              </LinkButton>
               <div className="flex items-center gap-2">
                 <Button type="submit" loading={saving}>
                   Enviar propuesta

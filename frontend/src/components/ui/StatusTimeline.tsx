@@ -25,22 +25,22 @@ export interface StatusTimelineProps {
 
 const STEP_CIRCLE_CLASSES: Record<TimelineStepStatus, string> = {
   completed:
-    "border-[#238636] bg-[#238636] text-white shadow-[0_0_0_3px_rgba(46,160,67,0.18)]",
+    "border-cit-accent bg-cit-accent text-white shadow-[0_0_0_3px_rgba(46,160,67,0.18)]",
   current:
-    "border-[#d29922] bg-[#9e6a03]/30 text-[#d29922] shadow-[0_0_0_3px_rgba(210,153,34,0.2)]",
-  upcoming: "border-[#30363d] bg-[#161b22] text-[#8b949e]",
+    "border-status-warning bg-status-warning-emphasis/30 text-status-warning shadow-[0_0_0_3px_rgba(210,153,34,0.2)]",
+  upcoming: "border-gh-border bg-gh-surface text-gh-muted",
   rejected:
-    "border-[#da3633] bg-[#da3633]/25 text-[#f85149] shadow-[0_0_0_3px_rgba(248,81,73,0.18)]",
+    "border-status-danger-emphasis bg-status-danger-emphasis/25 text-status-danger shadow-[0_0_0_3px_rgba(248,81,73,0.18)]",
   cancelled:
-    "border-[#8b949e] bg-[#21262d] text-[#8b949e] shadow-[0_0_0_3px_rgba(139,148,158,0.15)]",
+    "border-gh-muted bg-gh-elevated text-gh-muted shadow-[0_0_0_3px_rgba(139,148,158,0.15)]",
 };
 
 const STEP_LABEL_CLASSES: Record<TimelineStepStatus, string> = {
-  completed: "text-[#3fb950]",
-  current: "text-[#d29922]",
-  upcoming: "text-[#8b949e]",
-  rejected: "text-[#f85149]",
-  cancelled: "text-[#8b949e] line-through",
+  completed: "text-cit-accent-emphasis",
+  current: "text-status-warning",
+  upcoming: "text-gh-muted",
+  rejected: "text-status-danger",
+  cancelled: "text-gh-muted line-through",
 };
 
 function StepIcon({
@@ -74,7 +74,7 @@ function StepIcon({
       </svg>
     );
   }
-  return <span className="text-[11px] font-bold">{index + 1}</span>;
+  return <span className="text-xs font-bold">{index + 1}</span>;
 }
 
 export function StatusTimeline({
@@ -85,13 +85,13 @@ export function StatusTimeline({
   return (
     <div
       aria-label={ariaLabel}
-      className={`rounded-xl border border-[#21262d] bg-[#0d1117]/80 p-3.5 ${className}`}
+      className={`rounded-xl border border-gh-elevated bg-gh-canvas/80 p-3.5 ${className}`}
     >
       <ol className="grid gap-3 sm:grid-cols-3">
         {steps.map((step, index) => (
           <li
             key={step.id}
-            className="relative flex items-start gap-2.5 rounded-lg border border-[#21262d]/80 bg-[#161b22]/60 p-2.5"
+            className="relative flex items-start gap-2.5 rounded-lg border border-gh-elevated/80 bg-gh-surface/60 p-2.5"
           >
             <div
               className={`mt-0.5 flex h-6 w-6 shrink-0 items-center justify-center rounded-full border transition-colors ${STEP_CIRCLE_CLASSES[step.status]}`}
@@ -107,13 +107,13 @@ export function StatusTimeline({
                   {step.label}
                 </p>
                 {step.date && (
-                  <span className="text-[10px] text-[#8b949e]">
+                  <span className="text-xs text-gh-muted">
                     {step.date}
                   </span>
                 )}
               </div>
               {step.description && (
-                <p className="text-[11px] leading-snug text-[#8b949e]">
+                <p className="text-xs leading-snug text-gh-muted">
                   {step.description}
                 </p>
               )}

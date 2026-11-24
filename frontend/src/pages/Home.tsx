@@ -2,9 +2,11 @@ import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 
 import logoCitio from "../assets/logo-CITio.png";
+import { Alert } from "../components/ui/Alert";
 import { Badge, badgeVariantPorRol } from "../components/ui/Badge";
 import { Card } from "../components/ui/Card";
 import { Skeleton } from "../components/ui/Skeleton";
+import { LinkButton } from "../components/ui/LinkButton";
 import { useAuth } from "../context/useAuth";
 import type { ResumenMetricas } from "../domain/entidades";
 import { esPersonalCIT, labelDeRol } from "../domain/roles";
@@ -21,10 +23,12 @@ export default function Home() {
 
   const [metricas, setMetricas] = useState<ResumenMetricas>(METRICAS_VACIAS);
   const [loadingMetricas, setLoadingMetricas] = useState(true);
+  const [errorMetricas, setErrorMetricas] = useState(false);
 
   useEffect(() => {
     let active = true;
     setLoadingMetricas(true);
+    setErrorMetricas(false);
     getResumenMetricas()
       .then((data) => {
         if (active && data) {
@@ -32,7 +36,8 @@ export default function Home() {
         }
       })
       .catch(() => {
-        // En caso de error o entorno sin backend activo, se mantienen valores en 0
+        // Sin backend o con error: se avisa en pantalla para no mostrar ceros como si fueran datos reales
+        if (active) setErrorMetricas(true);
       })
       .finally(() => {
         if (active) setLoadingMetricas(false);
@@ -64,14 +69,14 @@ export default function Home() {
       {/* 1. Hero / Bienvenida personalizada o general */}
       <section
         aria-label="Bienvenida institucional"
-        className="overflow-hidden rounded-xl border border-[#447232]/50 bg-gradient-to-br from-[#0d2e0f] via-[#14351a] to-[#0d1117] p-6 sm:p-8"
+        className="overflow-hidden rounded-xl border border-cit-forest-border/50 bg-gradient-to-br from-cit-forest via-cit-forest-raised to-gh-canvas p-6 sm:p-8"
       >
         <div className="flex flex-col justify-between gap-6 lg:flex-row lg:items-center">
           <div className="flex flex-col gap-4 sm:flex-row sm:items-center">
             <img
               src={logoCitio}
               alt="Logo CITio"
-              className="h-20 w-20 shrink-0 rounded-xl border border-[#447232]/60 bg-[#0d1117]/60 p-2 object-contain"
+              className="h-20 w-20 shrink-0 rounded-xl border border-cit-forest-border/60 bg-gh-canvas/60 p-2 object-contain"
             />
             <div>
               <div className="flex flex-wrap items-center gap-2">
@@ -86,14 +91,14 @@ export default function Home() {
               <h1 className="mt-2.5 text-2xl font-bold tracking-tight text-white sm:text-3xl">
                 {user ? (
                   <>
-                    Hola, <span className="text-[#3fb950]">{displayName}</span>
+                    Hola, <span className="text-cit-accent-emphasis">{displayName}</span>
                   </>
                 ) : (
                   "Bienvenido a CITio"
                 )}
               </h1>
 
-              <p className="mt-2 max-w-2xl text-sm leading-relaxed text-slate-200 sm:text-base">
+              <p className="mt-2 max-w-2xl text-sm leading-relaxed text-gh-text sm:text-base">
                 {user
                   ? "Te damos la bienvenida a la plataforma de gestión de servicios, divulgación científica y vinculación tecnológica del Centro de Investigaciones y Transferencia de Formosa."
                   : "Plataforma digital del Centro de Investigaciones y Transferencia de Formosa para la consulta de servicios tecnológicos, publicaciones científicas y vinculación con el sector productivo."}
@@ -104,33 +109,21 @@ export default function Home() {
           <div className="flex flex-wrap items-center gap-3">
             {user ? (
               <>
-                <Link
-                  to="/servicios"
-                  className="inline-flex items-center justify-center rounded-md bg-[#238636] px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-[#2ea043]"
-                >
+                <LinkButton to="/servicios">
                   {isCIT ? "Gestionar Servicios" : "Explorar Servicios"}
-                </Link>
-                <Link
-                  to="/proponer"
-                  className="inline-flex items-center justify-center rounded-md border border-[#447232] bg-[#0d1117]/70 px-4 py-2 text-sm font-medium text-[#e6edf3] transition-colors hover:border-[#3fb950] hover:bg-[#14351a]"
-                >
+                </LinkButton>
+                <LinkButton to="/proponer" variant="secondary">
                   {isCIT ? "Revisar Propuestas" : "Presentar Propuesta"}
-                </Link>
+                </LinkButton>
               </>
             ) : (
               <>
-                <Link
-                  to="/login"
-                  className="inline-flex items-center justify-center rounded-md bg-[#238636] px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-[#2ea043]"
-                >
+                <LinkButton to="/login">
                   Iniciar sesión
-                </Link>
-                <Link
-                  to="/register"
-                  className="inline-flex items-center justify-center rounded-md border border-[#447232] bg-[#0d1117]/70 px-4 py-2 text-sm font-medium text-[#e6edf3] transition-colors hover:border-[#3fb950] hover:bg-[#14351a]"
-                >
+                </LinkButton>
+                <LinkButton to="/register" variant="secondary">
                   Crear cuenta
-                </Link>
+                </LinkButton>
               </>
             )}
           </div>
@@ -144,12 +137,23 @@ export default function Home() {
             <h2 id="heading-metricas" className="text-lg font-semibold text-white">
               Panel Visual de Métricas e Impacto
             </h2>
-            <p className="text-xs text-[#8b949e]">
-              Indicadores en tiempo real de transferencia tecnológica, servicios, propuestas y formación del CIT Formosa.
+            <p className="text-xs text-gh-muted">
+              Indicadores de transferencia tecnológica, servicios, propuestas y formación del CIT Formosa.
             </p>
           </div>
-          <Badge variant="info">Datos en tiempo real</Badge>
+          {errorMetricas ? (
+            <Badge variant="warning">Datos no disponibles</Badge>
+          ) : (
+            <Badge variant="info">Actualizado al abrir la página</Badge>
+          )}
         </div>
+
+        {errorMetricas && !loadingMetricas && (
+          <Alert variant="warning" title="No pudimos cargar las métricas">
+            Los indicadores no están disponibles en este momento. Los valores en cero
+            que se muestran abajo no reflejan la actividad real del CIT.
+          </Alert>
+        )}
 
         {loadingMetricas ? (
           <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4" aria-busy="true">
@@ -161,9 +165,9 @@ export default function Home() {
         ) : (
           <>
             <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-              <Card className="space-y-2 border-[#238636]/40">
+              <Card className="space-y-2 border-cit-accent/40">
                 <div className="flex items-center justify-between">
-                  <span className="text-xs font-medium text-[#8b949e]">
+                  <span className="text-xs font-medium text-gh-muted">
                     Servicios en Catálogo
                   </span>
                   <Badge variant="success">STAN / CIT</Badge>
@@ -174,14 +178,14 @@ export default function Home() {
                 >
                   {metricas.servicios_activos}
                 </p>
-                <p className="text-xs text-[#3fb950]">
+                <p className="text-xs text-cit-accent-emphasis">
                   Ensayos y diagnósticos habilitados
                 </p>
               </Card>
 
-              <Card className="space-y-2 border-[#30363d]">
+              <Card className="space-y-2 border-gh-border">
                 <div className="flex items-center justify-between">
-                  <span className="text-xs font-medium text-[#8b949e]">
+                  <span className="text-xs font-medium text-gh-muted">
                     Propuestas Convertidas
                   </span>
                   <Badge variant="info">De campo a servicio</Badge>
@@ -191,18 +195,18 @@ export default function Home() {
                   className="text-3xl font-bold text-white"
                 >
                   {metricas.propuestas_convertidas}
-                  <span className="ml-1.5 text-sm font-normal text-[#8b949e]">
+                  <span className="ml-1.5 text-sm font-normal text-gh-muted">
                     / {metricas.propuestas_recibidas} recibidas
                   </span>
                 </p>
-                <p className="text-xs text-[#58a6ff]">
+                <p className="text-xs text-status-info">
                   Problemáticas incorporadas al catálogo
                 </p>
               </Card>
 
-              <Card className="space-y-2 border-[#30363d]">
+              <Card className="space-y-2 border-gh-border">
                 <div className="flex items-center justify-between">
-                  <span className="text-xs font-medium text-[#8b949e]">
+                  <span className="text-xs font-medium text-gh-muted">
                     Resultados Digitales (PDF)
                   </span>
                   <Badge variant="success">Trazabilidad</Badge>
@@ -212,18 +216,18 @@ export default function Home() {
                   className="text-3xl font-bold text-white"
                 >
                   {metricas.resultados_entregados}
-                  <span className="ml-1.5 text-sm font-normal text-[#8b949e]">
+                  <span className="ml-1.5 text-sm font-normal text-gh-muted">
                     / {metricas.solicitudes_totales} solicitudes
                   </span>
                 </p>
-                <p className="text-xs text-[#3fb950]">
+                <p className="text-xs text-cit-accent-emphasis">
                   Informes oficiales descargables sin viajar
                 </p>
               </Card>
 
-              <Card className="space-y-2 border-[#30363d]">
+              <Card className="space-y-2 border-gh-border">
                 <div className="flex items-center justify-between">
-                  <span className="text-xs font-medium text-[#8b949e]">
+                  <span className="text-xs font-medium text-gh-muted">
                     Formación y Valoración
                   </span>
                   <Badge variant="warning">
@@ -237,11 +241,11 @@ export default function Home() {
                   className="text-3xl font-bold text-white"
                 >
                   {metricas.inscripciones_capacitaciones}
-                  <span className="ml-1.5 text-sm font-normal text-[#8b949e]">
+                  <span className="ml-1.5 text-sm font-normal text-gh-muted">
                     inscripciones
                   </span>
                 </p>
-                <p className="text-xs text-[#d29922]">
+                <p className="text-xs text-status-warning">
                   {metricas.capacitaciones_activas} capacitaciones activas ·{" "}
                   {metricas.total_resenas} reseñas
                 </p>
@@ -255,7 +259,7 @@ export default function Home() {
                   <h3 className="text-sm font-semibold text-white">
                     Estado de Solicitudes Técnicas
                   </h3>
-                  <span className="text-xs text-[#8b949e]">
+                  <span className="text-xs text-gh-muted">
                     {metricas.solicitudes_totales} registradas
                   </span>
                 </div>
@@ -263,16 +267,16 @@ export default function Home() {
                 <div className="space-y-2.5 text-xs">
                   <div>
                     <div className="mb-1 flex justify-between">
-                      <span className="text-[#8b949e]">
+                      <span className="text-gh-muted">
                         Finalizadas con informe
                       </span>
-                      <span className="font-semibold text-[#3fb950]">
+                      <span className="font-semibold text-cit-accent-emphasis">
                         {metricas.distribucion_solicitudes.finalizadas}
                       </span>
                     </div>
-                    <div className="h-2 w-full overflow-hidden rounded-full bg-[#21262d]">
+                    <div className="h-2 w-full overflow-hidden rounded-full bg-gh-elevated">
                       <div
-                        className="h-full rounded-full bg-[#238636] transition-all"
+                        className="h-full rounded-full bg-cit-accent transition-all"
                         style={{ width: `${pctFinalizadas}%` }}
                       />
                     </div>
@@ -280,16 +284,16 @@ export default function Home() {
 
                   <div>
                     <div className="mb-1 flex justify-between">
-                      <span className="text-[#8b949e]">
+                      <span className="text-gh-muted">
                         En curso / En laboratorio
                       </span>
-                      <span className="font-semibold text-[#58a6ff]">
+                      <span className="font-semibold text-status-info">
                         {metricas.distribucion_solicitudes.en_curso}
                       </span>
                     </div>
-                    <div className="h-2 w-full overflow-hidden rounded-full bg-[#21262d]">
+                    <div className="h-2 w-full overflow-hidden rounded-full bg-gh-elevated">
                       <div
-                        className="h-full rounded-full bg-[#1f6feb] transition-all"
+                        className="h-full rounded-full bg-status-info-emphasis transition-all"
                         style={{ width: `${pctEnCurso}%` }}
                       />
                     </div>
@@ -297,16 +301,16 @@ export default function Home() {
 
                   <div>
                     <div className="mb-1 flex justify-between">
-                      <span className="text-[#8b949e]">
+                      <span className="text-gh-muted">
                         Pendientes de asignación
                       </span>
-                      <span className="font-semibold text-[#d29922]">
+                      <span className="font-semibold text-status-warning">
                         {metricas.distribucion_solicitudes.pendientes}
                       </span>
                     </div>
-                    <div className="h-2 w-full overflow-hidden rounded-full bg-[#21262d]">
+                    <div className="h-2 w-full overflow-hidden rounded-full bg-gh-elevated">
                       <div
-                        className="h-full rounded-full bg-[#d29922] transition-all"
+                        className="h-full rounded-full bg-status-warning transition-all"
                         style={{ width: `${pctPendientes}%` }}
                       />
                     </div>
@@ -322,25 +326,25 @@ export default function Home() {
                     </h3>
                     <Badge variant="success">Vinculación Productiva</Badge>
                   </div>
-                  <p className="mt-1.5 text-xs leading-relaxed text-[#8b949e]">
+                  <p className="mt-1.5 text-xs leading-relaxed text-gh-muted">
                     Las problemáticas enviadas por productores y cooperativas desde{" "}
-                    <strong className="text-[#e6edf3]">Proponer</strong> son evaluadas por investigadores del CIT y se transforman en servicios permanentes para toda la provincia.
+                    <strong className="text-gh-text">Proponer</strong> son evaluadas por investigadores del CIT y se transforman en servicios permanentes para toda la provincia.
                   </p>
                 </div>
 
                 <div className="space-y-1.5 text-xs">
                   <div className="flex justify-between">
-                    <span className="text-[#8b949e]">
+                    <span className="text-gh-muted">
                       Propuestas aprobadas e integradas al catálogo
                     </span>
-                    <span className="font-semibold text-[#3fb950]">
+                    <span className="font-semibold text-cit-accent-emphasis">
                       {metricas.propuestas_convertidas} de{" "}
                       {metricas.propuestas_recibidas}
                     </span>
                   </div>
-                  <div className="h-2.5 w-full overflow-hidden rounded-full bg-[#21262d]">
+                  <div className="h-2.5 w-full overflow-hidden rounded-full bg-gh-elevated">
                     <div
-                      className="h-full rounded-full bg-gradient-to-r from-[#238636] to-[#3fb950] transition-all"
+                      className="h-full rounded-full bg-gradient-to-r from-cit-accent to-cit-accent-emphasis transition-all"
                       style={{ width: `${pctPropuestasConvertidas}%` }}
                     />
                   </div>
@@ -357,24 +361,28 @@ export default function Home() {
           <h2 id="heading-accesos" className="text-lg font-semibold text-white">
             Accesos rápidos a la plataforma
           </h2>
-          <span className="text-xs text-[#8b949e]">
+          <span className="text-xs text-gh-muted">
             Navegación directa por módulos
           </span>
         </div>
 
-        <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-5">
+        <div
+          className={`grid gap-3 sm:grid-cols-2 ${
+            isCIT ? "lg:grid-cols-5" : "lg:grid-cols-4"
+          }`}
+        >
           <Link
             to="/servicios"
-            className="group flex flex-col justify-between rounded-lg border border-[#30363d] bg-[#161b22] p-4 transition-colors hover:border-[#3fb950] hover:bg-[#1c2128]"
+            className="group flex flex-col justify-between rounded-lg border border-gh-border bg-gh-surface p-4 transition-colors hover:border-cit-accent-emphasis hover:bg-gh-overlay"
           >
             <div>
               <div className="flex items-center justify-between">
-                <span className="text-sm font-semibold text-white group-hover:text-[#3fb950]">
+                <span className="text-sm font-semibold text-white group-hover:text-cit-accent-emphasis">
                   Servicios
                 </span>
-                <span className="text-xs text-[#3fb950]">→</span>
+                <span className="text-xs text-cit-accent-emphasis">→</span>
               </div>
-              <p className="mt-1.5 text-xs text-[#8b949e]">
+              <p className="mt-1.5 text-xs text-gh-muted">
                 Catálogo de análisis clínicos, diagnósticos y ensayos del CIT.
               </p>
             </div>
@@ -382,16 +390,16 @@ export default function Home() {
 
           <Link
             to="/capacitaciones"
-            className="group flex flex-col justify-between rounded-lg border border-[#30363d] bg-[#161b22] p-4 transition-colors hover:border-[#3fb950] hover:bg-[#1c2128]"
+            className="group flex flex-col justify-between rounded-lg border border-gh-border bg-gh-surface p-4 transition-colors hover:border-cit-accent-emphasis hover:bg-gh-overlay"
           >
             <div>
               <div className="flex items-center justify-between">
-                <span className="text-sm font-semibold text-white group-hover:text-[#3fb950]">
+                <span className="text-sm font-semibold text-white group-hover:text-cit-accent-emphasis">
                   Capacitaciones
                 </span>
-                <span className="text-xs text-[#3fb950]">→</span>
+                <span className="text-xs text-cit-accent-emphasis">→</span>
               </div>
-              <p className="mt-1.5 text-xs text-[#8b949e]">
+              <p className="mt-1.5 text-xs text-gh-muted">
                 Talleres técnicos, jornadas de campo e inscripción en línea.
               </p>
             </div>
@@ -400,16 +408,16 @@ export default function Home() {
           {isCIT && (
             <Link
               to="/solicitudes"
-              className="group flex flex-col justify-between rounded-lg border border-[#30363d] bg-[#161b22] p-4 transition-colors hover:border-[#3fb950] hover:bg-[#1c2128]"
+              className="group flex flex-col justify-between rounded-lg border border-gh-border bg-gh-surface p-4 transition-colors hover:border-cit-accent-emphasis hover:bg-gh-overlay"
             >
               <div>
                 <div className="flex items-center justify-between">
-                  <span className="text-sm font-semibold text-white group-hover:text-[#3fb950]">
+                  <span className="text-sm font-semibold text-white group-hover:text-cit-accent-emphasis">
                     Solicitudes
                   </span>
-                  <span className="text-xs text-[#3fb950]">→</span>
+                  <span className="text-xs text-cit-accent-emphasis">→</span>
                 </div>
-                <p className="mt-1.5 text-xs text-[#8b949e]">
+                <p className="mt-1.5 text-xs text-gh-muted">
                   Bandeja interna de revisión, dictamen y entrega de resultados.
                 </p>
               </div>
@@ -418,16 +426,16 @@ export default function Home() {
 
           <Link
             to="/publicaciones"
-            className="group flex flex-col justify-between rounded-lg border border-[#30363d] bg-[#161b22] p-4 transition-colors hover:border-[#3fb950] hover:bg-[#1c2128]"
+            className="group flex flex-col justify-between rounded-lg border border-gh-border bg-gh-surface p-4 transition-colors hover:border-cit-accent-emphasis hover:bg-gh-overlay"
           >
             <div>
               <div className="flex items-center justify-between">
-                <span className="text-sm font-semibold text-white group-hover:text-[#3fb950]">
+                <span className="text-sm font-semibold text-white group-hover:text-cit-accent-emphasis">
                   Publicaciones
                 </span>
-                <span className="text-xs text-[#3fb950]">→</span>
+                <span className="text-xs text-cit-accent-emphasis">→</span>
               </div>
-              <p className="mt-1.5 text-xs text-[#8b949e]">
+              <p className="mt-1.5 text-xs text-gh-muted">
                 Artículos técnicos sobre patologías, enfermedades, parásitos y plagas.
               </p>
             </div>
@@ -435,16 +443,16 @@ export default function Home() {
 
           <Link
             to="/proponer"
-            className="group flex flex-col justify-between rounded-lg border border-[#30363d] bg-[#161b22] p-4 transition-colors hover:border-[#3fb950] hover:bg-[#1c2128]"
+            className="group flex flex-col justify-between rounded-lg border border-gh-border bg-gh-surface p-4 transition-colors hover:border-cit-accent-emphasis hover:bg-gh-overlay"
           >
             <div>
               <div className="flex items-center justify-between">
-                <span className="text-sm font-semibold text-white group-hover:text-[#3fb950]">
+                <span className="text-sm font-semibold text-white group-hover:text-cit-accent-emphasis">
                   Proponer
                 </span>
-                <span className="text-xs text-[#3fb950]">→</span>
+                <span className="text-xs text-cit-accent-emphasis">→</span>
               </div>
-              <p className="mt-1.5 text-xs text-[#8b949e]">
+              <p className="mt-1.5 text-xs text-gh-muted">
                 {isCIT
                   ? "Evaluación y dictamen técnico de problemáticas agropecuarias."
                   : "Presentación de problemáticas productivas para vinculación con el CIT."}
@@ -469,7 +477,7 @@ export default function Home() {
             </div>
           }
         >
-          <div className="space-y-3 text-sm leading-relaxed text-[#e6edf3]">
+          <div className="space-y-3 text-sm leading-relaxed text-gh-text">
             <p>
               El <strong>Centro de Investigaciones y Transferencia de Formosa (CIT Formosa)</strong> es
               una institución científica y tecnológica de triple dependencia conformada por el{" "}
@@ -478,10 +486,10 @@ export default function Home() {
               CONICET Nordeste.
             </p>
             <div>
-              <h3 className="font-semibold text-[#3fb950]">
+              <h3 className="font-semibold text-cit-accent-emphasis">
                 ¿A qué se dedica y qué actividades desarrolla?
               </h3>
-              <ul className="mt-1.5 list-disc space-y-1.5 pl-5 text-xs text-slate-300 sm:text-sm">
+              <ul className="mt-1.5 list-disc space-y-1.5 pl-5 text-xs text-gh-muted sm:text-sm">
                 <li>
                   <strong>Investigación aplicada:</strong> Desarrollo de líneas en Bacteriología,
                   Virología, Parasitología, Hemoparásitos y Ectoparásitos.
@@ -511,17 +519,17 @@ export default function Home() {
             </div>
           }
         >
-          <div className="space-y-3 text-sm leading-relaxed text-[#e6edf3]">
+          <div className="space-y-3 text-sm leading-relaxed text-gh-text">
             <p>
               <strong>CITio</strong> es el sistema web de gestión de servicios y transferencia del CIT
               Formosa, diseñado para conectar de forma directa a productores agropecuarios, profesionales
               veterinarios e instituciones con las capacidades técnicas del Centro.
             </p>
             <div>
-              <h3 className="font-semibold text-[#3fb950]">
+              <h3 className="font-semibold text-cit-accent-emphasis">
                 Objetivo y problemas que resuelve
               </h3>
-              <ul className="mt-1.5 list-disc space-y-1.5 pl-5 text-xs text-slate-300 sm:text-sm">
+              <ul className="mt-1.5 list-disc space-y-1.5 pl-5 text-xs text-gh-muted sm:text-sm">
                 <li>
                   <strong>Acceso unificado al catálogo:</strong> Centraliza la oferta de ensayos,
                   condiciones de muestra y aranceles en un único catálogo transparente.

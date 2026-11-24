@@ -35,7 +35,7 @@ export function NotificationBell() {
           ? `Notificaciones (${unreadCount} sin leer)`
           : "Centro de Notificaciones"
       }
-      className="relative inline-flex h-8 w-8 items-center justify-center rounded-md border border-[#447232]/50 bg-[#14351a] text-slate-200 transition-colors hover:border-[#3fb950] hover:bg-[#1e4b25] hover:text-white"
+      className="relative inline-flex h-8 w-8 items-center justify-center rounded-md border border-cit-forest-border/50 bg-cit-forest-raised text-gh-text transition-colors hover:border-cit-accent-emphasis hover:bg-cit-forest-hover hover:text-white"
     >
       <svg
         viewBox="0 0 16 16"
@@ -49,7 +49,7 @@ export function NotificationBell() {
       {unreadCount > 0 && (
         <span
           data-testid="notification-bell-badge"
-          className="absolute -right-1.5 -top-1.5 flex h-4 min-w-[16px] items-center justify-center rounded-full bg-[#238636] px-1 text-[10px] font-bold leading-none text-white shadow-xs"
+          className="absolute -right-1.5 -top-1.5 flex h-4 min-w-[16px] items-center justify-center rounded-full bg-cit-accent px-1 text-[10px] font-bold leading-none text-white shadow-xs"
         >
           {badgeText}
         </span>

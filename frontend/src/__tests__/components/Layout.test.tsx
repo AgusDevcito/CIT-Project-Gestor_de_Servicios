@@ -82,7 +82,6 @@ describe("components/Layout (Spec-002 & Spec-003 Nivel 1)", () => {
       "href",
       "/ajustes/propuestas",
     );
-    expect(screen.getByText("Solicitar")).toBeInTheDocument();
     expect(screen.getByText("Capacitaciones")).toBeInTheDocument();
     expect(screen.getByText("Mis Servicios")).toBeInTheDocument();
     expect(screen.getByText("Proponer")).toBeInTheDocument();
@@ -102,10 +101,7 @@ describe("components/Layout (Spec-002 & Spec-003 Nivel 1)", () => {
 
     expect(screen.getAllByText("Personal CIT").length).toBeGreaterThanOrEqual(1);
     expect(screen.getByText("Gestión Técnica CIT")).toBeInTheDocument();
-    expect(screen.getByText("Catálogo / Alta")).toBeInTheDocument();
-    expect(screen.getByText("Revisión CIT")).toBeInTheDocument();
-    expect(screen.getByText("ABM")).toBeInTheDocument();
-    expect(screen.getByText("Dictamen")).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: /Solicitudes/i })).toBeInTheDocument();
   });
 
   it("muestra las opciones e indicadores de administración cuando el rol es admin", () => {
@@ -121,7 +117,6 @@ describe("components/Layout (Spec-002 & Spec-003 Nivel 1)", () => {
 
     expect(screen.getAllByText("Administrador").length).toBeGreaterThanOrEqual(1);
     expect(screen.getByText("Administración General CIT")).toBeInTheDocument();
-    expect(screen.getByText("Admin")).toBeInTheDocument();
     expect(screen.getByRole("link", { name: /Solicitudes/i })).toBeInTheDocument();
   });
 

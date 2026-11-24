@@ -13,13 +13,13 @@ export interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
 
 const VARIANT_CLASSES: Record<ButtonVariant, string> = {
   primary:
-    "bg-[#238636] text-white border border-[rgba(240,246,252,0.1)] hover:bg-[#2ea043] active:bg-[#238636]",
+    "bg-cit-accent text-white border border-[rgba(240,246,252,0.1)] hover:bg-cit-accent-hover active:bg-cit-accent",
   secondary:
-    "bg-[#21262d] text-[#e6edf3] border border-[#30363d] hover:bg-[#30363d] hover:border-[#8b949e]",
+    "bg-gh-elevated text-gh-text border border-gh-border hover:bg-gh-border hover:border-gh-muted",
   danger:
-    "bg-[#21262d] text-[#f85149] border border-[#30363d] hover:bg-[#da3633] hover:text-white hover:border-[#f85149]",
+    "bg-gh-elevated text-status-danger border border-gh-border hover:bg-status-danger-emphasis hover:text-white hover:border-status-danger",
   ghost:
-    "bg-transparent text-[#8b949e] border border-transparent hover:bg-[#21262d] hover:text-[#e6edf3]",
+    "bg-transparent text-gh-muted border border-transparent hover:bg-gh-elevated hover:text-gh-text",
 };
 
 const SIZE_CLASSES: Record<ButtonSize, string> = {
@@ -43,7 +43,7 @@ export function Button({
     <button
       type={type}
       disabled={disabled || loading}
-      className={`inline-flex items-center justify-center font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#2ea043] disabled:cursor-not-allowed disabled:opacity-60 ${VARIANT_CLASSES[variant]} ${SIZE_CLASSES[size]} ${className}`}
+      className={`inline-flex items-center justify-center font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cit-accent-hover disabled:cursor-not-allowed disabled:opacity-60 ${VARIANT_CLASSES[variant]} ${SIZE_CLASSES[size]} ${className}`}
       {...rest}
     >
       {loading ? (

@@ -502,7 +502,7 @@ export default function Solicitudes() {
       <div
         role="tablist"
         aria-label="Secciones de bandeja CIT"
-        className="flex flex-wrap gap-2 border-b border-[#21262d] pb-3"
+        className="flex flex-wrap gap-2 border-b border-gh-elevated pb-3"
       >
         <button
           type="button"
@@ -511,8 +511,8 @@ export default function Solicitudes() {
           onClick={() => setTabActiva("propuestas")}
           className={`rounded-lg px-3.5 py-1.5 text-xs font-semibold transition-colors ${
             tabActiva === "propuestas"
-              ? "bg-[#238636] text-white"
-              : "border border-[#30363d] bg-[#161b22] text-[#8b949e] hover:text-white"
+              ? "bg-cit-accent text-white"
+              : "border border-gh-border bg-gh-surface text-gh-muted hover:text-white"
           }`}
         >
           Propuestas de Organizaciones ({propuestas.length})
@@ -524,8 +524,8 @@ export default function Solicitudes() {
           onClick={() => setTabActiva("servicios")}
           className={`rounded-lg px-3.5 py-1.5 text-xs font-semibold transition-colors ${
             tabActiva === "servicios"
-              ? "bg-[#238636] text-white"
-              : "border border-[#30363d] bg-[#161b22] text-[#8b949e] hover:text-white"
+              ? "bg-cit-accent text-white"
+              : "border border-gh-border bg-gh-surface text-gh-muted hover:text-white"
           }`}
         >
           Solicitudes de Servicios y Resultados ({solicitudesServicio.length})
@@ -544,7 +544,7 @@ export default function Solicitudes() {
           aria-label="Filtrar por estado"
           value={estadoFilter}
           onChange={(e) => setEstadoFilter(e.target.value)}
-          className="rounded-md border border-[#30363d] bg-[#0d1117] px-3 py-1.5 text-sm text-[#e6edf3] outline-none focus:border-[#3fb950]"
+          className="input-base sm:w-48"
         >
           <option value="">Todos los estados</option>
           <option value="PENDIENTE">Pendiente</option>
@@ -557,7 +557,7 @@ export default function Solicitudes() {
           aria-label="Filtrar por área"
           value={sectorFilter}
           onChange={(e) => setSectorFilter(e.target.value)}
-          className="rounded-md border border-[#30363d] bg-[#0d1117] px-3 py-1.5 text-sm text-[#e6edf3] outline-none focus:border-[#3fb950]"
+          className="input-base sm:w-48"
         >
           <option value="">Todas las áreas</option>
           {sectores.map((sec) => (
@@ -571,7 +571,7 @@ export default function Solicitudes() {
           aria-label="Ordenar propuestas"
           value={orden}
           onChange={(e) => setOrden(e.target.value as OrdenListado)}
-          className="rounded-md border border-[#30363d] bg-[#0d1117] px-3 py-1.5 text-sm text-[#e6edf3] outline-none focus:border-[#3fb950]"
+          className="input-base sm:w-48"
         >
           <option value="recientes">Más recientes</option>
           <option value="antiguas">Más antiguas</option>
@@ -604,7 +604,7 @@ export default function Solicitudes() {
               <div className="overflow-x-auto">
                 <table className="w-full min-w-[640px] text-left text-sm">
                   <thead>
-                    <tr className="border-b border-[#30363d] bg-[#0d1117]/60 text-xs font-semibold uppercase tracking-wide text-[#8b949e]">
+                    <tr className="border-b border-gh-border bg-gh-canvas/60 text-xs font-semibold uppercase tracking-wide text-gh-muted">
                       <th className="px-4 py-3">Organismo</th>
                       <th className="px-4 py-3">Propuesta</th>
                       <th className="px-4 py-3">Área</th>
@@ -613,7 +613,7 @@ export default function Solicitudes() {
                       <th className="px-4 py-3 text-right">Acción</th>
                     </tr>
                   </thead>
-                  <tbody className="divide-y divide-[#30363d]">
+                  <tbody className="divide-y divide-gh-border">
                     {propuestasFiltradas.map((propuesta) => {
                       const activa = propuesta.id === seleccionadaId;
                       const codigoNorm = normalizarCodigoEstado(
@@ -625,14 +625,14 @@ export default function Solicitudes() {
                           key={propuesta.id}
                           className={`transition-colors ${
                             activa
-                              ? "bg-[#14351a]/50"
-                              : "hover:bg-[#21262d]/50"
+                              ? "bg-cit-forest-raised/50"
+                              : "hover:bg-gh-elevated/50"
                           }`}
                         >
                           <td className="px-4 py-3.5 font-medium text-white">
                             {obtenerNombreOrganismo(propuesta)}
                           </td>
-                          <td className="px-4 py-3.5 text-slate-200">
+                          <td className="px-4 py-3.5 text-gh-text">
                             {propuesta.titulo}
                           </td>
                           <td className="px-4 py-3.5">
@@ -640,7 +640,7 @@ export default function Solicitudes() {
                               {propuesta.Sector?.nombre || "Sin área"}
                             </Badge>
                           </td>
-                          <td className="px-4 py-3.5 text-xs text-[#8b949e]">
+                          <td className="px-4 py-3.5 text-xs text-gh-muted">
                             {formatearFecha(propuesta.createdAt)}
                           </td>
                           <td className="px-4 py-3.5">
@@ -701,7 +701,7 @@ export default function Solicitudes() {
                       type="button"
                       onClick={() => setSeleccionadaId(null)}
                       aria-label="Cerrar detalle de propuesta"
-                      className="rounded p-1 text-xs text-[#8b949e] hover:bg-[#21262d] hover:text-white"
+                      className="rounded p-1 text-xs text-gh-muted hover:bg-gh-elevated hover:text-white"
                     >
                       ✕
                     </button>
@@ -714,7 +714,7 @@ export default function Solicitudes() {
                     <h2 className="text-lg font-bold text-white">
                       {propuestaSeleccionada.titulo}
                     </h2>
-                    <p className="mt-0.5 text-xs text-[#8b949e]">
+                    <p className="mt-0.5 text-xs text-gh-muted">
                       Presentada el{" "}
                       {formatearFecha(propuestaSeleccionada.createdAt, "long")}
                     </p>
@@ -725,9 +725,9 @@ export default function Solicitudes() {
                     steps={buildPropuestaTimelineSteps(propuestaSeleccionada)}
                   />
 
-                  <div className="grid gap-3 rounded-lg border border-[#30363d] bg-[#0d1117] p-3.5 sm:grid-cols-2">
+                  <div className="grid gap-3 rounded-lg border border-gh-border bg-gh-canvas p-3.5 sm:grid-cols-2">
                     <div>
-                      <p className="text-xs text-[#8b949e]">
+                      <p className="text-xs text-gh-muted">
                         Información del Organismo
                       </p>
                       <p className="mt-0.5 font-semibold text-white">
@@ -736,28 +736,28 @@ export default function Solicitudes() {
                     </div>
 
                     <div>
-                      <p className="text-xs text-[#8b949e]">
+                      <p className="text-xs text-gh-muted">
                         Área orientada
                       </p>
-                      <p className="mt-0.5 font-semibold text-[#58a6ff]">
+                      <p className="mt-0.5 font-semibold text-status-info">
                         {propuestaSeleccionada.Sector?.nombre || "General"}
                       </p>
                     </div>
 
                     <div>
-                      <p className="text-xs text-[#8b949e]">
+                      <p className="text-xs text-gh-muted">
                         Correo electrónico
                       </p>
-                      <p className="mt-0.5 break-all text-slate-200">
+                      <p className="mt-0.5 break-all text-gh-text">
                         {obtenerEmailOrganismo(propuestaSeleccionada)}
                       </p>
                     </div>
 
                     <div>
-                      <p className="text-xs text-[#8b949e]">
+                      <p className="text-xs text-gh-muted">
                         Teléfono / WhatsApp
                       </p>
-                      <p className="mt-0.5 text-slate-200">
+                      <p className="mt-0.5 text-gh-text">
                         {propuestaSeleccionada.telefono_contacto ||
                           "No especificado"}
                       </p>
@@ -766,20 +766,20 @@ export default function Solicitudes() {
 
                   {/* Descripción de utilidad y funciones */}
                   <div>
-                    <h3 className="text-xs font-semibold uppercase tracking-wide text-[#3fb950]">
+                    <h3 className="text-xs font-semibold uppercase tracking-wide text-cit-accent-emphasis">
                       Descripción de su utilidad y funciones
                     </h3>
-                    <p className="mt-1.5 whitespace-pre-line rounded-md border border-[#30363d] bg-[#0d1117]/60 p-3 text-slate-200">
+                    <p className="mt-1.5 whitespace-pre-line rounded-md border border-gh-border bg-gh-canvas/60 p-3 text-gh-text">
                       {propuestaSeleccionada.problematica}
                     </p>
                   </div>
 
                   {/* Bienes o recursos que propone */}
                   <div>
-                    <h3 className="text-xs font-semibold uppercase tracking-wide text-[#3fb950]">
+                    <h3 className="text-xs font-semibold uppercase tracking-wide text-cit-accent-emphasis">
                       Bienes o recursos que propone
                     </h3>
-                    <p className="mt-1.5 whitespace-pre-line rounded-md border border-[#30363d] bg-[#0d1117]/60 p-3 text-slate-300">
+                    <p className="mt-1.5 whitespace-pre-line rounded-md border border-gh-border bg-gh-canvas/60 p-3 text-gh-muted">
                       {propuestaSeleccionada.bienes_recursos ||
                         "Sin bienes o recursos adicionales especificados en la presentación."}
                     </p>
@@ -787,11 +787,11 @@ export default function Solicitudes() {
 
                   {/* Archivos adjuntos y documentación */}
                   <div>
-                    <h3 className="text-xs font-semibold uppercase tracking-wide text-[#3fb950]">
+                    <h3 className="text-xs font-semibold uppercase tracking-wide text-cit-accent-emphasis">
                       Archivos adjuntos y documentación
                     </h3>
                     {propuestaSeleccionada.documento_url ? (
-                      <div className="mt-1.5 flex flex-wrap items-center justify-between gap-2 rounded-md border border-[#30363d] bg-[#0d1117] p-3">
+                      <div className="mt-1.5 flex flex-wrap items-center justify-between gap-2 rounded-md border border-gh-border bg-gh-canvas p-3">
                         <span className="truncate text-xs font-medium text-white">
                           📄{" "}
                           {propuestaSeleccionada.documento_nombre ||
@@ -802,7 +802,7 @@ export default function Solicitudes() {
                             href={propuestaSeleccionada.documento_url}
                             target="_blank"
                             rel="noreferrer"
-                            className="rounded border border-[#30363d] bg-[#21262d] px-2.5 py-1 text-xs font-medium text-[#58a6ff] hover:bg-[#30363d]"
+                            className="rounded border border-gh-border bg-gh-elevated px-2.5 py-1 text-xs font-medium text-status-info hover:bg-gh-border"
                           >
                             Visualizar
                           </a>
@@ -813,14 +813,14 @@ export default function Solicitudes() {
                             }
                             target="_blank"
                             rel="noreferrer"
-                            className="rounded bg-[#238636] px-2.5 py-1 text-xs font-semibold text-white hover:bg-[#2ea043]"
+                            className="rounded bg-cit-accent px-2.5 py-1 text-xs font-semibold text-white hover:bg-cit-accent-hover"
                           >
                             Descargar
                           </a>
                         </div>
                       </div>
                     ) : (
-                      <p className="mt-1 text-xs text-[#8b949e]">
+                      <p className="mt-1 text-xs text-gh-muted">
                         No se adjuntaron documentos en esta propuesta.
                       </p>
                     )}
@@ -831,12 +831,12 @@ export default function Solicitudes() {
                     propuestaSeleccionada.citFechaRevision ||
                     propuestaSeleccionada.citJustificacion ||
                     propuestaSeleccionada.servicio_generado_id) && (
-                    <div className="space-y-2 rounded-lg border border-[#447232]/50 bg-[#0d2e0f]/40 p-3.5 text-xs">
-                      <p className="font-semibold text-[#3fb950]">
+                    <div className="space-y-2 rounded-lg border border-cit-forest-border/50 bg-cit-forest/40 p-3.5 text-xs">
+                      <p className="font-semibold text-cit-accent-emphasis">
                         Trazabilidad de Revisión CIT
                       </p>
                       {propuestaSeleccionada.Revisor && (
-                        <p className="text-slate-200">
+                        <p className="text-gh-text">
                           Revisor:{" "}
                           <strong>
                             {obtenerNombreVisible({
@@ -851,7 +851,7 @@ export default function Solicitudes() {
                         </p>
                       )}
                       {propuestaSeleccionada.citFechaRevision && (
-                        <p className="text-slate-300">
+                        <p className="text-gh-muted">
                           Fecha de actualización:{" "}
                           {formatearFecha(
                             propuestaSeleccionada.citFechaRevision,
@@ -860,7 +860,7 @@ export default function Solicitudes() {
                         </p>
                       )}
                       {propuestaSeleccionada.citJustificacion && (
-                        <p className="text-slate-200">
+                        <p className="text-gh-text">
                           Dictamen técnico:{" "}
                           <em>{propuestaSeleccionada.citJustificacion}</em>
                         </p>
@@ -869,7 +869,7 @@ export default function Solicitudes() {
                         <div className="pt-1">
                           <Link
                             to={`/servicios/${propuestaSeleccionada.servicio_generado_id}`}
-                            className="inline-flex items-center gap-1 font-semibold text-[#3fb950] underline hover:text-white"
+                            className="inline-flex items-center gap-1 font-semibold text-cit-accent-emphasis underline hover:text-white"
                           >
                             Ver servicio incorporado en el catálogo (ID #
                             {propuestaSeleccionada.servicio_generado_id}) →
@@ -883,12 +883,12 @@ export default function Solicitudes() {
                   {["PENDIENTE", "EN_REVISION"].includes(
                     normalizarCodigoEstado(propuestaSeleccionada.Estado?.codigo),
                   ) && (
-                    <div className="space-y-4 border-t border-[#30363d] pt-4">
+                    <div className="space-y-4 border-t border-gh-border pt-4">
                       {normalizarCodigoEstado(
                         propuestaSeleccionada.Estado?.codigo,
                       ) === "PENDIENTE" && (
-                        <div className="flex items-center justify-between rounded-md border border-[#9e6a03]/40 bg-[#9e6a03]/10 p-3">
-                          <span className="text-xs text-[#d29922]">
+                        <div className="flex items-center justify-between rounded-md border border-status-warning-emphasis/40 bg-status-warning-emphasis/10 p-3">
+                          <span className="text-xs text-status-warning">
                             ¿Deseás asignarte esta propuesta e iniciar su análisis?
                           </span>
                           <Button
@@ -916,8 +916,8 @@ export default function Solicitudes() {
                           <label
                             className={`flex cursor-pointer items-center justify-center gap-2 rounded-md border p-2 text-xs font-semibold transition-colors ${
                               decision === "ACEPTADA"
-                                ? "border-[#3fb950] bg-[#238636]/25 text-white"
-                                : "border-[#30363d] bg-[#0d1117] text-[#8b949e]"
+                                ? "border-cit-accent-emphasis bg-cit-accent/25 text-white"
+                                : "border-gh-border bg-gh-canvas text-gh-muted"
                             }`}
                           >
                             <input
@@ -933,8 +933,8 @@ export default function Solicitudes() {
                           <label
                             className={`flex cursor-pointer items-center justify-center gap-2 rounded-md border p-2 text-xs font-semibold transition-colors ${
                               decision === "RECHAZADO"
-                                ? "border-[#f85149] bg-[#da3633]/25 text-white"
-                                : "border-[#30363d] bg-[#0d1117] text-[#8b949e]"
+                                ? "border-status-danger bg-status-danger-emphasis/25 text-white"
+                                : "border-gh-border bg-gh-canvas text-gh-muted"
                             }`}
                           >
                             <input
@@ -949,14 +949,14 @@ export default function Solicitudes() {
                         </div>
 
                         {decision === "ACEPTADA" && (
-                          <div className="space-y-3 rounded-md border border-[#30363d] bg-[#0d1117] p-3">
-                            <p className="text-xs font-semibold text-[#3fb950]">
+                          <div className="space-y-3 rounded-md border border-gh-border bg-gh-canvas p-3">
+                            <p className="text-xs font-semibold text-cit-accent-emphasis">
                               Datos del servicio a publicar en el catálogo
                             </p>
                             <div>
                               <label
                                 htmlFor="srv-nombre"
-                                className="mb-1 block text-xs text-[#8b949e]"
+                                className="mb-1 block text-xs text-gh-muted"
                               >
                                 Nombre del servicio *
                               </label>
@@ -974,7 +974,7 @@ export default function Solicitudes() {
                             <div>
                               <label
                                 htmlFor="srv-precio"
-                                className="mb-1 block text-xs text-[#8b949e]"
+                                className="mb-1 block text-xs text-gh-muted"
                               >
                                 Arancel en ARS (0 para &ldquo;Consultar&rdquo;) *
                               </label>
@@ -994,7 +994,7 @@ export default function Solicitudes() {
                             <div>
                               <label
                                 htmlFor="srv-desc"
-                                className="mb-1 block text-xs text-[#8b949e]"
+                                className="mb-1 block text-xs text-gh-muted"
                               >
                                 Descripción del servicio *
                               </label>
@@ -1016,7 +1016,7 @@ export default function Solicitudes() {
                         <div>
                           <label
                             htmlFor="justificacion-revision"
-                            className="mb-1 block text-xs text-[#8b949e]"
+                            className="mb-1 block text-xs text-gh-muted"
                           >
                             Justificación técnica (mínimo {MINIMO_JUSTIFICACION}{" "}
                             caracteres) *
@@ -1046,7 +1046,7 @@ export default function Solicitudes() {
                     </div>
                   )}
 
-                  <div className="border-t border-[#30363d] pt-3">
+                  <div className="border-t border-gh-border pt-3">
                     <Button
                       variant="danger"
                       className="w-full"
@@ -1102,25 +1102,25 @@ export default function Solicitudes() {
                           <Badge variant="info">
                             {sol.Servicio?.Sector?.nombre || "General"}
                           </Badge>
-                          <span className="text-xs font-medium text-[#e6edf3]">
+                          <span className="text-xs font-medium text-gh-text">
                             Solicitante: {nombreSolicitante}
                             {sol.Solicitante?.email
                               ? ` (${sol.Solicitante.email})`
                               : ""}
                           </span>
-                          <span className="text-xs text-[#8b949e]">
+                          <span className="text-xs text-gh-muted">
                             · Solicitud #{sol.id} ·{" "}
                             {formatearFecha(
                               sol.fecha_solicitud || sol.createdAt,
                             )}
                           </span>
                           {sol.Servicio?.servicio_precio !== undefined && (
-                            <span className="text-xs font-medium text-[#3fb950]">
+                            <span className="text-xs font-medium text-cit-accent-emphasis">
                               · {formatearPrecio(sol.Servicio.servicio_precio)}
                             </span>
                           )}
                         </div>
-                        <h3 className="text-lg font-bold text-[#e6edf3]">
+                        <h3 className="text-lg font-bold text-gh-text">
                           {nombreServicio}
                         </h3>
                       </div>
@@ -1179,15 +1179,15 @@ export default function Solicitudes() {
                     />
 
                     {sol.resultado_archivo_url && (
-                      <div className="flex flex-wrap items-center justify-between gap-2 rounded-lg border border-[#238636]/50 bg-[#0d2e0f]/35 p-3 text-xs">
+                      <div className="flex flex-wrap items-center justify-between gap-2 rounded-lg border border-cit-accent/50 bg-cit-forest/35 p-3 text-xs">
                         <div>
-                          <p className="font-semibold text-[#3fb950]">
+                          <p className="font-semibold text-cit-accent-emphasis">
                             ✓ Informe técnico entregado:{" "}
                             {sol.resultado_nombre || "Resultado.pdf"}
                           </p>
                           {(sol.resultado_observaciones ||
                             sol.observaciones_cit) && (
-                            <p className="mt-0.5 text-[#8b949e]">
+                            <p className="mt-0.5 text-gh-muted">
                               {sol.resultado_observaciones ||
                                 sol.observaciones_cit}
                             </p>
@@ -1197,7 +1197,7 @@ export default function Solicitudes() {
                           href={sol.resultado_archivo_url}
                           target="_blank"
                           rel="noreferrer"
-                          className="font-semibold text-[#58a6ff] hover:underline"
+                          className="font-semibold text-status-info hover:underline"
                         >
                           Ver informe entregado ↗
                         </a>
@@ -1223,14 +1223,14 @@ export default function Solicitudes() {
       >
         {solicitudResultadoModal && (
           <form onSubmit={handleSubirResultado} className="space-y-4">
-            <div className="rounded-lg border border-[#21262d] bg-[#0d1117] p-3 text-xs">
-              <p className="font-semibold text-[#e6edf3]">
+            <div className="rounded-lg border border-gh-elevated bg-gh-canvas p-3 text-xs">
+              <p className="font-semibold text-gh-text">
                 {solicitudResultadoModal.Servicio?.servicio_nombre ||
                   `Servicio #${solicitudResultadoModal.servicio_id}`}
               </p>
-              <p className="mt-0.5 text-[#8b949e]">
+              <p className="mt-0.5 text-gh-muted">
                 Al adjuntar el informe técnico, la solicitud pasará a estado{" "}
-                <strong className="text-[#3fb950]">Finalizada</strong> y el productor podrá descargarlo desde{" "}
+                <strong className="text-cit-accent-emphasis">Finalizada</strong> y el productor podrá descargarlo desde{" "}
                 <strong>Mis Servicios</strong>.
               </p>
             </div>
@@ -1238,7 +1238,7 @@ export default function Solicitudes() {
             <div>
               <label
                 htmlFor="input-archivo-resultado"
-                className="mb-1.5 block text-xs font-medium text-[#e6edf3]"
+                className="mb-1.5 block text-xs font-medium text-gh-text"
               >
                 Informe o certificado oficial (PDF, PNG o JPG — máx. 5 MB) *
               </label>
@@ -1247,10 +1247,10 @@ export default function Solicitudes() {
                 type="file"
                 accept=".pdf,.png,.jpg,.jpeg,application/pdf,image/png,image/jpeg"
                 onChange={handleArchivoResultadoChange}
-                className="block w-full text-xs text-[#8b949e] file:mr-4 file:rounded-md file:border-0 file:bg-[#21262d] file:px-3 file:py-1.5 file:text-xs file:font-medium file:text-[#e6edf3] hover:file:bg-[#30363d]"
+                className="block w-full text-xs text-gh-muted file:mr-4 file:rounded-md file:border-0 file:bg-gh-elevated file:px-3 file:py-1.5 file:text-xs file:font-medium file:text-gh-text hover:file:bg-gh-border"
               />
               {archivoResultado && (
-                <p className="mt-1 text-xs text-[#3fb950]">
+                <p className="mt-1 text-xs text-cit-accent-emphasis">
                   Archivo seleccionado: {archivoResultado.name}
                 </p>
               )}
@@ -1259,7 +1259,7 @@ export default function Solicitudes() {
             <div>
               <label
                 htmlFor="input-observaciones-resultado"
-                className="mb-1.5 block text-xs font-medium text-[#e6edf3]"
+                className="mb-1.5 block text-xs font-medium text-gh-text"
               >
                 Conclusiones u observaciones técnicas para el productor
               </label>

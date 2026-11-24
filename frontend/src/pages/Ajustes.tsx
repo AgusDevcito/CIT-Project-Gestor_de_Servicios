@@ -14,6 +14,7 @@ import {
   StatusTimeline,
   buildPropuestaTimelineSteps,
 } from "../components/ui";
+import { LinkButton } from "../components/ui/LinkButton";
 import { useAuth } from "../context/useAuth";
 import { getApiError } from "../domain/errors";
 import type {
@@ -440,12 +441,9 @@ export default function Ajustes() {
         title="Ajustes y Gestión Personal"
         subtitle="Administrá tus propuestas presentadas, tu perfil personal o de Entidad/Cooperativa, preferencias de notificaciones y seguridad de cuenta."
         actions={
-          <Link
-            to="/proponer"
-            className="inline-flex items-center rounded-md bg-[#238636] px-3.5 py-2 text-xs font-semibold text-white transition-colors hover:bg-[#2ea043]"
-          >
+          <LinkButton to="/proponer">
             + Nueva propuesta
-          </Link>
+          </LinkButton>
         }
       />
 
@@ -472,16 +470,17 @@ export default function Ajustes() {
                   key={item.id}
                   type="button"
                   onClick={() => navigate(`/ajustes/${item.id}`)}
+                  aria-current={activa ? "page" : undefined}
                   className={`flex w-full flex-col rounded-lg px-3 py-2.5 text-left transition-colors ${
                     activa
-                      ? "bg-[#238636] text-white"
-                      : "text-[#e6edf3] hover:bg-[#161b22]"
+                      ? "bg-cit-accent text-white"
+                      : "text-gh-text hover:bg-gh-surface"
                   }`}
                 >
                   <span className="text-sm font-semibold">{item.label}</span>
                   <span
-                    className={`mt-0.5 text-[11px] leading-snug ${
-                      activa ? "text-white/85" : "text-[#8b949e]"
+                    className={`mt-0.5 text-xs leading-snug ${
+                      activa ? "text-white/85" : "text-gh-muted"
                     }`}
                   >
                     {item.descripcion}
@@ -499,10 +498,10 @@ export default function Ajustes() {
             <section className="space-y-4" aria-label="Mis propuestas en Ajustes">
               <Card className="flex flex-wrap items-center justify-between gap-3">
                 <div>
-                  <h2 className="text-lg font-semibold text-[#e6edf3]">
+                  <h2 className="text-lg font-semibold text-gh-text">
                     Mis Propuestas Presentadas
                   </h2>
-                  <p className="text-xs text-[#8b949e]">
+                  <p className="text-xs text-gh-muted">
                     Consultá el detalle, estado de revisión, dictamen técnico del CIT o cancelá propuestas pendientes.
                   </p>
                 </div>
@@ -519,12 +518,9 @@ export default function Ajustes() {
                   title="Aún no presentaste propuestas"
                   description="Podés presentar una nueva problemática o iniciativa productiva desde el apartado Proponer."
                   action={
-                    <Link
-                      to="/proponer"
-                      className="inline-flex items-center rounded-md bg-[#238636] px-3.5 py-2 text-xs font-semibold text-white hover:bg-[#2ea043]"
-                    >
+                    <LinkButton to="/proponer">
                       Ir a Proponer
-                    </Link>
+                    </LinkButton>
                   }
                 />
               ) : (
@@ -553,7 +549,7 @@ export default function Ajustes() {
                                 {propuesta.Sector?.nombre || "Sin área"}
                               </Badge>
                               {propuesta.nombre_organismo && (
-                                <span className="text-xs font-medium text-[#e6edf3]">
+                                <span className="text-xs font-medium text-gh-text">
                                   {propuesta.nombre_organismo}
                                 </span>
                               )}
@@ -563,12 +559,12 @@ export default function Ajustes() {
                                   {propuesta.beneficiario_nombre}
                                 </Badge>
                               )}
-                              <span className="text-xs text-[#8b949e]">
+                              <span className="text-xs text-gh-muted">
                                 · Presentada el{" "}
                                 {formatearFecha(propuesta.createdAt)}
                               </span>
                             </div>
-                            <h3 className="text-lg font-semibold text-[#e6edf3]">
+                            <h3 className="text-lg font-semibold text-gh-text">
                               {propuesta.titulo}
                             </h3>
                           </div>
@@ -613,7 +609,7 @@ export default function Ajustes() {
                           </div>
                         </div>
 
-                        <p className="whitespace-pre-line text-sm leading-relaxed text-[#8b949e]">
+                        <p className="whitespace-pre-line text-sm leading-relaxed text-gh-muted">
                           {propuesta.problematica}
                         </p>
 
@@ -624,13 +620,13 @@ export default function Ajustes() {
 
                         {(propuesta.citJustificacion ||
                           propuesta.servicio_generado_id) && (
-                          <div className="rounded-lg border border-[#30363d] bg-[#161b22] p-3.5 text-xs">
+                          <div className="rounded-lg border border-gh-border bg-gh-surface p-3.5 text-xs">
                             <div className="flex flex-wrap items-center justify-between gap-2">
-                              <p className="font-semibold text-[#e6edf3]">
+                              <p className="font-semibold text-gh-text">
                                 Dictamen técnico del CIT
                               </p>
                               {propuesta.citFechaRevision && (
-                                <span className="text-[#8b949e]">
+                                <span className="text-gh-muted">
                                   {formatearFecha(propuesta.citFechaRevision)}
                                   {revisorNombre
                                     ? ` · Evaluador: ${revisorNombre}`
@@ -639,12 +635,12 @@ export default function Ajustes() {
                               )}
                             </div>
                             {propuesta.citJustificacion && (
-                              <p className="mt-1.5 text-[#8b949e]">
+                              <p className="mt-1.5 text-gh-muted">
                                 {propuesta.citJustificacion}
                               </p>
                             )}
                             {propuesta.servicio_generado_id && (
-                              <div className="mt-3 flex flex-wrap items-center justify-between gap-2 rounded-md border border-[#238636]/50 bg-[#238636]/15 px-3 py-2 text-[#3fb950]">
+                              <div className="mt-3 flex flex-wrap items-center justify-between gap-2 rounded-md border border-cit-accent/50 bg-cit-accent/15 px-3 py-2 text-cit-accent-emphasis">
                                 <span>
                                   Esta propuesta fue aprobada e incorporada al catálogo oficial de Servicios.
                                 </span>
@@ -670,12 +666,12 @@ export default function Ajustes() {
           {seccionActiva === "perfil" && (
             <section className="space-y-6" aria-label="Edición de Perfil y Contraseña">
               <Card className="space-y-5">
-                <div className="flex flex-wrap items-center justify-between gap-2 border-b border-[#21262d] pb-3">
+                <div className="flex flex-wrap items-center justify-between gap-2 border-b border-gh-elevated pb-3">
                   <div>
-                    <h2 className="text-lg font-semibold text-[#e6edf3]">
+                    <h2 className="text-lg font-semibold text-gh-text">
                       Editar Información Personal y Tipo de Perfil
                     </h2>
-                    <p className="text-xs text-[#8b949e]">
+                    <p className="text-xs text-gh-muted">
                       Actualizá tus datos personales, URL del avatar, teléfono WhatsApp o configurá tu cuenta como Entidad / Cooperativa.
                     </p>
                   </div>
@@ -697,7 +693,7 @@ export default function Ajustes() {
                     <div className="sm:col-span-2">
                       <label
                         htmlFor="ajustes-tipo-perfil"
-                        className="mb-1.5 block text-xs font-medium text-[#e6edf3]"
+                        className="mb-1.5 block text-xs font-medium text-gh-text"
                       >
                         Modalidad de perfil en CITio
                       </label>
@@ -722,7 +718,7 @@ export default function Ajustes() {
                         <div>
                           <label
                             htmlFor="ajustes-razon-social"
-                            className="mb-1.5 block text-xs font-medium text-[#e6edf3]"
+                            className="mb-1.5 block text-xs font-medium text-gh-text"
                           >
                             Razón social o nombre de la Cooperativa / Entidad *
                           </label>
@@ -740,7 +736,7 @@ export default function Ajustes() {
                         <div>
                           <label
                             htmlFor="ajustes-cuit"
-                            className="mb-1.5 block text-xs font-medium text-[#e6edf3]"
+                            className="mb-1.5 block text-xs font-medium text-gh-text"
                           >
                             CUIT institucional
                           </label>
@@ -759,7 +755,7 @@ export default function Ajustes() {
                     <div>
                       <label
                         htmlFor="ajustes-nombre"
-                        className="mb-1.5 block text-xs font-medium text-[#e6edf3]"
+                        className="mb-1.5 block text-xs font-medium text-gh-text"
                       >
                         Nombre *
                       </label>
@@ -776,7 +772,7 @@ export default function Ajustes() {
                     <div>
                       <label
                         htmlFor="ajustes-apellido"
-                        className="mb-1.5 block text-xs font-medium text-[#e6edf3]"
+                        className="mb-1.5 block text-xs font-medium text-gh-text"
                       >
                         Apellido *
                       </label>
@@ -793,7 +789,7 @@ export default function Ajustes() {
                     <div>
                       <label
                         htmlFor="ajustes-localidad"
-                        className="mb-1.5 block text-xs font-medium text-[#e6edf3]"
+                        className="mb-1.5 block text-xs font-medium text-gh-text"
                       >
                         Localidad / Departamento (Formosa)
                       </label>
@@ -810,7 +806,7 @@ export default function Ajustes() {
                     <div>
                       <label
                         htmlFor="ajustes-whatsapp"
-                        className="mb-1.5 block text-xs font-medium text-[#e6edf3]"
+                        className="mb-1.5 block text-xs font-medium text-gh-text"
                       >
                         Teléfono / WhatsApp (para avisos)
                       </label>
@@ -828,7 +824,7 @@ export default function Ajustes() {
                     <div className="sm:col-span-2">
                       <label
                         htmlFor="ajustes-bio"
-                        className="mb-1.5 block text-xs font-medium text-[#e6edf3]"
+                        className="mb-1.5 block text-xs font-medium text-gh-text"
                       >
                         Información personal o descripción
                       </label>
@@ -847,7 +843,7 @@ export default function Ajustes() {
                     <div className="sm:col-span-2">
                       <label
                         htmlFor="ajustes-avatar"
-                        className="mb-1.5 block text-xs font-medium text-[#e6edf3]"
+                        className="mb-1.5 block text-xs font-medium text-gh-text"
                       >
                         URL del avatar (opcional)
                       </label>
@@ -865,7 +861,7 @@ export default function Ajustes() {
                     <div>
                       <label
                         htmlFor="ajustes-email-readonly"
-                        className="mb-1.5 block text-xs font-medium text-[#8b949e]"
+                        className="mb-1.5 block text-xs font-medium text-gh-muted"
                       >
                         Correo electrónico (no modificable)
                       </label>
@@ -882,7 +878,7 @@ export default function Ajustes() {
                     <div>
                       <label
                         htmlFor="ajustes-rol-readonly"
-                        className="mb-1.5 block text-xs font-medium text-[#8b949e]"
+                        className="mb-1.5 block text-xs font-medium text-gh-muted"
                       >
                         Rol en el sistema (no modificable)
                       </label>
@@ -907,11 +903,11 @@ export default function Ajustes() {
 
               {/* Cambio de Contraseña dentro de Ajustes/Perfil */}
               <Card className="space-y-4">
-                <div className="border-b border-[#21262d] pb-3">
-                  <h2 className="text-lg font-semibold text-[#e6edf3]">
+                <div className="border-b border-gh-elevated pb-3">
+                  <h2 className="text-lg font-semibold text-gh-text">
                     Actualizar Contraseña
                   </h2>
-                  <p className="text-xs text-[#8b949e]">
+                  <p className="text-xs text-gh-muted">
                     Por seguridad, ingresá tu contraseña actual antes de definir una nueva clave.
                   </p>
                 </div>
@@ -921,7 +917,7 @@ export default function Ajustes() {
                     <div>
                       <label
                         htmlFor="ajustes-current-password"
-                        className="mb-1.5 block text-xs font-medium text-[#e6edf3]"
+                        className="mb-1.5 block text-xs font-medium text-gh-text"
                       >
                         Contraseña actual
                       </label>
@@ -943,7 +939,7 @@ export default function Ajustes() {
                     <div>
                       <label
                         htmlFor="ajustes-new-password"
-                        className="mb-1.5 block text-xs font-medium text-[#e6edf3]"
+                        className="mb-1.5 block text-xs font-medium text-gh-text"
                       >
                         Nueva contraseña
                       </label>
@@ -965,7 +961,7 @@ export default function Ajustes() {
                     <div>
                       <label
                         htmlFor="ajustes-confirm-password"
-                        className="mb-1.5 block text-xs font-medium text-[#e6edf3]"
+                        className="mb-1.5 block text-xs font-medium text-gh-text"
                       >
                         Confirmar nueva contraseña
                       </label>
@@ -1006,18 +1002,18 @@ export default function Ajustes() {
               aria-label="Preferencias de Notificaciones y WhatsApp"
             >
               <Card className="space-y-5">
-                <div className="flex flex-wrap items-center justify-between gap-2 border-b border-[#21262d] pb-3">
+                <div className="flex flex-wrap items-center justify-between gap-2 border-b border-gh-elevated pb-3">
                   <div>
-                    <h2 className="text-lg font-semibold text-[#e6edf3]">
+                    <h2 className="text-lg font-semibold text-gh-text">
                       Preferencias de Notificaciones
                     </h2>
-                    <p className="text-xs text-[#8b949e]">
+                    <p className="text-xs text-gh-muted">
                       Elegí qué avisos querés recibir en la campanilla de CITio y por WhatsApp.
                     </p>
                   </div>
                   <Link
                     to="/notificaciones"
-                    className="text-xs font-semibold text-[#58a6ff] hover:underline"
+                    className="text-xs font-semibold text-status-info hover:underline"
                   >
                     Ver Centro de Notificaciones →
                   </Link>
@@ -1027,13 +1023,13 @@ export default function Ajustes() {
                   onSubmit={handleSavePreferenciasNotificacion}
                   className="space-y-4"
                 >
-                  <div className="divide-y divide-[#21262d] rounded-xl border border-[#21262d] bg-[#0d1117]/70">
+                  <div className="divide-y divide-gh-elevated rounded-xl border border-gh-elevated bg-gh-canvas/70">
                     <label className="flex cursor-pointer items-center justify-between gap-4 p-3.5">
                       <div>
-                        <p className="text-sm font-semibold text-[#e6edf3]">
+                        <p className="text-sm font-semibold text-gh-text">
                           Noticias y publicaciones técnicas
                         </p>
-                        <p className="text-xs text-[#8b949e]">
+                        <p className="text-xs text-gh-muted">
                           Alertas sanitarias, artículos científicos y boletines del CIT Formosa.
                         </p>
                       </div>
@@ -1047,16 +1043,16 @@ export default function Ajustes() {
                             noticias_publicaciones: e.target.checked,
                           }))
                         }
-                        className="h-4 w-4 rounded border-[#30363d] bg-[#161b22] text-[#238636]"
+                        className="h-4 w-4 rounded border-gh-border bg-gh-surface text-cit-accent"
                       />
                     </label>
 
                     <label className="flex cursor-pointer items-center justify-between gap-4 p-3.5">
                       <div>
-                        <p className="text-sm font-semibold text-[#e6edf3]">
+                        <p className="text-sm font-semibold text-gh-text">
                           Estado y dictamen de mis propuestas
                         </p>
-                        <p className="text-xs text-[#8b949e]">
+                        <p className="text-xs text-gh-muted">
                           Avisos cuando el CIT toma una propuesta en revisión o emite su dictamen técnico.
                         </p>
                       </div>
@@ -1070,16 +1066,16 @@ export default function Ajustes() {
                             cambios_propuestas: e.target.checked,
                           }))
                         }
-                        className="h-4 w-4 rounded border-[#30363d] bg-[#161b22] text-[#238636]"
+                        className="h-4 w-4 rounded border-gh-border bg-gh-surface text-cit-accent"
                       />
                     </label>
 
                     <label className="flex cursor-pointer items-center justify-between gap-4 p-3.5">
                       <div>
-                        <p className="text-sm font-semibold text-[#e6edf3]">
+                        <p className="text-sm font-semibold text-gh-text">
                           Publicación de nuevos servicios en catálogo
                         </p>
-                        <p className="text-xs text-[#8b949e]">
+                        <p className="text-xs text-gh-muted">
                           Cuando se habilitan nuevos ensayos STAN o una propuesta se convierte en servicio oficial.
                         </p>
                       </div>
@@ -1093,16 +1089,16 @@ export default function Ajustes() {
                             nuevos_servicios: e.target.checked,
                           }))
                         }
-                        className="h-4 w-4 rounded border-[#30363d] bg-[#161b22] text-[#238636]"
+                        className="h-4 w-4 rounded border-gh-border bg-gh-surface text-cit-accent"
                       />
                     </label>
 
                     <label className="flex cursor-pointer items-center justify-between gap-4 p-3.5">
                       <div>
-                        <p className="text-sm font-semibold text-[#e6edf3]">
+                        <p className="text-sm font-semibold text-gh-text">
                           Actividad en mis solicitudes, resultados PDF y capacitaciones
                         </p>
-                        <p className="text-xs text-[#8b949e]">
+                        <p className="text-xs text-gh-muted">
                           Cambios de estado en servicios contratados, entrega digital de informes y cursadas.
                         </p>
                       </div>
@@ -1116,16 +1112,16 @@ export default function Ajustes() {
                             actividad_usuario: e.target.checked,
                           }))
                         }
-                        className="h-4 w-4 rounded border-[#30363d] bg-[#161b22] text-[#238636]"
+                        className="h-4 w-4 rounded border-gh-border bg-gh-surface text-cit-accent"
                       />
                     </label>
 
                     <label className="flex cursor-pointer items-center justify-between gap-4 p-3.5">
                       <div>
-                        <p className="text-sm font-semibold text-[#e6edf3]">
+                        <p className="text-sm font-semibold text-gh-text">
                           Actualizaciones y comunicados de la plataforma
                         </p>
-                        <p className="text-xs text-[#8b949e]">
+                        <p className="text-xs text-gh-muted">
                           Novedades generales de CITio y comunicados institucionales.
                         </p>
                       </div>
@@ -1139,22 +1135,22 @@ export default function Ajustes() {
                             actualizaciones_plataforma: e.target.checked,
                           }))
                         }
-                        className="h-4 w-4 rounded border-[#30363d] bg-[#161b22] text-[#238636]"
+                        className="h-4 w-4 rounded border-gh-border bg-gh-surface text-cit-accent"
                       />
                     </label>
                   </div>
 
                   {/* Canal WhatsApp integrado al Outbox */}
-                  <div className="rounded-xl border border-[#238636]/50 bg-[#0d2e0f]/30 p-4">
+                  <div className="rounded-xl border border-cit-accent/50 bg-cit-forest/30 p-4">
                     <label className="flex cursor-pointer items-center justify-between gap-4">
                       <div className="space-y-1">
                         <div className="flex flex-wrap items-center gap-2">
-                          <p className="text-sm font-semibold text-[#e6edf3]">
+                          <p className="text-sm font-semibold text-gh-text">
                             Recibir alertas automáticas vía WhatsApp
                           </p>
                           <Badge variant="success">Canal Rural Directo</Badge>
                         </div>
-                        <p className="text-xs text-[#8b949e]">
+                        <p className="text-xs text-gh-muted">
                           {perfilForm.telefono_whatsapp
                             ? `Número vinculado: ${perfilForm.telefono_whatsapp}`
                             : "Aún no vinculaste un número de WhatsApp en Ajustes → Perfil."}
@@ -1170,7 +1166,7 @@ export default function Ajustes() {
                             canal_whatsapp: e.target.checked,
                           }))
                         }
-                        className="h-4 w-4 rounded border-[#30363d] bg-[#161b22] text-[#238636]"
+                        className="h-4 w-4 rounded border-gh-border bg-gh-surface text-cit-accent"
                       />
                     </label>
                   </div>
@@ -1189,38 +1185,38 @@ export default function Ajustes() {
           {seccionActiva === "mi-cuenta" && (
             <section className="space-y-6" aria-label="Gestión de Mi Cuenta">
               <Card className="space-y-3">
-                <h2 className="text-lg font-semibold text-[#e6edf3]">
+                <h2 className="text-lg font-semibold text-gh-text">
                   Estado de Mi Cuenta
                 </h2>
-                <div className="grid gap-3 rounded-lg border border-[#21262d] bg-[#0d1117] p-3.5 text-xs sm:grid-cols-3">
+                <div className="grid gap-3 rounded-lg border border-gh-elevated bg-gh-canvas p-3.5 text-xs sm:grid-cols-3">
                   <div>
-                    <span className="text-[#8b949e]">Usuario</span>
+                    <span className="text-gh-muted">Usuario</span>
                     <p className="mt-0.5 font-semibold text-white">
                       @{user.username}
                     </p>
                   </div>
                   <div>
-                    <span className="text-[#8b949e]">Correo registrado</span>
+                    <span className="text-gh-muted">Correo registrado</span>
                     <p className="mt-0.5 font-semibold text-white">
                       {user.email}
                     </p>
                   </div>
                   <div>
-                    <span className="text-[#8b949e]">Rol activo</span>
-                    <p className="mt-0.5 font-semibold text-[#3fb950]">
+                    <span className="text-gh-muted">Rol activo</span>
+                    <p className="mt-0.5 font-semibold text-cit-accent-emphasis">
                       {labelDeRol(user.rol)}
                     </p>
                   </div>
                 </div>
               </Card>
 
-              <Card className="space-y-4 border-[#da3633]/60 bg-[#da3633]/5">
+              <Card className="space-y-4 border-status-danger-emphasis/60 bg-status-danger-emphasis/5">
                 <div className="space-y-1">
                   <Badge variant="danger">Zona de peligro</Badge>
-                  <h2 className="text-lg font-semibold text-[#f85149]">
+                  <h2 className="text-lg font-semibold text-status-danger">
                     Eliminar mi cuenta
                   </h2>
-                  <p className="text-xs leading-relaxed text-[#8b949e]">
+                  <p className="text-xs leading-relaxed text-gh-muted">
                     Al eliminar tu cuenta se desactivará tu acceso a CITio, se cancelarán automáticamente tus solicitudes o propuestas que aún estén en estado <strong>Pendiente</strong> y se anonimizarán tus datos personales preservando la trazabilidad histórica institucional.
                   </p>
                 </div>
@@ -1252,15 +1248,15 @@ export default function Ajustes() {
         title="Confirmar eliminación de cuenta"
       >
         <form onSubmit={handleConfirmarEliminarCuenta} className="space-y-4">
-          <p className="text-xs leading-relaxed text-[#8b949e]">
+          <p className="text-xs leading-relaxed text-gh-muted">
             Esta acción desactivará tu cuenta de forma permanente. Para continuar, ingresá tu contraseña actual y escribí la palabra{" "}
-            <strong className="text-[#f85149]">ELIMINAR</strong>.
+            <strong className="text-status-danger">ELIMINAR</strong>.
           </p>
 
           <div>
             <label
               htmlFor="delete-account-password"
-              className="mb-1.5 block text-xs font-medium text-[#e6edf3]"
+              className="mb-1.5 block text-xs font-medium text-gh-text"
             >
               Contraseña actual *
             </label>
@@ -1277,7 +1273,7 @@ export default function Ajustes() {
           <div>
             <label
               htmlFor="delete-account-confirm"
-              className="mb-1.5 block text-xs font-medium text-[#e6edf3]"
+              className="mb-1.5 block text-xs font-medium text-gh-text"
             >
               Escribí ELIMINAR para confirmar *
             </label>
@@ -1333,11 +1329,11 @@ export default function Ajustes() {
             </div>
 
             {propuestaSeleccionada.beneficiario_nombre && (
-              <div className="rounded-lg border border-[#8957e5]/40 bg-[#8957e5]/10 p-3">
-                <p className="font-semibold text-[#a371f7]">
+              <div className="rounded-lg border border-status-purple-emphasis/40 bg-status-purple-emphasis/10 p-3">
+                <p className="font-semibold text-status-purple">
                   Presentada en representación de productor asociado:
                 </p>
-                <p className="mt-0.5 text-[#e6edf3]">
+                <p className="mt-0.5 text-gh-text">
                   {propuestaSeleccionada.beneficiario_nombre}
                   {propuestaSeleccionada.beneficiario_dni_cuit
                     ? ` · DNI/CUIT: ${propuestaSeleccionada.beneficiario_dni_cuit}`
@@ -1350,64 +1346,64 @@ export default function Ajustes() {
             )}
 
             <div className="space-y-1">
-              <p className="font-semibold text-[#e6edf3]">
+              <p className="font-semibold text-gh-text">
                 Descripción y problemática planteada:
               </p>
-              <p className="whitespace-pre-line leading-relaxed text-[#8b949e]">
+              <p className="whitespace-pre-line leading-relaxed text-gh-muted">
                 {propuestaSeleccionada.problematica}
               </p>
             </div>
 
             {propuestaSeleccionada.bienes_recursos && (
               <div className="space-y-1">
-                <p className="font-semibold text-[#e6edf3]">
+                <p className="font-semibold text-gh-text">
                   Bienes y recursos propuestos:
                 </p>
-                <p className="text-[#8b949e]">
+                <p className="text-gh-muted">
                   {propuestaSeleccionada.bienes_recursos}
                 </p>
               </div>
             )}
 
-            <div className="grid gap-2 rounded-lg border border-[#21262d] bg-[#0d1117] p-3 sm:grid-cols-2">
+            <div className="grid gap-2 rounded-lg border border-gh-elevated bg-gh-canvas p-3 sm:grid-cols-2">
               {propuestaSeleccionada.nombre_organismo && (
                 <div>
-                  <span className="font-semibold text-[#e6edf3]">
+                  <span className="font-semibold text-gh-text">
                     Organismo:{" "}
                   </span>
-                  <span className="text-[#8b949e]">
+                  <span className="text-gh-muted">
                     {propuestaSeleccionada.nombre_organismo}
                   </span>
                 </div>
               )}
               {propuestaSeleccionada.email_contacto && (
                 <div>
-                  <span className="font-semibold text-[#e6edf3]">Correo: </span>
-                  <span className="text-[#8b949e]">
+                  <span className="font-semibold text-gh-text">Correo: </span>
+                  <span className="text-gh-muted">
                     {propuestaSeleccionada.email_contacto}
                   </span>
                 </div>
               )}
               {propuestaSeleccionada.telefono_contacto && (
                 <div>
-                  <span className="font-semibold text-[#e6edf3]">
+                  <span className="font-semibold text-gh-text">
                     Teléfono:{" "}
                   </span>
-                  <span className="text-[#8b949e]">
+                  <span className="text-gh-muted">
                     {propuestaSeleccionada.telefono_contacto}
                   </span>
                 </div>
               )}
               {propuestaSeleccionada.documento_url && (
                 <div>
-                  <span className="font-semibold text-[#e6edf3]">
+                  <span className="font-semibold text-gh-text">
                     Adjunto:{" "}
                   </span>
                   <a
                     href={propuestaSeleccionada.documento_url}
                     target="_blank"
                     rel="noreferrer"
-                    className="text-[#58a6ff] hover:underline"
+                    className="text-status-info hover:underline"
                   >
                     {propuestaSeleccionada.documento_nombre ||
                       "Ver documento adjunto"}
@@ -1422,11 +1418,11 @@ export default function Ajustes() {
             />
 
             {propuestaSeleccionada.citJustificacion && (
-              <div className="rounded-lg border border-[#30363d] bg-[#161b22] p-3">
-                <p className="font-semibold text-[#e6edf3]">
+              <div className="rounded-lg border border-gh-border bg-gh-surface p-3">
+                <p className="font-semibold text-gh-text">
                   Observaciones / Dictamen del CIT:
                 </p>
-                <p className="mt-1 text-[#8b949e]">
+                <p className="mt-1 text-gh-muted">
                   {propuestaSeleccionada.citJustificacion}
                 </p>
               </div>

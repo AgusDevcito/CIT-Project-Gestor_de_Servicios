@@ -8,3 +8,4 @@ export * from "./PageHeader";
 export * from "./SearchFilterBar";
 export * from "./Skeleton";
 export * from "./StatusTimeline";
+export * from "./LinkButton";

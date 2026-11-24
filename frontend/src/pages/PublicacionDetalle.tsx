@@ -196,7 +196,7 @@ export default function PublicacionDetalle() {
       <div className="max-w-3xl space-y-4">
         <Link
           to="/publicaciones"
-          className="text-sm font-medium text-[#58a6ff] hover:underline"
+          className="text-sm font-medium text-status-info hover:underline"
         >
           ← Volver a Publicaciones
         </Link>
@@ -223,7 +223,7 @@ export default function PublicacionDetalle() {
       <div className="flex flex-wrap items-center justify-between gap-3">
         <Link
           to="/publicaciones"
-          className="text-sm font-medium text-[#58a6ff] hover:underline"
+          className="text-sm font-medium text-status-info hover:underline"
         >
           ← Volver a Publicaciones
         </Link>
@@ -267,17 +267,17 @@ export default function PublicacionDetalle() {
         </div>
 
         <div>
-          <h1 className="text-2xl font-bold tracking-tight text-[#e6edf3] sm:text-3xl">
+          <h1 className="text-2xl font-bold tracking-tight text-gh-text sm:text-3xl">
             {publicacion.titulo}
           </h1>
-          <p className="mt-2 text-sm text-[#8b949e]">
+          <p className="mt-2 text-sm text-gh-muted">
             Publicado el {formatearFecha(publicacion.createdAt, "long")}
             {autorVisible ? ` · Por ${autorVisible}` : ""}
           </p>
         </div>
 
-        <div className="border-t border-[#21262d] pt-5">
-          <p className="whitespace-pre-line text-base leading-relaxed text-[#e6edf3]">
+        <div className="border-t border-gh-elevated pt-5">
+          <p className="whitespace-pre-line text-base leading-relaxed text-gh-text">
             {publicacion.contenido}
           </p>
         </div>
@@ -286,12 +286,12 @@ export default function PublicacionDetalle() {
           ["capacitacion", "inscripcion", "jornada"].includes(
             publicacion.tipo_contenido,
           ) && (
-            <div className="flex flex-wrap items-center justify-between gap-3 rounded-lg border border-[#238636]/40 bg-[#0d2e0f]/30 p-4">
+            <div className="flex flex-wrap items-center justify-between gap-3 rounded-lg border border-cit-accent/40 bg-cit-forest/30 p-4">
               <div>
-                <p className="text-sm font-semibold text-[#e6edf3]">
+                <p className="text-sm font-semibold text-gh-text">
                   Inscripción a actividad formativa del CIT
                 </p>
-                <p className="text-xs text-[#8b949e]">
+                <p className="text-xs text-gh-muted">
                   Registrá tu participación para hacer seguimiento desde la sección Mis Capacitaciones de tu perfil.
                 </p>
               </div>
@@ -312,12 +312,12 @@ export default function PublicacionDetalle() {
       {/* Galería de Recursos Visuales y Archivos Adjuntos */}
       {(archivos.length > 0 || isCIT) && (
         <Card className="space-y-5">
-          <div className="flex flex-wrap items-center justify-between gap-2 border-b border-[#21262d] pb-3">
+          <div className="flex flex-wrap items-center justify-between gap-2 border-b border-gh-elevated pb-3">
             <div>
-              <h2 className="text-lg font-semibold text-[#e6edf3]">
+              <h2 className="text-lg font-semibold text-gh-text">
                 Recursos visuales y archivos adjuntos
               </h2>
-              <p className="text-xs text-[#8b949e]">
+              <p className="text-xs text-gh-muted">
                 Imágenes, afiches de jornadas y material audiovisual complementario.
               </p>
             </div>
@@ -325,7 +325,7 @@ export default function PublicacionDetalle() {
           </div>
 
           {archivos.length === 0 ? (
-            <p className="text-sm text-[#8b949e]">
+            <p className="text-sm text-gh-muted">
               Esta publicación aún no tiene recursos visuales adjuntos.
             </p>
           ) : (
@@ -333,10 +333,10 @@ export default function PublicacionDetalle() {
               {archivos.map((archivo) => (
                 <div
                   key={archivo.id}
-                  className="flex flex-col justify-between overflow-hidden rounded-xl border border-[#30363d] bg-[#0d1117]"
+                  className="flex flex-col justify-between overflow-hidden rounded-xl border border-gh-border bg-gh-canvas"
                 >
                   {archivo.tipo === "imagen" ? (
-                    <div className="h-52 w-full overflow-hidden bg-[#161b22]">
+                    <div className="h-52 w-full overflow-hidden bg-gh-surface">
                       <img
                         src={archivo.archivo_url}
                         alt={
@@ -347,14 +347,14 @@ export default function PublicacionDetalle() {
                       />
                     </div>
                   ) : (
-                    <div className="flex h-52 flex-col items-center justify-center bg-[#161b22] p-4 text-center">
+                    <div className="flex h-52 flex-col items-center justify-center bg-gh-surface p-4 text-center">
                       <span className="text-3xl" aria-hidden="true">
                         🎬
                       </span>
-                      <p className="mt-2 text-sm font-medium text-[#e6edf3]">
+                      <p className="mt-2 text-sm font-medium text-gh-text">
                         {archivo.archivo_nombre || "Recurso de video"}
                       </p>
-                      <p className="mt-1 text-xs text-[#8b949e]">
+                      <p className="mt-1 text-xs text-gh-muted">
                         Material audiovisual complementario
                       </p>
                     </div>
@@ -362,10 +362,10 @@ export default function PublicacionDetalle() {
 
                   <div className="flex flex-wrap items-center justify-between gap-2 p-4">
                     <div className="min-w-0 flex-1">
-                      <p className="truncate text-sm font-medium text-[#e6edf3]">
+                      <p className="truncate text-sm font-medium text-gh-text">
                         {archivo.archivo_nombre || "Recurso sin título"}
                       </p>
-                      <p className="text-xs uppercase text-[#8b949e]">
+                      <p className="text-xs uppercase text-gh-muted">
                         {archivo.tipo}
                       </p>
                     </div>
@@ -385,7 +385,7 @@ export default function PublicacionDetalle() {
                           href={archivo.archivo_url}
                           target="_blank"
                           rel="noreferrer"
-                          className="inline-flex items-center rounded-md border border-[#30363d] bg-[#21262d] px-3 py-1.5 text-xs font-medium text-[#58a6ff] hover:bg-[#30363d]"
+                          className="inline-flex items-center rounded-md border border-gh-border bg-gh-elevated px-3 py-1.5 text-xs font-medium text-status-info hover:bg-gh-border"
                         >
                           Abrir video
                         </a>
@@ -412,16 +412,16 @@ export default function PublicacionDetalle() {
           {isCIT && (
             <form
               onSubmit={handleAgregarArchivo}
-              className="mt-4 space-y-4 rounded-xl border border-[#30363d] bg-[#0d1117] p-4"
+              className="mt-4 space-y-4 rounded-xl border border-gh-border bg-gh-canvas p-4"
             >
-              <h3 className="text-sm font-semibold text-[#e6edf3]">
+              <h3 className="text-sm font-semibold text-gh-text">
                 Agregar archivo o recurso visual
               </h3>
               <div className="grid gap-3 sm:grid-cols-4">
                 <div>
                   <label
                     htmlFor="adj-tipo"
-                    className="mb-1 block text-xs text-[#8b949e]"
+                    className="mb-1 block text-xs text-gh-muted"
                   >
                     Tipo
                   </label>
@@ -441,7 +441,7 @@ export default function PublicacionDetalle() {
                 <div className="sm:col-span-2">
                   <label
                     htmlFor="adj-url"
-                    className="mb-1 block text-xs text-[#8b949e]"
+                    className="mb-1 block text-xs text-gh-muted"
                   >
                     URL del recurso *
                   </label>
@@ -459,7 +459,7 @@ export default function PublicacionDetalle() {
                 <div>
                   <label
                     htmlFor="adj-nombre"
-                    className="mb-1 block text-xs text-[#8b949e]"
+                    className="mb-1 block text-xs text-gh-muted"
                   >
                     Nombre / Epígrafe
                   </label>
@@ -500,7 +500,7 @@ export default function PublicacionDetalle() {
                 href={imagenAmpliada.archivo_url}
                 target="_blank"
                 rel="noreferrer"
-                className="text-xs font-medium text-[#58a6ff] hover:underline"
+                className="text-xs font-medium text-status-info hover:underline"
               >
                 Abrir imagen original en pestaña nueva ↗
               </a>

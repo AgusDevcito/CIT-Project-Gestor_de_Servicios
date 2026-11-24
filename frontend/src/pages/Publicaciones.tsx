@@ -11,6 +11,7 @@ import {
   SearchFilterBar,
   Skeleton,
 } from "../components/ui";
+import { LinkButton } from "../components/ui/LinkButton";
 import { useAuth } from "../context/useAuth";
 import { getApiError } from "../domain/errors";
 import {
@@ -352,8 +353,8 @@ export default function Publicaciones() {
               onClick={() => setFiltroCategoria(item.codigo)}
               className={`rounded-full border px-3.5 py-1.5 text-xs font-medium transition-colors ${
                 activo
-                  ? "border-[#2ea043] bg-[#238636]/20 text-[#3fb950]"
-                  : "border-[#30363d] bg-[#161b22] text-[#8b949e] hover:border-[#8b949e] hover:text-[#e6edf3]"
+                  ? "border-cit-accent-hover bg-cit-accent/20 text-cit-accent-emphasis"
+                  : "border-gh-border bg-gh-surface text-gh-muted hover:border-gh-muted hover:text-gh-text"
               }`}
             >
               {item.etiqueta}
@@ -429,14 +430,14 @@ export default function Publicaciones() {
 
       {/* Formulario de Creación / Edición para CIT y Admin */}
       {isCIT && showForm && (
-        <Card className="border-[#2ea043]/50">
+        <Card className="border-cit-accent-hover/50">
           <form onSubmit={handleSubmit} className="space-y-4">
-            <div className="flex flex-wrap items-center justify-between gap-2 border-b border-[#30363d] pb-3">
+            <div className="flex flex-wrap items-center justify-between gap-2 border-b border-gh-border pb-3">
               <div>
-                <h2 className="text-lg font-semibold text-[#e6edf3]">
+                <h2 className="text-lg font-semibold text-gh-text">
                   {editing ? "Editar publicación" : "Nueva publicación institucional"}
                 </h2>
-                <p className="text-xs text-[#8b949e]">
+                <p className="text-xs text-gh-muted">
                   Compartí noticias, anuncios de jornadas, avisos de inscripción o capacitaciones.
                 </p>
               </div>
@@ -449,7 +450,7 @@ export default function Publicaciones() {
               <div className="sm:col-span-2">
                 <label
                   htmlFor="pub-titulo"
-                  className="mb-1.5 block text-xs font-medium text-[#e6edf3]"
+                  className="mb-1.5 block text-xs font-medium text-gh-text"
                 >
                   Título de la publicación *
                 </label>
@@ -468,7 +469,7 @@ export default function Publicaciones() {
               <div>
                 <label
                   htmlFor="pub-categoria"
-                  className="mb-1.5 block text-xs font-medium text-[#e6edf3]"
+                  className="mb-1.5 block text-xs font-medium text-gh-text"
                 >
                   Categoría o tipo *
                 </label>
@@ -503,7 +504,7 @@ export default function Publicaciones() {
               <div>
                 <label
                   htmlFor="pub-sector"
-                  className="mb-1.5 block text-xs font-medium text-[#e6edf3]"
+                  className="mb-1.5 block text-xs font-medium text-gh-text"
                 >
                   Área o sector vinculado *
                 </label>
@@ -527,7 +528,7 @@ export default function Publicaciones() {
               <div>
                 <label
                   htmlFor="pub-imagen-url"
-                  className="mb-1.5 block text-xs font-medium text-[#e6edf3]"
+                  className="mb-1.5 block text-xs font-medium text-gh-text"
                 >
                   Imagen o recurso visual (URL opcional)
                 </label>
@@ -546,7 +547,7 @@ export default function Publicaciones() {
                 <div>
                   <label
                     htmlFor="pub-archivo-tipo"
-                    className="mb-1.5 block text-xs font-medium text-[#e6edf3]"
+                    className="mb-1.5 block text-xs font-medium text-gh-text"
                   >
                     Tipo de recurso
                   </label>
@@ -564,7 +565,7 @@ export default function Publicaciones() {
                 <div>
                   <label
                     htmlFor="pub-archivo-nombre"
-                    className="mb-1.5 block text-xs font-medium text-[#e6edf3]"
+                    className="mb-1.5 block text-xs font-medium text-gh-text"
                   >
                     Epígrafe / Nombre
                   </label>
@@ -582,7 +583,7 @@ export default function Publicaciones() {
               <div className="sm:col-span-2">
                 <label
                   htmlFor="pub-contenido"
-                  className="mb-1.5 block text-xs font-medium text-[#e6edf3]"
+                  className="mb-1.5 block text-xs font-medium text-gh-text"
                 >
                   Descripción o contenido *
                 </label>
@@ -598,12 +599,12 @@ export default function Publicaciones() {
                 />
               </div>
 
-              <div className="sm:col-span-2 flex items-center justify-between rounded-lg border border-[#30363d] bg-[#0d1117] px-4 py-3">
+              <div className="sm:col-span-2 flex items-center justify-between rounded-lg border border-gh-border bg-gh-canvas px-4 py-3">
                 <div>
-                  <p className="text-sm font-medium text-[#e6edf3]">
+                  <p className="text-sm font-medium text-gh-text">
                     Publicar inmediatamente
                   </p>
-                  <p className="text-xs text-[#8b949e]">
+                  <p className="text-xs text-gh-muted">
                     Si desmarcás esta opción, la publicación quedará guardada como borrador visible solo para personal CIT y administradores.
                   </p>
                 </div>
@@ -614,7 +615,7 @@ export default function Publicaciones() {
                   checked={form.publicado}
                   onChange={handleChange}
                   aria-label="Publicar inmediatamente"
-                  className="h-4 w-4 rounded border-[#30363d] bg-[#161b22] text-[#238636] focus:ring-[#2ea043]"
+                  className="h-4 w-4 rounded border-gh-border bg-gh-surface text-cit-accent focus:ring-cit-accent-hover"
                 />
               </div>
             </div>
@@ -691,10 +692,10 @@ export default function Publicaciones() {
               <Card
                 key={publicacion.id}
                 noPadding
-                className="flex flex-col overflow-hidden transition-colors hover:border-[#8b949e]/60"
+                className="flex flex-col overflow-hidden transition-colors hover:border-gh-muted/60"
               >
                 {imagenDestacada && (
-                  <div className="h-44 w-full overflow-hidden border-b border-[#30363d] bg-[#0d1117]">
+                  <div className="h-44 w-full overflow-hidden border-b border-gh-border bg-gh-canvas">
                     <img
                       src={imagenDestacada.archivo_url}
                       alt={
@@ -726,27 +727,27 @@ export default function Publicaciones() {
                     )}
                   </div>
 
-                  <h2 className="mt-3 text-lg font-semibold text-[#e6edf3]">
+                  <h2 className="mt-3 text-lg font-semibold text-gh-text">
                     <Link
                       to={`/publicaciones/${publicacion.id}`}
-                      className="hover:text-[#58a6ff] hover:underline"
+                      className="hover:text-status-info hover:underline"
                     >
                       {publicacion.titulo}
                     </Link>
                   </h2>
 
-                  <p className="mt-2 line-clamp-3 flex-1 text-sm leading-relaxed text-[#8b949e]">
+                  <p className="mt-2 line-clamp-3 flex-1 text-sm leading-relaxed text-gh-muted">
                     {publicacion.contenido}
                   </p>
 
-                  <div className="mt-4 flex flex-wrap items-center justify-between gap-2 border-t border-[#21262d] pt-3 text-xs text-[#8b949e]">
+                  <div className="mt-4 flex flex-wrap items-center justify-between gap-2 border-t border-gh-elevated pt-3 text-xs text-gh-muted">
                     <div className="space-y-0.5">
                       <p>
                         Publicado el {formatearFecha(publicacion.createdAt)}
                         {autorVisible ? ` · Por ${autorVisible}` : ""}
                       </p>
                       {archivos.length > 0 && (
-                        <p className="text-[#58a6ff]">
+                        <p className="text-status-info">
                           {archivos.length}{" "}
                           {archivos.length === 1
                             ? "recurso visual adjunto"
@@ -756,12 +757,9 @@ export default function Publicaciones() {
                     </div>
 
                     <div className="flex flex-wrap items-center gap-2">
-                      <Link
-                        to={`/publicaciones/${publicacion.id}`}
-                        className="inline-flex items-center rounded-md border border-[#30363d] bg-[#21262d] px-3 py-1.5 text-xs font-medium text-[#e6edf3] transition-colors hover:bg-[#30363d]"
-                      >
+                      <LinkButton to={`/publicaciones/${publicacion.id}`} variant="secondary" size="sm">
                         Leer publicación
-                      </Link>
+                      </LinkButton>
 
                       {isCIT && (
                         <>

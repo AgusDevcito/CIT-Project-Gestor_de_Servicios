@@ -1,11 +1,12 @@
 import { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 
 import "./Login.css";
 import "./Register.css";
 import logoCitio from "../../assets/logo-CITio.png";
 import { useAuth } from "../../context/useAuth";
 import { getApiError } from "../../domain/errors";
+import { PasswordField } from "./PasswordField";
 
 interface FormularioRegistro {
   first_name: string;
@@ -28,6 +29,7 @@ export const Register = () => {
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
   const [success, setSuccess] = useState(false);
+  const [confirmPassword, setConfirmPassword] = useState("");
   const { register } = useAuth();
   const navigate = useNavigate();
 
@@ -39,6 +41,12 @@ export const Register = () => {
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setError("");
+
+    if (form.password !== confirmPassword) {
+      setError("Las contraseñas no coinciden.");
+      return;
+    }
+
     setLoading(true);
 
     try {
@@ -68,7 +76,7 @@ export const Register = () => {
         {success ? (
           <div className="form-card form-card-wide">
             <p className="heading">Registro exitoso</p>
-            <p className="text-center text-sm text-slate-300">
+            <p className="form-hint">
               Tu cuenta fue creada correctamente. Ya podés iniciar sesión con tus nuevas
               credenciales.
             </p>
@@ -82,26 +90,38 @@ export const Register = () => {
           <form className="form-card form-card-wide" onSubmit={handleSubmit}>
             <p className="heading">Crear Cuenta</p>
 
-            {error && <div className="error-badge">{error}</div>}
+            {error && (
+              <div role="alert" className="error-badge">
+                {error}
+              </div>
+            )}
 
             <div className="form-row">
               <div className="field">
+                <label htmlFor="reg-first-name" className="field-label">
+                  Nombre
+                </label>
                 <input
+                  id="reg-first-name"
                   type="text"
                   name="first_name"
                   required
-                  placeholder="Nombre"
+                  autoComplete="given-name"
                   className="input-field"
                   value={form.first_name}
                   onChange={handleChange}
                 />
               </div>
               <div className="field">
+                <label htmlFor="reg-last-name" className="field-label">
+                  Apellido
+                </label>
                 <input
+                  id="reg-last-name"
                   type="text"
                   name="last_name"
                   required
-                  placeholder="Apellido"
+                  autoComplete="family-name"
                   className="input-field"
                   value={form.last_name}
                   onChange={handleChange}
@@ -110,12 +130,15 @@ export const Register = () => {
             </div>
 
             <div className="field">
+              <label htmlFor="reg-username" className="field-label">
+                Nombre de usuario
+              </label>
               <input
+                id="reg-username"
                 type="text"
                 name="username"
                 required
                 autoComplete="username"
-                placeholder="Nombre de usuario"
                 className="input-field"
                 value={form.username}
                 onChange={handleChange}
@@ -123,41 +146,57 @@ export const Register = () => {
             </div>
 
             <div className="field">
+              <label htmlFor="reg-email" className="field-label">
+                Correo electrónico
+              </label>
               <input
+                id="reg-email"
                 type="email"
                 name="email"
                 required
-                placeholder="Correo electrónico"
+                autoComplete="email"
+                placeholder="nombre@ejemplo.com"
                 className="input-field"
                 value={form.email}
                 onChange={handleChange}
               />
             </div>
 
-            <div className="field">
-              <input
-                type="password"
-                name="password"
-                required
-                minLength={6}
-                autoComplete="new-password"
-                placeholder="Contraseña"
-                className="input-field"
-                value={form.password}
-                onChange={handleChange}
-              />
-            </div>
+            <PasswordField
+              id="reg-password"
+              name="password"
+              label="Contraseña"
+              autoComplete="new-password"
+              minLength={6}
+              help="Mínimo 6 caracteres."
+              value={form.password}
+              onChange={handleChange}
+            />
+
+            <PasswordField
+              id="reg-confirm-password"
+              name="confirm_password"
+              label="Repetir contraseña"
+              autoComplete="new-password"
+              minLength={6}
+              value={confirmPassword}
+              onChange={(e) => setConfirmPassword(e.target.value)}
+            />
 
             <div className="btn-group">
               <button type="submit" className="button1" disabled={loading}>
                 {loading ? "Registrando…" : "Registrarse"}
               </button>
               <button type="button" className="button2" onClick={() => navigate("/login")}>
-                Volver al Login
+                Ya tengo cuenta
               </button>
             </div>
           </form>
         )}
+
+        <Link to="/" className="back-home">
+          ← Volver al inicio
+        </Link>
       </div>
     </div>
   );

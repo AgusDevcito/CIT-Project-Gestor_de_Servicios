@@ -43,24 +43,24 @@ export function Modal({
         className="fixed inset-0 bg-black/70 backdrop-blur-xs"
       />
       <div
-        className={`relative z-10 w-full ${maxWidthClass} overflow-hidden rounded-lg border border-[#30363d] bg-[#161b22] text-[#e6edf3] shadow-2xl`}
+        className={`relative z-10 w-full ${maxWidthClass} overflow-hidden rounded-lg border border-gh-border bg-gh-surface text-gh-text shadow-2xl`}
       >
-        <div className="flex items-center justify-between border-b border-[#30363d] px-4 py-3">
-          <h2 id="modal-title" className="text-base font-semibold text-[#e6edf3]">
+        <div className="flex items-center justify-between border-b border-gh-border px-4 py-3">
+          <h2 id="modal-title" className="text-base font-semibold text-gh-text">
             {title}
           </h2>
           <button
             type="button"
             onClick={onClose}
             aria-label="Cerrar ventana"
-            className="rounded-md p-1 text-[#8b949e] hover:bg-[#21262d] hover:text-[#e6edf3]"
+            className="rounded-md p-1 text-gh-muted hover:bg-gh-elevated hover:text-gh-text"
           >
             ✕
           </button>
         </div>
         <div className="max-h-[75vh] overflow-y-auto p-4">{children}</div>
         {footer && (
-          <div className="flex items-center justify-end gap-2 border-t border-[#30363d] bg-[#0d1117]/50 px-4 py-3">
+          <div className="flex items-center justify-end gap-2 border-t border-gh-border bg-gh-canvas/50 px-4 py-3">
             {footer}
           </div>
         )}

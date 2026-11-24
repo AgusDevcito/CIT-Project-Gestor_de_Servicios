@@ -28,7 +28,7 @@ const ESTADOS_ACTIVOS = new Set(["PENDIENTE", "APROBADO", "ACEPTADA"]);
 function EstrellasVisuales({ valor }: { valor: number }) {
   const redondeado = Math.round(valor);
   return (
-    <span aria-label={`${valor} de 5 estrellas`} className="inline-flex gap-0.5 text-[#d29922]">
+    <span aria-label={`${valor} de 5 estrellas`} className="inline-flex gap-0.5 text-status-warning">
       {[1, 2, 3, 4, 5].map((estrella) => (
         <span key={estrella}>
           {estrella <= redondeado ? "★" : "☆"}
@@ -209,7 +209,7 @@ export default function ServicioDetalle() {
       <div className="space-y-4">
         <Link
           to="/servicios"
-          className="inline-block text-sm text-[#3fb950] hover:underline"
+          className="inline-block text-sm text-cit-accent-emphasis hover:underline"
         >
           ← Volver a Servicios
         </Link>
@@ -236,7 +236,7 @@ export default function ServicioDetalle() {
       <div>
         <Link
           to="/servicios"
-          className="inline-flex items-center gap-1 text-sm font-medium text-[#3fb950] hover:underline"
+          className="inline-flex items-center gap-1 text-sm font-medium text-cit-accent-emphasis hover:underline"
         >
           ← Volver al catálogo de Servicios
         </Link>
@@ -253,10 +253,10 @@ export default function ServicioDetalle() {
           <div className="flex flex-wrap items-center justify-between gap-2">
             <span>{feedback}</span>
             <Link
-              to="/solicitudes"
+              to={isCIT ? "/solicitudes" : "/mis-servicios"}
               className="font-semibold underline hover:text-white"
             >
-              Ir a Solicitudes →
+              {isCIT ? "Ir a Solicitudes →" : "Ir a Mis Servicios →"}
             </Link>
           </div>
         </Alert>
@@ -279,7 +279,7 @@ export default function ServicioDetalle() {
                   <span className="font-semibold text-white">
                     {promedio.toFixed(1)}
                   </span>
-                  <span className="text-xs text-[#8b949e]">
+                  <span className="text-xs text-gh-muted">
                     ({totalResenas} {totalResenas === 1 ? "reseña" : "reseñas"})
                   </span>
                 </div>
@@ -290,13 +290,13 @@ export default function ServicioDetalle() {
               {servicio.servicio_nombre}
             </h1>
 
-            <p className="mt-1 text-xs text-[#8b949e]">
+            <p className="mt-1 text-xs text-gh-muted">
               Publicado el {formatearFecha(servicio.createdAt, "long")} · Responsable:{" "}
-              <span className="text-slate-300">{proveedorNombre}</span>
+              <span className="text-gh-muted">{proveedorNombre}</span>
             </p>
 
             {servicio.servicio_img && (
-              <div className="mt-5 overflow-hidden rounded-lg border border-[#30363d]">
+              <div className="mt-5 overflow-hidden rounded-lg border border-gh-border">
                 <img
                   src={servicio.servicio_img}
                   alt={servicio.servicio_nombre}
@@ -305,32 +305,32 @@ export default function ServicioDetalle() {
               </div>
             )}
 
-            <div className="mt-6 space-y-4 border-t border-[#30363d] pt-4">
+            <div className="mt-6 space-y-4 border-t border-gh-border pt-4">
               <div>
-                <h2 className="text-sm font-semibold uppercase tracking-wide text-[#3fb950]">
+                <h2 className="text-sm font-semibold uppercase tracking-wide text-cit-accent-emphasis">
                   Descripción y Características del Servicio
                 </h2>
-                <p className="mt-2 whitespace-pre-line text-sm leading-relaxed text-slate-200">
+                <p className="mt-2 whitespace-pre-line text-sm leading-relaxed text-gh-text">
                   {servicio.servicio_description}
                 </p>
               </div>
 
-              <div className="grid gap-3 rounded-lg border border-[#30363d] bg-[#0d1117] p-4 sm:grid-cols-2">
+              <div className="grid gap-3 rounded-lg border border-gh-border bg-gh-canvas p-4 sm:grid-cols-2">
                 <div>
-                  <p className="text-xs text-[#8b949e]">Área / Sector Técnico</p>
+                  <p className="text-xs text-gh-muted">Área / Sector Técnico</p>
                   <p className="mt-0.5 text-sm font-semibold text-white">
                     {servicio.Sector?.nombre || "No especificado"} (
                     {servicio.Sector?.codigo || "—"})
                   </p>
                 </div>
                 <div>
-                  <p className="text-xs text-[#8b949e]">Arancel de Referencia</p>
-                  <p className="mt-0.5 text-sm font-bold text-[#3fb950]">
+                  <p className="text-xs text-gh-muted">Arancel de Referencia</p>
+                  <p className="mt-0.5 text-sm font-bold text-cit-accent-emphasis">
                     {formatearPrecio(servicio.servicio_precio)}
                   </p>
                 </div>
                 <div>
-                  <p className="text-xs text-[#8b949e]">Profesional / Proveedor CIT</p>
+                  <p className="text-xs text-gh-muted">Profesional / Proveedor CIT</p>
                   <p className="mt-0.5 text-sm font-medium text-white">
                     {proveedorNombre}
                     {servicio.Proveedor?.email
@@ -339,7 +339,7 @@ export default function ServicioDetalle() {
                   </p>
                 </div>
                 <div>
-                  <p className="text-xs text-[#8b949e]">Calificación Promedio</p>
+                  <p className="text-xs text-gh-muted">Calificación Promedio</p>
                   <p className="mt-0.5 text-sm font-medium text-white">
                     {promedio !== null && totalResenas > 0
                       ? `${promedio.toFixed(1)} / 5 (${totalResenas} ${
@@ -364,15 +364,15 @@ export default function ServicioDetalle() {
           >
             <div className="space-y-4">
               <div>
-                <p className="text-xs uppercase tracking-wide text-[#8b949e]">
+                <p className="text-xs uppercase tracking-wide text-gh-muted">
                   Arancel
                 </p>
-                <p className="mt-1 text-2xl font-bold text-[#3fb950]">
+                <p className="mt-1 text-2xl font-bold text-cit-accent-emphasis">
                   {formatearPrecio(servicio.servicio_precio)}
                 </p>
               </div>
 
-              <div className="space-y-2 border-t border-[#30363d] pt-3 text-xs text-slate-300">
+              <div className="space-y-2 border-t border-gh-border pt-3 text-xs text-gh-muted">
                 <p className="font-semibold text-white">
                   Condiciones de solicitud:
                 </p>
@@ -397,23 +397,23 @@ export default function ServicioDetalle() {
               {!user ? (
                 <Link
                   to="/login"
-                  className="block w-full rounded-md bg-[#238636] px-4 py-2 text-center text-sm font-semibold text-white hover:bg-[#2ea043]"
+                  className="block w-full rounded-md bg-cit-accent px-4 py-2 text-center text-sm font-semibold text-white hover:bg-cit-accent-hover"
                 >
                   Iniciá sesión para solicitar
                 </Link>
               ) : isCIT ? (
-                <div className="rounded-md border border-[#30363d] bg-[#0d1117] p-3 text-xs text-[#8b949e]">
+                <div className="rounded-md border border-gh-border bg-gh-canvas p-3 text-xs text-gh-muted">
                   Estás visualizando este servicio con rol de gestión CIT. Podés
                   administrar los pedidos recibidos desde{" "}
-                  <Link to="/solicitudes" className="text-[#3fb950] underline">
+                  <Link to="/solicitudes" className="text-cit-accent-emphasis underline">
                     Solicitudes
                   </Link>
                   .
                 </div>
               ) : solicitudActiva ? (
-                <div className="space-y-2 rounded-md border border-[#30363d] bg-[#0d1117] p-3">
+                <div className="space-y-2 rounded-md border border-gh-border bg-gh-canvas p-3">
                   <div className="flex items-center justify-between">
-                    <span className="text-xs font-medium text-slate-300">
+                    <span className="text-xs font-medium text-gh-muted">
                       Estado de tu solicitud:
                     </span>
                     <Badge
@@ -424,14 +424,14 @@ export default function ServicioDetalle() {
                       {solicitudActiva.Estado?.nombre ?? "Pendiente"}
                     </Badge>
                   </div>
-                  <p className="text-xs text-[#8b949e]">
+                  <p className="text-xs text-gh-muted">
                     Ya contás con una solicitud en curso para este servicio.
                   </p>
                   <Link
-                    to="/solicitudes"
-                    className="inline-block text-xs font-semibold text-[#3fb950] hover:underline"
+                    to="/mis-servicios"
+                    className="inline-block text-xs font-semibold text-cit-accent-emphasis hover:underline"
                   >
-                    Ver seguimiento en Solicitudes →
+                    Ver seguimiento en Mis Servicios →
                   </Link>
                 </div>
               ) : (
@@ -445,7 +445,7 @@ export default function ServicioDetalle() {
               )}
 
               {isCIT && (
-                <div className="border-t border-[#30363d] pt-3">
+                <div className="border-t border-gh-border pt-3">
                   <Button
                     variant="danger"
                     className="w-full"
@@ -463,22 +463,22 @@ export default function ServicioDetalle() {
 
       {/* Sección de Calificaciones y Reseñas */}
       <section aria-labelledby="heading-resenas" className="space-y-4">
-        <div className="flex flex-wrap items-center justify-between gap-2 border-b border-[#30363d] pb-3">
+        <div className="flex flex-wrap items-center justify-between gap-2 border-b border-gh-border pb-3">
           <div>
             <h2 id="heading-resenas" className="text-lg font-semibold text-white">
               Calificaciones y Reseñas de Usuarios
             </h2>
-            <p className="text-xs text-[#8b949e]">
+            <p className="text-xs text-gh-muted">
               Experiencias verificadas de usuarios que solicitaron este servicio.
             </p>
           </div>
           {promedio !== null && totalResenas > 0 && (
-            <div className="flex items-center gap-2 rounded-lg border border-[#30363d] bg-[#161b22] px-3 py-1.5">
+            <div className="flex items-center gap-2 rounded-lg border border-gh-border bg-gh-surface px-3 py-1.5">
               <EstrellasVisuales valor={promedio} />
               <span className="text-sm font-bold text-white">
                 {promedio.toFixed(1)} / 5
               </span>
-              <span className="text-xs text-[#8b949e]">
+              <span className="text-xs text-gh-muted">
                 ({totalResenas} {totalResenas === 1 ? "opinión" : "opiniones"})
               </span>
             </div>
@@ -514,12 +514,12 @@ export default function ServicioDetalle() {
             )}
 
             {yaCalifico ? (
-              <p className="text-sm text-[#3fb950]">
+              <p className="text-sm text-cit-accent-emphasis">
                 ✓ Ya registraste tu calificación y reseña para este servicio. ¡Gracias
                 por compartir tu experiencia!
               </p>
             ) : !tieneSolicitudValida ? (
-              <p className="text-sm text-[#8b949e]">
+              <p className="text-sm text-gh-muted">
                 Para mantener la autenticidad de las opiniones, solo los usuarios que
                 hayan solicitado este servicio pueden registrar una calificación y
                 reseña.
@@ -529,7 +529,7 @@ export default function ServicioDetalle() {
                 <div>
                   <label
                     htmlFor="select-calificacion"
-                    className="mb-1.5 block text-xs font-medium text-[#8b949e]"
+                    className="mb-1.5 block text-xs font-medium text-gh-muted"
                   >
                     Tu calificación *
                   </label>
@@ -539,7 +539,7 @@ export default function ServicioDetalle() {
                       aria-label="Seleccionar calificación"
                       value={calificacion}
                       onChange={(e) => setCalificacion(Number(e.target.value))}
-                      className="rounded-md border border-[#30363d] bg-[#0d1117] px-3 py-1.5 text-sm text-white outline-none focus:border-[#3fb950]"
+                      className="rounded-md border border-gh-border bg-gh-canvas px-3 py-1.5 text-sm text-white outline-none focus:border-cit-accent-emphasis"
                     >
                       <option value={5}>5 estrellas — Excelente</option>
                       <option value={4}>4 estrellas — Muy bueno</option>
@@ -554,7 +554,7 @@ export default function ServicioDetalle() {
                 <div>
                   <label
                     htmlFor="comentario-resena"
-                    className="mb-1.5 block text-xs font-medium text-[#8b949e]"
+                    className="mb-1.5 block text-xs font-medium text-gh-muted"
                   >
                     Tu reseña (mínimo 10 caracteres) *
                   </label>
@@ -604,19 +604,19 @@ export default function ServicioDetalle() {
                         {autorNombre}
                       </span>
                       {resena.Autor?.username && (
-                        <span className="text-xs text-[#8b949e]">
+                        <span className="text-xs text-gh-muted">
                           @{resena.Autor.username}
                         </span>
                       )}
                     </div>
                     <div className="flex items-center gap-2">
                       <EstrellasVisuales valor={resena.calificacion} />
-                      <span className="text-xs text-[#8b949e]">
+                      <span className="text-xs text-gh-muted">
                         {formatearFecha(resena.createdAt)}
                       </span>
                     </div>
                   </div>
-                  <p className="mt-2 whitespace-pre-line text-sm text-slate-200">
+                  <p className="mt-2 whitespace-pre-line text-sm text-gh-text">
                     {resena.comentario}
                   </p>
                 </Card>

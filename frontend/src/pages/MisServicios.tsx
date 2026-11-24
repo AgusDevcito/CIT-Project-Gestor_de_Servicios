@@ -13,6 +13,7 @@ import {
   StatusTimeline,
   buildSolicitudTimelineSteps,
 } from "../components/ui";
+import { LinkButton } from "../components/ui/LinkButton";
 import { useAuth } from "../context/useAuth";
 import { getApiError } from "../domain/errors";
 import type { InscripcionCapacitacion, Solicitud } from "../domain/entidades";
@@ -171,18 +172,12 @@ export default function MisServicios() {
         subtitle="Seguimiento en tiempo real de los servicios técnicos que contrataste y de las capacitaciones en las que estás inscripto."
         actions={
           <div className="flex flex-wrap items-center gap-2">
-            <Link
-              to="/servicios"
-              className="inline-flex items-center rounded-md bg-[#238636] px-3.5 py-2 text-xs font-semibold text-white transition-colors hover:bg-[#2ea043]"
-            >
+            <LinkButton to="/servicios">
               Explorar catálogo de servicios
-            </Link>
-            <Link
-              to="/capacitaciones"
-              className="inline-flex items-center rounded-md border border-[#30363d] bg-[#21262d] px-3.5 py-2 text-xs font-medium text-[#e6edf3] transition-colors hover:bg-[#30363d]"
-            >
+            </LinkButton>
+            <LinkButton to="/capacitaciones" variant="secondary">
               Ver capacitaciones
-            </Link>
+            </LinkButton>
           </div>
         }
       />
@@ -203,7 +198,7 @@ export default function MisServicios() {
       <div
         role="tablist"
         aria-label="Secciones de Mis Servicios"
-        className="flex flex-wrap gap-2 border-b border-[#21262d] pb-3"
+        className="flex flex-wrap gap-2 border-b border-gh-elevated pb-3"
       >
         <button
           type="button"
@@ -212,8 +207,8 @@ export default function MisServicios() {
           onClick={() => cambiarTab("todos")}
           className={`rounded-lg px-3.5 py-1.5 text-xs font-semibold transition-colors ${
             tabActiva === "todos"
-              ? "bg-[#238636] text-white"
-              : "border border-[#30363d] bg-[#161b22] text-[#8b949e] hover:text-white"
+              ? "bg-cit-accent text-white"
+              : "border border-gh-border bg-gh-surface text-gh-muted hover:text-white"
           }`}
         >
           Vista completa ({solicitudes.length + capacitaciones.length})
@@ -225,8 +220,8 @@ export default function MisServicios() {
           onClick={() => cambiarTab("solicitados")}
           className={`rounded-lg px-3.5 py-1.5 text-xs font-semibold transition-colors ${
             tabActiva === "solicitados"
-              ? "bg-[#238636] text-white"
-              : "border border-[#30363d] bg-[#161b22] text-[#8b949e] hover:text-white"
+              ? "bg-cit-accent text-white"
+              : "border border-gh-border bg-gh-surface text-gh-muted hover:text-white"
           }`}
         >
           Servicios contratados ({solicitudes.length})
@@ -238,8 +233,8 @@ export default function MisServicios() {
           onClick={() => cambiarTab("capacitaciones")}
           className={`rounded-lg px-3.5 py-1.5 text-xs font-semibold transition-colors ${
             tabActiva === "capacitaciones"
-              ? "bg-[#238636] text-white"
-              : "border border-[#30363d] bg-[#161b22] text-[#8b949e] hover:text-white"
+              ? "bg-cit-accent text-white"
+              : "border border-gh-border bg-gh-surface text-gh-muted hover:text-white"
           }`}
         >
           Capacitaciones inscriptas ({capacitaciones.length})
@@ -251,10 +246,10 @@ export default function MisServicios() {
         <section className="space-y-4" aria-label="Servicios contratados">
           <div className="flex items-center justify-between">
             <div>
-              <h2 className="text-lg font-semibold text-[#e6edf3]">
+              <h2 className="text-lg font-semibold text-gh-text">
                 Servicios contratados
               </h2>
-              <p className="text-xs text-[#8b949e]">
+              <p className="text-xs text-gh-muted">
                 Solicitudes técnicas presentadas ante los laboratorios y áreas del CIT Formosa.
               </p>
             </div>
@@ -271,12 +266,9 @@ export default function MisServicios() {
               title="Aún no contrataste servicios del catálogo"
               description="Explorá el catálogo oficial del CIT para solicitar análisis de laboratorio, diagnósticos o asistencia técnica."
               action={
-                <Link
-                  to="/servicios"
-                  className="inline-flex items-center rounded-md bg-[#238636] px-3.5 py-2 text-xs font-semibold text-white hover:bg-[#2ea043]"
-                >
+                <LinkButton to="/servicios">
                   Explorar servicios
-                </Link>
+                </LinkButton>
               }
             />
           ) : (
@@ -305,24 +297,24 @@ export default function MisServicios() {
                               En representación de: {sol.beneficiario_nombre}
                             </Badge>
                           )}
-                          <span className="text-xs text-[#8b949e]">
+                          <span className="text-xs text-gh-muted">
                             Solicitud #{sol.id} ·{" "}
                             {formatearFecha(
                               sol.fecha_solicitud || sol.createdAt,
                             )}
                           </span>
                           {sol.Servicio?.servicio_precio !== undefined && (
-                            <span className="text-xs font-medium text-[#3fb950]">
+                            <span className="text-xs font-medium text-cit-accent-emphasis">
                               · Arancel:{" "}
                               {formatearPrecio(sol.Servicio.servicio_precio)}
                             </span>
                           )}
                         </div>
 
-                        <h3 className="text-lg font-semibold text-[#e6edf3]">
+                        <h3 className="text-lg font-semibold text-gh-text">
                           <Link
                             to={`/servicios/${sol.servicio_id}`}
-                            className="hover:text-[#58a6ff] hover:underline"
+                            className="hover:text-status-info hover:underline"
                           >
                             {nombreServicio}
                           </Link>
@@ -333,12 +325,9 @@ export default function MisServicios() {
                         <Badge variant={badgeVariantPorEstado(codigoEstado)}>
                           {sol.Estado?.nombre ?? codigoEstado}
                         </Badge>
-                        <Link
-                          to={`/servicios/${sol.servicio_id}`}
-                          className="inline-flex items-center rounded-md border border-[#30363d] bg-[#21262d] px-2.5 py-1 text-xs font-medium text-[#e6edf3] hover:bg-[#30363d]"
-                        >
+                        <LinkButton to={`/servicios/${sol.servicio_id}`} variant="secondary" size="sm">
                           Ver detalle
-                        </Link>
+                        </LinkButton>
                         {esPendiente && (
                           <Button
                             type="button"
@@ -369,27 +358,27 @@ export default function MisServicios() {
                     />
 
                     {sol.resultado_archivo_url && (
-                      <div className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-[#238636]/60 bg-[#0d2e0f]/40 p-4">
+                      <div className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-cit-accent/60 bg-cit-forest/40 p-4">
                         <div className="space-y-1">
                           <div className="flex flex-wrap items-center gap-2">
                             <Badge variant="success">
                               Informe Técnico Oficial CIT
                             </Badge>
                             {sol.fecha_entrega_resultado && (
-                              <span className="text-xs text-[#8b949e]">
+                              <span className="text-xs text-gh-muted">
                                 Entregado el{" "}
                                 {formatearFecha(sol.fecha_entrega_resultado)}
                               </span>
                             )}
                           </div>
-                          <p className="text-sm font-semibold text-[#e6edf3]">
+                          <p className="text-sm font-semibold text-gh-text">
                             📄{" "}
                             {sol.resultado_nombre ||
                               `Informe-Resultado-Solicitud-${sol.id}.pdf`}
                           </p>
                           {(sol.resultado_observaciones ||
                             sol.observaciones_cit) && (
-                            <p className="text-xs text-[#8b949e]">
+                            <p className="text-xs text-gh-muted">
                               {sol.resultado_observaciones ||
                                 sol.observaciones_cit}
                             </p>
@@ -401,7 +390,7 @@ export default function MisServicios() {
                           download={sol.resultado_nombre || true}
                           target="_blank"
                           rel="noreferrer"
-                          className="inline-flex items-center gap-1.5 rounded-md bg-[#238636] px-3.5 py-2 text-xs font-semibold text-white transition-colors hover:bg-[#2ea043]"
+                          className="inline-flex items-center gap-1.5 rounded-md bg-cit-accent px-3.5 py-2 text-xs font-semibold text-white transition-colors hover:bg-cit-accent-hover"
                         >
                           Descargar Resultado Oficial (PDF)
                         </a>
@@ -420,10 +409,10 @@ export default function MisServicios() {
         <section className="space-y-4" aria-label="Capacitaciones inscriptas">
           <div className="flex items-center justify-between">
             <div>
-              <h2 className="text-lg font-semibold text-[#e6edf3]">
+              <h2 className="text-lg font-semibold text-gh-text">
                 Capacitaciones en las que estoy inscripto
               </h2>
-              <p className="text-xs text-[#8b949e]">
+              <p className="text-xs text-gh-muted">
                 Talleres, cursos y jornadas formativas del CIT Formosa con tu progreso actual.
               </p>
             </div>
@@ -439,12 +428,9 @@ export default function MisServicios() {
               title="No estás inscripto en capacitaciones todavía"
               description="Inscribite en talleres y jornadas técnicas desde la nueva sección de Capacitaciones."
               action={
-                <Link
-                  to="/capacitaciones"
-                  className="inline-flex items-center rounded-md bg-[#238636] px-3.5 py-2 text-xs font-semibold text-white hover:bg-[#2ea043]"
-                >
+                <LinkButton to="/capacitaciones">
                   Ir a Capacitaciones
-                </Link>
+                </LinkButton>
               }
             />
           ) : (
@@ -463,14 +449,14 @@ export default function MisServicios() {
                               {insc.Publicacion.Sector.nombre}
                             </Badge>
                           )}
-                          <span className="text-xs text-[#8b949e]">
+                          <span className="text-xs text-gh-muted">
                             Inscripto el {formatearFecha(insc.createdAt)}
                           </span>
                         </div>
-                        <h3 className="text-lg font-semibold text-[#e6edf3]">
+                        <h3 className="text-lg font-semibold text-gh-text">
                           <Link
                             to={`/publicaciones/${insc.publicacion_id}`}
-                            className="hover:text-[#3fb950] hover:underline"
+                            className="hover:text-cit-accent-emphasis hover:underline"
                           >
                             {tituloCap}
                           </Link>
@@ -489,12 +475,9 @@ export default function MisServicios() {
                         >
                           {etiquetaEstadoInscripcion(insc.estado)}
                         </Badge>
-                        <Link
-                          to={`/publicaciones/${insc.publicacion_id}`}
-                          className="inline-flex items-center rounded-md border border-[#30363d] bg-[#21262d] px-2.5 py-1 text-xs font-medium text-[#e6edf3] hover:bg-[#30363d]"
-                        >
+                        <LinkButton to={`/publicaciones/${insc.publicacion_id}`} variant="secondary" size="sm">
                           Ver actividad
-                        </Link>
+                        </LinkButton>
                       </div>
                     </div>
 

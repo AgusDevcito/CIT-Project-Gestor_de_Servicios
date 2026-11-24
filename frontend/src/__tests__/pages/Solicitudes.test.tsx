@@ -109,7 +109,7 @@ describe("pages/Solicitudes (Spec-002 Fase D)", () => {
 
     expect(screen.getByText("403")).toBeInTheDocument();
     expect(
-      screen.getByText("No tienes permisos para acceder a esta sección."),
+      screen.getByText("No tenés permisos para acceder a esta sección."),
     ).toBeInTheDocument();
   });
 

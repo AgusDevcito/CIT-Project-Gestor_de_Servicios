@@ -1,3 +1,4 @@
+import type { ReactNode } from "react";
 import { Navigate, Outlet } from "react-router-dom";
 
 import { useAuth } from "../context/useAuth";
@@ -11,14 +12,41 @@ import type { Rol } from "../domain/roles";
  * - En curso de verificación de sesión: muestra un estado de carga, para no
  *   redirigir antes de tiempo y evitar el "flash" de la pantalla de login.
  */
+/**
+ * Pantalla de estado (carga / 403). `fullScreen` se usa solo fuera del Layout
+ * (login/registro); dentro del Layout ocupa el área de contenido, sin forzar
+ * una altura mayor a la disponible.
+ */
+const PantallaEstado = ({
+  fullScreen = false,
+  children,
+}: {
+  fullScreen?: boolean;
+  children: ReactNode;
+}) => (
+  <div
+    className={`flex flex-col items-center justify-center gap-3 px-4 text-center ${
+      fullScreen ? "min-h-screen bg-gh-canvas" : "min-h-[50vh]"
+    }`}
+  >
+    {children}
+  </div>
+);
+
+const MensajeCarga = () => (
+  <span role="status" className="animate-pulse text-lg text-cit-accent-emphasis">
+    Verificando sesión…
+  </span>
+);
+
 export const ProtectedRoute = ({ roles }: { roles?: readonly Rol[] }) => {
   const { user, status } = useAuth();
 
   if (status === "cargando") {
     return (
-      <div className="flex min-h-screen items-center justify-center bg-cit-900">
-        <span className="animate-pulse text-lg text-cit-neon">Verificando sesión…</span>
-      </div>
+      <PantallaEstado>
+        <MensajeCarga />
+      </PantallaEstado>
     );
   }
 
@@ -28,10 +56,10 @@ export const ProtectedRoute = ({ roles }: { roles?: readonly Rol[] }) => {
 
   if (roles && !roles.includes(user.rol)) {
     return (
-      <div className="flex min-h-screen flex-col items-center justify-center gap-3 bg-cit-900 px-4 text-center">
-        <h1 className="text-3xl font-bold text-cit-neon">403</h1>
-        <p className="text-slate-300">No tienes permisos para acceder a esta sección.</p>
-      </div>
+      <PantallaEstado>
+        <h1 className="text-3xl font-bold text-cit-accent-emphasis">403</h1>
+        <p className="text-gh-muted">No tenés permisos para acceder a esta sección.</p>
+      </PantallaEstado>
     );
   }
 
@@ -47,9 +75,9 @@ export const PublicOnlyRoute = () => {
 
   if (status === "cargando") {
     return (
-      <div className="flex min-h-screen items-center justify-center bg-cit-900">
-        <span className="animate-pulse text-lg text-cit-neon">Verificando sesión…</span>
-      </div>
+      <PantallaEstado fullScreen>
+        <MensajeCarga />
+      </PantallaEstado>
     );
   }
 

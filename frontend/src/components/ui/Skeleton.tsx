@@ -9,7 +9,7 @@ export function Skeleton({ lines = 1, className = "", ...rest }: SkeletonProps) 
     return (
       <div
         aria-hidden="true"
-        className={`h-4 animate-pulse rounded bg-[#21262d] ${className}`}
+        className={`h-4 animate-pulse rounded bg-gh-elevated ${className}`}
         {...rest}
       />
     );
@@ -20,7 +20,7 @@ export function Skeleton({ lines = 1, className = "", ...rest }: SkeletonProps) 
       {Array.from({ length: lines }).map((_, idx) => (
         <div
           key={idx}
-          className={`h-4 animate-pulse rounded bg-[#21262d] ${
+          className={`h-4 animate-pulse rounded bg-gh-elevated ${
             idx === lines - 1 ? "w-3/4" : "w-full"
           }`}
         />

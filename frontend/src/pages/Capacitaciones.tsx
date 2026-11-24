@@ -14,6 +14,7 @@ import {
   StatusTimeline,
   type TimelineStep,
 } from "../components/ui";
+import { LinkButton } from "../components/ui/LinkButton";
 import { useAuth } from "../context/useAuth";
 import { getApiError } from "../domain/errors";
 import type {
@@ -309,20 +310,14 @@ export default function Capacitaciones() {
         actions={
           <div className="flex flex-wrap items-center gap-2">
             {user && (
-              <Link
-                to="/mis-servicios?tab=capacitaciones"
-                className="inline-flex items-center rounded-md border border-[#30363d] bg-[#21262d] px-3.5 py-2 text-xs font-medium text-[#e6edf3] transition-colors hover:bg-[#30363d]"
-              >
+              <LinkButton to="/mis-servicios?tab=capacitaciones" variant="secondary">
                 Ver mis capacitaciones ({misInscripciones.length})
-              </Link>
+              </LinkButton>
             )}
             {isCIT && (
-              <Link
-                to="/publicaciones"
-                className="inline-flex items-center rounded-md bg-[#238636] px-3.5 py-2 text-xs font-semibold text-white transition-colors hover:bg-[#2ea043]"
-              >
+              <LinkButton to="/publicaciones">
                 Gestionar actividades en Publicaciones
-              </Link>
+              </LinkButton>
             )}
           </div>
         }
@@ -382,12 +377,9 @@ export default function Capacitaciones() {
           title="No se encontraron capacitaciones con esos filtros"
           description="Probá limpiando los filtros de búsqueda o consultá todas las publicaciones técnicas del CIT."
           action={
-            <Link
-              to="/publicaciones"
-              className="inline-flex items-center rounded-md bg-[#238636] px-3.5 py-2 text-xs font-semibold text-white hover:bg-[#2ea043]"
-            >
+            <LinkButton to="/publicaciones">
               Explorar todas las publicaciones
-            </Link>
+            </LinkButton>
           }
         />
       ) : (
@@ -399,7 +391,7 @@ export default function Capacitaciones() {
             return (
               <Card
                 key={cap.id}
-                className="flex flex-col justify-between space-y-4 border-[#30363d]"
+                className="flex flex-col justify-between space-y-4 border-gh-border"
               >
                 <div className="space-y-3">
                   <div className="flex flex-wrap items-center justify-between gap-2">
@@ -409,21 +401,21 @@ export default function Capacitaciones() {
                         <Badge variant="neutral">{cap.Sector.nombre}</Badge>
                       )}
                     </div>
-                    <span className="text-xs text-[#8b949e]">
+                    <span className="text-xs text-gh-muted">
                       {formatearFecha(cap.createdAt)}
                     </span>
                   </div>
 
-                  <h2 className="text-lg font-bold text-[#e6edf3]">
+                  <h2 className="text-lg font-bold text-gh-text">
                     <Link
                       to={`/publicaciones/${cap.id}`}
-                      className="hover:text-[#3fb950] hover:underline"
+                      className="hover:text-cit-accent-emphasis hover:underline"
                     >
                       {cap.titulo}
                     </Link>
                   </h2>
 
-                  <p className="text-sm leading-relaxed text-[#8b949e]">
+                  <p className="text-sm leading-relaxed text-gh-muted">
                     {recortarTexto(cap.contenido, 200)}
                   </p>
 
@@ -435,10 +427,10 @@ export default function Capacitaciones() {
                   )}
                 </div>
 
-                <div className="flex flex-wrap items-center justify-between gap-2 border-t border-[#21262d] pt-3">
+                <div className="flex flex-wrap items-center justify-between gap-2 border-t border-gh-elevated pt-3">
                   <Link
                     to={`/publicaciones/${cap.id}`}
-                    className="text-xs font-medium text-[#58a6ff] hover:underline"
+                    className="text-xs font-medium text-status-info hover:underline"
                   >
                     Ver programa completo →
                   </Link>
@@ -475,12 +467,9 @@ export default function Capacitaciones() {
                         </Button>
                       )
                     ) : (
-                      <Link
-                        to="/login"
-                        className="inline-flex items-center rounded-md border border-[#447232]/60 bg-[#14351a] px-3 py-1.5 text-xs font-medium text-white hover:bg-[#1e4b25]"
-                      >
+                      <LinkButton to="/login" variant="secondary" size="sm">
                         Iniciá sesión para inscribirte
-                      </Link>
+                      </LinkButton>
                     )}
                   </div>
                 </div>
@@ -506,7 +495,7 @@ export default function Capacitaciones() {
             <Skeleton className="h-14 w-full rounded-lg" />
           </div>
         ) : inscriptosCIT.length === 0 ? (
-          <p className="text-sm text-[#8b949e]">
+          <p className="text-sm text-gh-muted">
             Aún no hay productores ni usuarios inscriptos en esta actividad.
           </p>
         ) : (
@@ -523,13 +512,13 @@ export default function Capacitaciones() {
               return (
                 <div
                   key={item.id}
-                  className="flex flex-wrap items-center justify-between gap-3 rounded-lg border border-[#30363d] bg-[#0d1117] p-3"
+                  className="flex flex-wrap items-center justify-between gap-3 rounded-lg border border-gh-border bg-gh-canvas p-3"
                 >
                   <div>
-                    <p className="text-sm font-semibold text-[#e6edf3]">
+                    <p className="text-sm font-semibold text-gh-text">
                       {nombreParticipante}
                     </p>
-                    <p className="text-xs text-[#8b949e]">
+                    <p className="text-xs text-gh-muted">
                       {item.Participante?.email
                         ? `${item.Participante.email} · `
                         : ""}

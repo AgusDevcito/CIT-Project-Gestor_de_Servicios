@@ -184,7 +184,7 @@ export default function Servicios() {
       const nuevaSolicitud = await createSolicitud(servicio.id);
       setSolicitudesUsuario((prev) => [nuevaSolicitud, ...prev]);
       setFeedback(
-        `Solicitud registrada para "${servicio.servicio_nombre}". Podés seguir su estado en Solicitudes.`,
+        `Solicitud registrada para "${servicio.servicio_nombre}". Podés seguir su estado en Mis Servicios.`,
       );
     } catch (err) {
       setError(getApiError(err, "No se pudo solicitar el servicio."));
@@ -247,10 +247,10 @@ export default function Servicios() {
           <div className="flex flex-wrap items-center justify-between gap-2">
             <span>{feedback}</span>
             <Link
-              to="/solicitudes"
+              to={isCIT ? "/solicitudes" : "/mis-servicios"}
               className="font-semibold underline hover:text-white"
             >
-              Ver mis solicitudes →
+              {isCIT ? "Ir a Solicitudes →" : "Ver mis solicitudes →"}
             </Link>
           </div>
         </Alert>
@@ -260,7 +260,7 @@ export default function Servicios() {
       {isCIT && showForm && (
         <Card
           header={
-            <h2 className="text-sm font-semibold text-[#3fb950]">
+            <h2 className="text-sm font-semibold text-cit-accent-emphasis">
               Publicar nuevo servicio en el catálogo
             </h2>
           }
@@ -270,7 +270,7 @@ export default function Servicios() {
               <div>
                 <label
                   htmlFor="servicio_nombre"
-                  className="mb-1 block text-xs font-medium text-[#8b949e]"
+                  className="mb-1 block text-xs font-medium text-gh-muted"
                 >
                   Nombre del servicio *
                 </label>
@@ -289,7 +289,7 @@ export default function Servicios() {
               <div>
                 <label
                   htmlFor="servicio_precio"
-                  className="mb-1 block text-xs font-medium text-[#8b949e]"
+                  className="mb-1 block text-xs font-medium text-gh-muted"
                 >
                   Arancel en ARS (0 para &ldquo;Consultar&rdquo;) *
                 </label>
@@ -310,7 +310,7 @@ export default function Servicios() {
               <div>
                 <label
                   htmlFor="sector"
-                  className="mb-1 block text-xs font-medium text-[#8b949e]"
+                  className="mb-1 block text-xs font-medium text-gh-muted"
                 >
                   Área / Sector *
                 </label>
@@ -334,7 +334,7 @@ export default function Servicios() {
               <div>
                 <label
                   htmlFor="servicio_img"
-                  className="mb-1 block text-xs font-medium text-[#8b949e]"
+                  className="mb-1 block text-xs font-medium text-gh-muted"
                 >
                   URL de imagen o documentación (opcional)
                 </label>
@@ -352,7 +352,7 @@ export default function Servicios() {
               <div className="sm:col-span-2">
                 <label
                   htmlFor="servicio_description"
-                  className="mb-1 block text-xs font-medium text-[#8b949e]"
+                  className="mb-1 block text-xs font-medium text-gh-muted"
                 >
                   Descripción, características y requisitos de muestra *
                 </label>
@@ -395,7 +395,7 @@ export default function Servicios() {
           aria-label="Filtrar por sector"
           value={sectorFilter}
           onChange={(e) => setSectorFilter(e.target.value)}
-          className="rounded-md border border-[#30363d] bg-[#0d1117] px-3 py-1.5 text-sm text-[#e6edf3] outline-none focus:border-[#3fb950]"
+          className="input-base sm:w-48"
         >
           <option value="">Todos los sectores</option>
           {sectores.map((sector) => (
@@ -446,15 +446,24 @@ export default function Servicios() {
               <Card
                 key={servicio.id}
                 noPadding
-                className="flex flex-col justify-between transition-colors hover:border-[#447232]"
+                className="flex flex-col justify-between transition-colors hover:border-cit-forest-border"
               >
                 <div>
-                  {servicio.servicio_img && (
+                  {servicio.servicio_img ? (
                     <img
                       src={servicio.servicio_img}
                       alt={servicio.servicio_nombre}
-                      className="h-40 w-full border-b border-[#30363d] object-cover"
+                      className="h-40 w-full border-b border-gh-border object-cover"
                     />
+                  ) : (
+                    <div
+                      aria-hidden="true"
+                      className="flex h-40 w-full items-center justify-center border-b border-gh-border bg-gradient-to-br from-cit-forest to-gh-canvas text-5xl font-bold text-cit-forest-border"
+                    >
+                      {(servicio.Sector?.nombre ?? servicio.servicio_nombre)
+                        .charAt(0)
+                        .toUpperCase()}
+                    </div>
                   )}
                   <div className="p-5">
                     <div className="flex items-start justify-between gap-2">
@@ -464,15 +473,15 @@ export default function Servicios() {
                       {promedio !== null && totalResenas > 0 ? (
                         <span
                           aria-label={`Calificación promedio ${promedio} de 5`}
-                          className="inline-flex items-center gap-1 rounded-full border border-[#9e6a03]/50 bg-[#9e6a03]/15 px-2 py-0.5 text-xs font-semibold text-[#d29922]"
+                          className="inline-flex items-center gap-1 rounded-full border border-status-warning-emphasis/50 bg-status-warning-emphasis/15 px-2 py-0.5 text-xs font-semibold text-status-warning"
                         >
                           ★ {promedio.toFixed(1)}{" "}
-                          <span className="font-normal text-[#8b949e]">
+                          <span className="font-normal text-gh-muted">
                             ({totalResenas})
                           </span>
                         </span>
                       ) : (
-                        <span className="text-xs text-[#8b949e]">
+                        <span className="text-xs text-gh-muted">
                           Sin calificaciones
                         </span>
                       )}
@@ -481,25 +490,25 @@ export default function Servicios() {
                     <h2 className="mt-2.5 text-base font-semibold text-white">
                       <Link
                         to={`/servicios/${servicio.id}`}
-                        className="hover:text-[#3fb950] hover:underline"
+                        className="hover:text-cit-accent-emphasis hover:underline"
                       >
                         {servicio.servicio_nombre}
                       </Link>
                     </h2>
 
-                    <p className="mt-1.5 line-clamp-3 text-sm text-slate-300">
+                    <p className="mt-1.5 line-clamp-3 text-sm text-gh-muted">
                       {servicio.servicio_description}
                     </p>
                   </div>
                 </div>
 
-                <div className="border-t border-[#30363d] bg-[#0d1117]/50 px-5 py-3.5">
+                <div className="border-t border-gh-border bg-gh-canvas/50 px-5 py-3.5">
                   <div className="flex items-center justify-between gap-2">
                     <div>
-                      <p className="text-sm font-bold text-[#3fb950]">
+                      <p className="text-sm font-bold text-cit-accent-emphasis">
                         {formatearPrecio(servicio.servicio_precio)}
                       </p>
-                      <p className="text-xs text-[#8b949e]">
+                      <p className="text-xs text-gh-muted">
                         Responsable: {proveedorNombre}
                       </p>
                     </div>
@@ -507,7 +516,7 @@ export default function Servicios() {
                     <div className="flex items-center gap-2">
                       <Link
                         to={`/servicios/${servicio.id}`}
-                        className="rounded-md border border-[#30363d] bg-[#21262d] px-2.5 py-1.5 text-xs font-medium text-[#e6edf3] transition-colors hover:border-[#8b949e] hover:bg-[#30363d]"
+                        className="rounded-md border border-gh-border bg-gh-elevated px-2.5 py-1.5 text-xs font-medium text-gh-text transition-colors hover:border-gh-muted hover:bg-gh-border"
                       >
                         Ver detalle
                       </Link>

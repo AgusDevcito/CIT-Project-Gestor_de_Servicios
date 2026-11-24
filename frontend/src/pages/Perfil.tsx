@@ -13,6 +13,7 @@ import {
   PageHeader,
   Skeleton,
 } from "../components/ui";
+import { LinkButton } from "../components/ui/LinkButton";
 import { useAuth } from "../context/useAuth";
 import { getApiError } from "../domain/errors";
 import type {
@@ -302,12 +303,9 @@ export default function Perfil() {
         title="Mi Perfil"
         subtitle="Consultá y editá tu información personal, y revisá el estado de tus propuestas, servicios contratados y capacitaciones en CITio."
         actions={
-          <Link
-            to="/ajustes/perfil"
-            className="inline-flex items-center rounded-md bg-[#238636] px-3.5 py-2 text-xs font-semibold text-white transition-colors hover:bg-[#2ea043]"
-          >
+          <LinkButton to="/ajustes/perfil">
             Editar perfil
-          </Link>
+          </LinkButton>
         }
       />
 
@@ -332,11 +330,11 @@ export default function Perfil() {
                 <img
                   src={form.avatar_url}
                   alt={`Avatar de ${nombreVisible}`}
-                  className="h-20 w-20 rounded-full border border-[#30363d] object-cover"
+                  className="h-20 w-20 rounded-full border border-gh-border object-cover"
                 />
               ) : (
                 <div
-                  className="flex h-20 w-20 items-center justify-center rounded-full border border-[#2ea043]/50 bg-[#14351a] text-2xl font-bold text-[#3fb950]"
+                  className="flex h-20 w-20 items-center justify-center rounded-full border border-cit-accent-hover/50 bg-cit-forest-raised text-2xl font-bold text-cit-accent-emphasis"
                   aria-label={`Iniciales de ${nombreVisible}`}
                 >
                   {iniciales}
@@ -344,75 +342,74 @@ export default function Perfil() {
               )}
 
               <div className="min-w-0 flex-1">
-                <h2 className="truncate text-xl font-bold text-[#e6edf3]">
+                <h2 className="truncate text-xl font-bold text-gh-text">
                   {nombreVisible}
                 </h2>
-                <p className="truncate text-sm text-[#8b949e]">
+                <p className="truncate text-sm text-gh-muted">
                   @{user.username}
                 </p>
                 <div className="mt-2 flex flex-wrap items-center gap-2">
                   <Badge variant={badgeVariantPorRol(user.rol)}>
                     {labelDeRol(user.rol)}
                   </Badge>
-                  <Badge variant="success">Cuenta verificada</Badge>
                 </div>
               </div>
             </div>
 
             {form.bio && (
-              <p className="rounded-lg border border-[#21262d] bg-[#0d1117]/70 p-3 text-sm leading-relaxed text-[#e6edf3]">
+              <p className="rounded-lg border border-gh-elevated bg-gh-canvas/70 p-3 text-sm leading-relaxed text-gh-text">
                 {form.bio}
               </p>
             )}
 
-            <dl className="space-y-2.5 border-t border-[#21262d] pt-4 text-xs">
+            <dl className="space-y-2.5 border-t border-gh-elevated pt-4 text-xs">
               <div className="flex items-center justify-between gap-2">
-                <dt className="text-[#8b949e]">Correo electrónico</dt>
-                <dd className="truncate font-medium text-[#e6edf3]">
+                <dt className="text-gh-muted">Correo electrónico</dt>
+                <dd className="truncate font-medium text-gh-text">
                   {user.email}
                 </dd>
               </div>
               <div className="flex items-center justify-between gap-2">
-                <dt className="text-[#8b949e]">Usuario</dt>
-                <dd className="font-medium text-[#e6edf3]">@{user.username}</dd>
+                <dt className="text-gh-muted">Usuario</dt>
+                <dd className="font-medium text-gh-text">@{user.username}</dd>
               </div>
               <div className="flex items-center justify-between gap-2">
-                <dt className="text-[#8b949e]">Nivel de acceso</dt>
-                <dd className="font-medium text-[#e6edf3]">
+                <dt className="text-gh-muted">Nivel de acceso</dt>
+                <dd className="font-medium text-gh-text">
                   {labelDeRol(user.rol)}
                 </dd>
               </div>
             </dl>
 
-            <div className="grid grid-cols-3 gap-2 border-t border-[#21262d] pt-4 text-center">
-              <div className="rounded-lg border border-[#21262d] bg-[#0d1117] p-2">
-                <p className="text-lg font-bold text-[#e6edf3]">
+            <div className="grid grid-cols-3 gap-2 border-t border-gh-elevated pt-4 text-center">
+              <div className="rounded-lg border border-gh-elevated bg-gh-canvas p-2">
+                <p className="text-lg font-bold text-gh-text">
                   {propuestas.length}
                 </p>
-                <p className="text-[11px] text-[#8b949e]">Propuestas</p>
+                <p className="text-xs text-gh-muted">Propuestas</p>
               </div>
-              <div className="rounded-lg border border-[#21262d] bg-[#0d1117] p-2">
-                <p className="text-lg font-bold text-[#e6edf3]">
+              <div className="rounded-lg border border-gh-elevated bg-gh-canvas p-2">
+                <p className="text-lg font-bold text-gh-text">
                   {serviciosContratados.length}
                 </p>
-                <p className="text-[11px] text-[#8b949e]">Servicios</p>
+                <p className="text-xs text-gh-muted">Servicios</p>
               </div>
-              <div className="rounded-lg border border-[#21262d] bg-[#0d1117] p-2">
-                <p className="text-lg font-bold text-[#e6edf3]">
+              <div className="rounded-lg border border-gh-elevated bg-gh-canvas p-2">
+                <p className="text-lg font-bold text-gh-text">
                   {capacitaciones.length}
                 </p>
-                <p className="text-[11px] text-[#8b949e]">Capacitaciones</p>
+                <p className="text-xs text-gh-muted">Capacitaciones</p>
               </div>
             </div>
           </Card>
 
           {/* Seguridad: Cambio de contraseña */}
           <Card className="space-y-4">
-            <div className="border-b border-[#21262d] pb-3">
-              <h2 className="text-base font-semibold text-[#e6edf3]">
+            <div className="border-b border-gh-elevated pb-3">
+              <h2 className="text-base font-semibold text-gh-text">
                 Seguridad de la cuenta
               </h2>
-              <p className="text-xs text-[#8b949e]">
+              <p className="text-xs text-gh-muted">
                 Actualizá tu contraseña de acceso.
               </p>
             </div>
@@ -421,7 +418,7 @@ export default function Perfil() {
               <div>
                 <label
                   htmlFor="perfil-current-password"
-                  className="mb-1 block text-xs font-medium text-[#e6edf3]"
+                  className="mb-1 block text-xs font-medium text-gh-text"
                 >
                   Contraseña actual
                 </label>
@@ -438,7 +435,7 @@ export default function Perfil() {
               <div>
                 <label
                   htmlFor="perfil-new-password"
-                  className="mb-1 block text-xs font-medium text-[#e6edf3]"
+                  className="mb-1 block text-xs font-medium text-gh-text"
                 >
                   Nueva contraseña
                 </label>
@@ -455,7 +452,7 @@ export default function Perfil() {
               <div>
                 <label
                   htmlFor="perfil-confirm-password"
-                  className="mb-1 block text-xs font-medium text-[#e6edf3]"
+                  className="mb-1 block text-xs font-medium text-gh-text"
                 >
                   Confirmar nueva contraseña
                 </label>
@@ -486,11 +483,11 @@ export default function Perfil() {
         <div className="space-y-6 lg:col-span-2">
           {/* 1. Formulario de Información Personal */}
           <Card className="space-y-4">
-            <div className="border-b border-[#21262d] pb-3">
-              <h2 className="text-lg font-semibold text-[#e6edf3]">
+            <div className="border-b border-gh-elevated pb-3">
+              <h2 className="text-lg font-semibold text-gh-text">
                 Información personal
               </h2>
-              <p className="text-xs text-[#8b949e]">
+              <p className="text-xs text-gh-muted">
                 Podés modificar tu nombre, descripción personal y avatar. El correo electrónico, rol y permisos institucionales son administrados por el sistema.
               </p>
             </div>
@@ -500,7 +497,7 @@ export default function Perfil() {
                 <div>
                   <label
                     htmlFor="perfil-nombre"
-                    className="mb-1.5 block text-xs font-medium text-[#e6edf3]"
+                    className="mb-1.5 block text-xs font-medium text-gh-text"
                   >
                     Nombre *
                   </label>
@@ -517,7 +514,7 @@ export default function Perfil() {
                 <div>
                   <label
                     htmlFor="perfil-apellido"
-                    className="mb-1.5 block text-xs font-medium text-[#e6edf3]"
+                    className="mb-1.5 block text-xs font-medium text-gh-text"
                   >
                     Apellido *
                   </label>
@@ -534,7 +531,7 @@ export default function Perfil() {
                 <div className="sm:col-span-2">
                   <label
                     htmlFor="perfil-bio"
-                    className="mb-1.5 block text-xs font-medium text-[#e6edf3]"
+                    className="mb-1.5 block text-xs font-medium text-gh-text"
                   >
                     Información personal o descripción
                   </label>
@@ -553,7 +550,7 @@ export default function Perfil() {
                 <div className="sm:col-span-2">
                   <label
                     htmlFor="perfil-avatar"
-                    className="mb-1.5 block text-xs font-medium text-[#e6edf3]"
+                    className="mb-1.5 block text-xs font-medium text-gh-text"
                   >
                     URL del avatar (opcional)
                   </label>
@@ -572,7 +569,7 @@ export default function Perfil() {
                 <div>
                   <label
                     htmlFor="perfil-email-readonly"
-                    className="mb-1.5 block text-xs font-medium text-[#8b949e]"
+                    className="mb-1.5 block text-xs font-medium text-gh-muted"
                   >
                     Correo electrónico (no modificable)
                   </label>
@@ -589,7 +586,7 @@ export default function Perfil() {
                 <div>
                   <label
                     htmlFor="perfil-rol-readonly"
-                    className="mb-1.5 block text-xs font-medium text-[#8b949e]"
+                    className="mb-1.5 block text-xs font-medium text-gh-muted"
                   >
                     Rol y permisos en el sistema (no modificable)
                   </label>
@@ -614,12 +611,12 @@ export default function Perfil() {
 
           {/* 2. Sección Mis Propuestas */}
           <Card className="space-y-4">
-            <div className="flex flex-wrap items-center justify-between gap-2 border-b border-[#21262d] pb-3">
+            <div className="flex flex-wrap items-center justify-between gap-2 border-b border-gh-elevated pb-3">
               <div>
-                <h2 className="text-lg font-semibold text-[#e6edf3]">
+                <h2 className="text-lg font-semibold text-gh-text">
                   Mis Propuestas
                 </h2>
-                <p className="text-xs text-[#8b949e]">
+                <p className="text-xs text-gh-muted">
                   Propuestas presentadas ante el CIT y resultado de su evaluación técnica.
                 </p>
               </div>
@@ -634,7 +631,7 @@ export default function Perfil() {
                 description="Las propuestas que envíes desde el apartado de Propuestas aparecerán aquí con su estado de revisión."
               />
             ) : (
-              <div className="divide-y divide-[#21262d]">
+              <div className="divide-y divide-gh-elevated">
                 {propuestas.map((prop) => {
                   const codigoEstado = (
                     prop.Estado?.codigo ?? "PENDIENTE"
@@ -646,14 +643,14 @@ export default function Perfil() {
                     >
                       <div className="min-w-0 flex-1 space-y-1">
                         <div className="flex flex-wrap items-center gap-2">
-                          <p className="font-semibold text-[#e6edf3]">
+                          <p className="font-semibold text-gh-text">
                             {prop.titulo}
                           </p>
                           <Badge variant="info">
                             {prop.Sector?.nombre || "Sin área"}
                           </Badge>
                         </div>
-                        <p className="text-xs text-[#8b949e]">
+                        <p className="text-xs text-gh-muted">
                           Presentada el {formatearFecha(prop.createdAt)}
                           {prop.nombre_organismo
                             ? ` · Organismo: ${prop.nombre_organismo}`
@@ -693,12 +690,12 @@ export default function Perfil() {
 
           {/* 3. Sección Mis Servicios */}
           <Card className="space-y-4">
-            <div className="flex flex-wrap items-center justify-between gap-2 border-b border-[#21262d] pb-3">
+            <div className="flex flex-wrap items-center justify-between gap-2 border-b border-gh-elevated pb-3">
               <div>
-                <h2 className="text-lg font-semibold text-[#e6edf3]">
+                <h2 className="text-lg font-semibold text-gh-text">
                   Mis Servicios
                 </h2>
-                <p className="text-xs text-[#8b949e]">
+                <p className="text-xs text-gh-muted">
                   Servicios contratados o solicitados al catálogo del CIT y su estado de seguimiento.
                 </p>
               </div>
@@ -712,16 +709,13 @@ export default function Perfil() {
                 title="No tenés servicios contratados o activos"
                 description="Podés consultar y solicitar ensayos o asistencia técnica en el catálogo de Servicios."
                 action={
-                  <Link
-                    to="/servicios"
-                    className="inline-flex items-center rounded-md border border-[#30363d] bg-[#21262d] px-3 py-1.5 text-xs font-medium text-[#e6edf3] hover:bg-[#30363d]"
-                  >
+                  <LinkButton to="/servicios" variant="secondary" size="sm">
                     Explorar catálogo de servicios
-                  </Link>
+                  </LinkButton>
                 }
               />
             ) : (
-              <div className="divide-y divide-[#21262d]">
+              <div className="divide-y divide-gh-elevated">
                 {serviciosContratados.map((sol) => {
                   const codigoEstado = (
                     sol.Estado?.codigo ?? "PENDIENTE"
@@ -738,11 +732,11 @@ export default function Perfil() {
                         <div>
                           <Link
                             to={`/servicios/${sol.servicio_id}`}
-                            className="font-semibold text-[#e6edf3] hover:text-[#58a6ff] hover:underline"
+                            className="font-semibold text-gh-text hover:text-status-info hover:underline"
                           >
                             {nombreServicio}
                           </Link>
-                          <p className="text-xs text-[#8b949e]">
+                          <p className="text-xs text-gh-muted">
                             Fecha de contratación:{" "}
                             {formatearFecha(
                               sol.fecha_solicitud || sol.createdAt,
@@ -772,8 +766,8 @@ export default function Perfil() {
                         </div>
                       </div>
 
-                      <p className="rounded-md border border-[#21262d] bg-[#0d1117]/70 px-3 py-2 text-xs text-[#8b949e]">
-                        <strong className="text-[#e6edf3]">Seguimiento:</strong>{" "}
+                      <p className="rounded-md border border-gh-elevated bg-gh-canvas/70 px-3 py-2 text-xs text-gh-muted">
+                        <strong className="text-gh-text">Seguimiento:</strong>{" "}
                         {seguimientoDeSolicitud(codigoEstado)}
                       </p>
                     </div>
@@ -785,12 +779,12 @@ export default function Perfil() {
 
           {/* 4. Sección Mis Capacitaciones */}
           <Card className="space-y-4">
-            <div className="flex flex-wrap items-center justify-between gap-2 border-b border-[#21262d] pb-3">
+            <div className="flex flex-wrap items-center justify-between gap-2 border-b border-gh-elevated pb-3">
               <div>
-                <h2 className="text-lg font-semibold text-[#e6edf3]">
+                <h2 className="text-lg font-semibold text-gh-text">
                   Mis Capacitaciones
                 </h2>
-                <p className="text-xs text-[#8b949e]">
+                <p className="text-xs text-gh-muted">
                   Capacitaciones, talleres y jornadas en las que registraste tu inscripción o participación.
                 </p>
               </div>
@@ -804,16 +798,13 @@ export default function Perfil() {
                 title="No registrás inscripciones en capacitaciones"
                 description="Consultá los avisos de inscripción y capacitaciones vigentes en el apartado de Publicaciones."
                 action={
-                  <Link
-                    to="/publicaciones"
-                    className="inline-flex items-center rounded-md border border-[#30363d] bg-[#21262d] px-3 py-1.5 text-xs font-medium text-[#e6edf3] hover:bg-[#30363d]"
-                  >
+                  <LinkButton to="/publicaciones" variant="secondary" size="sm">
                     Ver capacitaciones disponibles
-                  </Link>
+                  </LinkButton>
                 }
               />
             ) : (
-              <div className="divide-y divide-[#21262d]">
+              <div className="divide-y divide-gh-elevated">
                 {capacitaciones.map((insc) => {
                   const pub = insc.Publicacion;
                   return (
@@ -825,12 +816,12 @@ export default function Perfil() {
                         <div className="space-y-1">
                           <Link
                             to={`/publicaciones/${insc.publicacion_id}`}
-                            className="font-semibold text-[#e6edf3] hover:text-[#58a6ff] hover:underline"
+                            className="font-semibold text-gh-text hover:text-status-info hover:underline"
                           >
                             {pub?.titulo ||
                               `Capacitación #${insc.publicacion_id}`}
                           </Link>
-                          <p className="text-xs text-[#8b949e]">
+                          <p className="text-xs text-gh-muted">
                             Inscripto el {formatearFecha(insc.createdAt)}
                             {pub?.Sector?.nombre
                               ? ` · Área: ${pub.Sector.nombre}`
@@ -844,7 +835,7 @@ export default function Perfil() {
                       </div>
 
                       {pub?.contenido && (
-                        <p className="line-clamp-2 text-xs leading-relaxed text-[#8b949e]">
+                        <p className="line-clamp-2 text-xs leading-relaxed text-gh-muted">
                           {pub.contenido}
                         </p>
                       )}
@@ -865,12 +856,12 @@ export default function Perfil() {
       >
         {propuestaDetalle && (
           <div className="space-y-4 text-sm">
-            <div className="flex flex-wrap items-center justify-between gap-2 border-b border-[#30363d] pb-3">
+            <div className="flex flex-wrap items-center justify-between gap-2 border-b border-gh-border pb-3">
               <div className="flex items-center gap-2">
                 <Badge variant="info">
                   {propuestaDetalle.Sector?.nombre || "Sin área"}
                 </Badge>
-                <span className="text-xs text-[#8b949e]">
+                <span className="text-xs text-gh-muted">
                   Presentada el {formatearFecha(propuestaDetalle.createdAt)}
                 </span>
               </div>
@@ -885,46 +876,46 @@ export default function Perfil() {
 
             {propuestaDetalle.nombre_organismo && (
               <div>
-                <p className="text-xs font-semibold uppercase text-[#8b949e]">
+                <p className="text-xs font-semibold uppercase text-gh-muted">
                   Organismo presentante
                 </p>
-                <p className="mt-0.5 text-[#e6edf3]">
+                <p className="mt-0.5 text-gh-text">
                   {propuestaDetalle.nombre_organismo}
                 </p>
               </div>
             )}
 
             <div>
-              <p className="text-xs font-semibold uppercase text-[#8b949e]">
+              <p className="text-xs font-semibold uppercase text-gh-muted">
                 Utilidad y funciones
               </p>
-              <p className="mt-1 whitespace-pre-line text-[#e6edf3]">
+              <p className="mt-1 whitespace-pre-line text-gh-text">
                 {propuestaDetalle.problematica}
               </p>
             </div>
 
             {propuestaDetalle.bienes_recursos && (
               <div>
-                <p className="text-xs font-semibold uppercase text-[#8b949e]">
+                <p className="text-xs font-semibold uppercase text-gh-muted">
                   Bienes y recursos propuestos
                 </p>
-                <p className="mt-1 whitespace-pre-line text-[#e6edf3]">
+                <p className="mt-1 whitespace-pre-line text-gh-text">
                   {propuestaDetalle.bienes_recursos}
                 </p>
               </div>
             )}
 
-            <div className="rounded-lg border border-[#30363d] bg-[#0d1117] p-3.5">
-              <p className="text-xs font-semibold uppercase text-[#3fb950]">
+            <div className="rounded-lg border border-gh-border bg-gh-canvas p-3.5">
+              <p className="text-xs font-semibold uppercase text-cit-accent-emphasis">
                 Resultado de la revisión CIT
               </p>
               {propuestaDetalle.citJustificacion ? (
                 <div className="mt-1.5 space-y-2">
-                  <p className="text-sm text-[#e6edf3]">
+                  <p className="text-sm text-gh-text">
                     {propuestaDetalle.citJustificacion}
                   </p>
                   {propuestaDetalle.citFechaRevision && (
-                    <p className="text-xs text-[#8b949e]">
+                    <p className="text-xs text-gh-muted">
                       Fecha de dictamen:{" "}
                       {formatearFecha(propuestaDetalle.citFechaRevision)}
                     </p>
@@ -933,7 +924,7 @@ export default function Perfil() {
                     <div className="pt-1">
                       <Link
                         to={`/servicios/${propuestaDetalle.servicio_generado_id}`}
-                        className="text-xs font-semibold text-[#58a6ff] hover:underline"
+                        className="text-xs font-semibold text-status-info hover:underline"
                       >
                         Ir al servicio publicado en el catálogo →
                       </Link>
@@ -941,7 +932,7 @@ export default function Perfil() {
                   )}
                 </div>
               ) : (
-                <p className="mt-1 text-xs text-[#8b949e]">
+                <p className="mt-1 text-xs text-gh-muted">
                   Esta propuesta aún no cuenta con un dictamen final emitido.
                 </p>
               )}

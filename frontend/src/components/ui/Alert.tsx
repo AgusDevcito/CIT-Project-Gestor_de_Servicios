@@ -12,13 +12,13 @@ export interface AlertProps {
 
 const VARIANT_CLASSES: Record<AlertVariant, string> = {
   error:
-    "border-[#f85149]/40 bg-[#da3633]/15 text-[#ff7b72]",
+    "border-status-danger/40 bg-status-danger-emphasis/15 text-status-danger",
   success:
-    "border-[#238636]/50 bg-[#238636]/15 text-[#3fb950]",
+    "border-cit-accent/50 bg-cit-accent/15 text-cit-accent-emphasis",
   warning:
-    "border-[#9e6a03]/50 bg-[#9e6a03]/15 text-[#d29922]",
+    "border-status-warning-emphasis/50 bg-status-warning-emphasis/15 text-status-warning",
   info:
-    "border-[#1f6feb]/50 bg-[#1f6feb]/15 text-[#58a6ff]",
+    "border-status-info-emphasis/50 bg-status-info-emphasis/15 text-status-info",
 };
 
 export function Alert({

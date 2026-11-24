@@ -16,17 +16,17 @@ export interface BadgeProps extends HTMLAttributes<HTMLSpanElement> {
 
 const VARIANT_CLASSES: Record<BadgeVariant, string> = {
   neutral:
-    "bg-[#21262d] text-[#e6edf3] border-[#30363d]",
+    "bg-gh-elevated text-gh-text border-gh-border",
   success:
-    "bg-[#238636]/20 text-[#3fb950] border-[#238636]/50",
+    "bg-cit-accent/20 text-cit-accent-emphasis border-cit-accent/50",
   warning:
-    "bg-[#9e6a03]/20 text-[#d29922] border-[#9e6a03]/50",
+    "bg-status-warning-emphasis/20 text-status-warning border-status-warning-emphasis/50",
   danger:
-    "bg-[#da3633]/20 text-[#f85149] border-[#da3633]/50",
+    "bg-status-danger-emphasis/20 text-status-danger border-status-danger-emphasis/50",
   info:
-    "bg-[#1f6feb]/20 text-[#58a6ff] border-[#1f6feb]/50",
+    "bg-status-info-emphasis/20 text-status-info border-status-info-emphasis/50",
   purple:
-    "bg-[#8957e5]/20 text-[#a371f7] border-[#8957e5]/50",
+    "bg-status-purple-emphasis/20 text-status-purple border-status-purple-emphasis/50",
 };
 
 export const badgeVariantPorEstado = (codigo?: string | null): BadgeVariant => {
