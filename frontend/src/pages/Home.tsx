@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 
 import logoCitio from "../assets/logo-CITio.png";
+import logoCitFormosa from "../assets/logo-cit-formosa.jpg";
 import { Alert } from "../components/ui/Alert";
 import { Badge, badgeVariantPorRol } from "../components/ui/Badge";
 import { Card } from "../components/ui/Card";
@@ -76,7 +77,7 @@ export default function Home() {
             <img
               src={logoCitio}
               alt="Logo CITio"
-              className="h-20 w-20 shrink-0 rounded-xl border border-cit-forest-border/60 bg-gh-canvas/60 p-2 object-contain"
+              className="h-28 w-28 shrink-0 object-contain drop-shadow-[0_6px_18px_rgba(35,134,54,0.35)] sm:h-32 sm:w-32"
             />
             <div>
               <div className="flex flex-wrap items-center gap-2">
@@ -477,7 +478,15 @@ export default function Home() {
             </div>
           }
         >
-          <div className="space-y-3 text-sm leading-relaxed text-gh-text">
+          <div className="space-y-4 text-sm leading-relaxed text-gh-text">
+            <div className="flex items-center justify-center rounded-lg border border-gh-border/60 bg-white px-4 py-3 shadow-xs">
+              <img
+                src={logoCitFormosa}
+                alt="Logo oficial CIT Formosa — CONICET, Provincia de Formosa y UNaF"
+                className="max-h-28 w-auto object-contain"
+              />
+            </div>
+
             <p>
               El <strong>Centro de Investigaciones y Transferencia de Formosa (CIT Formosa)</strong> es
               una institución científica y tecnológica de triple dependencia conformada por el{" "}

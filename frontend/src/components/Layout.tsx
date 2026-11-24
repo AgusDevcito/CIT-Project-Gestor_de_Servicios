@@ -192,9 +192,9 @@ export default function Layout() {
       {/* Barra superior de navegación consistente */}
       <header
         aria-label="Barra superior de navegación"
-        className="sticky top-0 z-30 border-b border-cit-forest-border/40 bg-cit-forest px-4 py-2.5 shadow-sm"
+        className="sticky top-0 z-40 flex h-14 items-center border-b border-cit-forest-border/40 bg-cit-forest px-4 shadow-sm"
       >
-        <div className="flex items-center justify-between gap-3">
+        <div className="flex w-full items-center justify-between gap-3">
           {/* Izquierda: botón móvil, toggle para ocultar/mostrar barra lateral, logo y sección activa */}
           <div className="flex items-center gap-2.5">
             <button
@@ -339,14 +339,14 @@ export default function Layout() {
           <div
             onClick={closeMobileMenu}
             aria-hidden="true"
-            className="fixed inset-0 z-30 bg-black/60 backdrop-blur-xs md:hidden"
+            className="fixed inset-0 z-40 bg-black/60 backdrop-blur-xs md:hidden"
           />
         )}
 
         {(sidebarOpen || mobileMenuOpen) && (
           <aside
             aria-label="Navegación principal"
-            className={`fixed inset-y-0 left-0 z-40 flex w-64 shrink-0 flex-col border-r border-cit-forest-border/40 bg-cit-forest transition-transform duration-200 md:sticky md:bottom-auto md:top-14 md:h-[calc(100vh-3.5rem)] md:translate-x-0 md:self-start md:overflow-y-auto ${
+            className={`fixed inset-y-0 left-0 z-50 flex w-64 shrink-0 flex-col border-r border-cit-forest-border/40 bg-cit-forest transition-transform duration-200 md:sticky md:bottom-auto md:top-14 md:z-20 md:h-[calc(100vh-3.5rem)] md:translate-x-0 md:self-start md:overflow-y-auto ${
               mobileMenuOpen ? "translate-x-0" : "-translate-x-full"
             } ${sidebarOpen ? "" : "md:hidden"}`}
           >
